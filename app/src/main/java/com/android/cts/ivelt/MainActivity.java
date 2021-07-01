@@ -405,6 +405,8 @@ public class MainActivity extends AppCompatActivity {
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url != null && url.startsWith("https://www.ivelt.com/")
                     || url.startsWith("http://www.ivelt.com/")
+                    || url.startsWith("https://www.yiddishworld.com/")
+                    || url.startsWith("http://www.yiddishworld.com/")
                     || url.startsWith("https://drive.google.com/")
                     || url.startsWith("https://www.yiddish24.com/")
                     || url.startsWith("https://accounts.google.com/")
