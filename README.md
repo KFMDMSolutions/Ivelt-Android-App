@@ -1,4 +1,4 @@
-# IVELT App for Android Devices (maybe soon windows 11 ;)) (For flip phones as well)
+# IVELT App for Android Devices (maybe soon windows 11 😉) (For flip phones as well)
 
 Ivelt app that can not access any nonkosher websites. Unfortunately, it's not on the Play Store, and there are no plans to launch it there either. If you'd like to see it on Play Store, please let me know in the issues tab (any support is also graciously accepted).
 
@@ -13,7 +13,7 @@ Ivelt app is intended for users running Android Smart/Flipphone (Min SDK 16)
 **Answer:** You have the exact code in front of you, feel free to read it { It's not that bad ;) }. In a nutshell, this app uses Web app features provided by Android.
 
 #### Q: I think there's something that can be improved. How to contribute?
-**A:** We welcome all kinds of contributions. Documentation, Code tests, Actual Hardware Testing, etc etc. Please feel free to create a Pull request and remind me in a couple of weeks if I forget about it :D
+**A:** We welcome all kinds of contributions. Documentation, Code tests, Actual Hardware Testing, etc etc. Please feel free to create a Pull request and remind me in a couple of weeks if I forget about it 😃
 
 #### Q: Is there a version for Flip Phones too?
 **A:** Yes! this app also works on flip phones as it is named with the android.cts.example package name.
