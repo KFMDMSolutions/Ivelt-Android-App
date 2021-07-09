@@ -8,37 +8,24 @@ Official Releases can be seen here:
 **So what does this app do?**  
 Ivelt app is intended for users running Android Smart/Flipphone (Min SDK 16)
 
-## FAQ
-**Question:** So, how does it work?
-
+## Frequently Asked Questions (and Answers)
+#### Question: So, how does it work?
 **Answer:** You have the exact code in front of you, feel free to read it { It's not that bad ;) }. In a nutshell, this app uses Web app features provided by Android.
 
-##
-**Q:** I think there's something that can be improved. How to contribute?
-
+#### Q: I think there's something that can be improved. How to contribute?
 **A:** We welcome all kinds of contributions. Documentation, Code tests, Actual Hardware Testing, etc etc. Please feel free to create a Pull request and remind me in a couple of weeks if I forget about it :D
-##
 
-**Q:** Is there a version for Flip Phones too?
-
+#### Q: Is there a version for Flip Phones too?
 **A:** Yes! this app also works on flip phones as it is named with the android.cts.example package name.
-##
 
-**Q:** Are there ADs?
-
+#### Q: Are there ADs?
 **A:** No, there are no ads, and there won't be any from our end but IVELT does have ads so the ads that are on the site will still come up, but by clicking it you won't be able to access any other sites.
-##
 
- **Q:** Is there any kind of tracking information? Do you sell it for profit?
+#### Q: Is there any kind of tracking information? Do you sell it for profit?
+**A:** No, there is no tracking information collected from the app. No telemetry nothing.
 
- **A:** No, there is no tracking information collected from the app. No telemetry nothing.
-##
-
-**Q:** How do you sustain the project?
-
+#### Q: How do you sustain the project?
 **A:** It's currently on Ad-Hoc basis. This project is not funded by anyone. It totally relies on community support.
-##
-
 
 ## Redistributing and Creating MODs
 We welcome everyone who'd like to work on the application, but I request everyone to stick to the following:
