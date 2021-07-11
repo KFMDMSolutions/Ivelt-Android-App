@@ -34,15 +34,22 @@ import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static android.media.MediaRecorder.VideoSource.CAMERA;
 
@@ -63,9 +70,6 @@ public class MainActivity extends AppCompatActivity {
         mywebView.saveState(outState);
     }
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setNestedScrollingEnabled(true);
         mywebView.setWebViewClient(new CustomWebViewClient());
         mywebView.setWebChromeClient(new WebChromeClient());
+        if (BuildConfig.DEBUG){
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
         initListener();
         WebSettings webSettings = mywebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -111,10 +118,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         });
-
-
-
-
         mywebView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
@@ -147,25 +150,19 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-
-
-
-
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
 
             @Override
             public void onRefresh() {
-                mywebView.loadUrl(currentUrl);
+                if(isIvelt(currentUrl)){
+                    handleIvelt(currentUrl, mywebView);
+                }else{
+                    mywebView.loadUrl(currentUrl);
+                }
             }
 
         });
-
-
-
     }
 
     private void initListener() {
@@ -376,10 +373,55 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void handleIvelt(String url, WebView view){
+        android.util.Log.d("JSOUP", "is ivelt");
+        String useragent = view.getSettings().getUserAgentString();
+        Utils.executeAsync(() -> {
+            try {
+                android.util.Log.d("JSOUP", "starting try");
+                String cookies = CookieManager.getInstance().getCookie(url);
+                android.util.Log.d("JSOUP", "starting with url " + url + " cookies " + cookies + " useragent " + useragent);
+                Document doc = Jsoup.connect(url).cookies(getCookies(cookies)).userAgent(useragent).get();
+                Elements h1 = doc.select("h1");
+                h1.first().html("Ivelt Android App");
+                Elements postButtons = doc.select(".post-buttons");
 
+                android.util.Log.d("JSOUP", "h1 " + h1);
+                android.util.Log.d("JSOUP", "ending try");
+                final String mime = "text/html";
+                final String encoding = "utf-8";
+                String html = doc.outerHtml();
+                runOnUiThread(() -> {
+                    view.loadDataWithBaseURL(url, html, mime, encoding, null);
+                });
+            } catch (IOException e) {
+//                    return false;
+                android.util.Log.d("JSOUP", "error", e);
+            }
+        });
+    }
 
+    private Map<String, String> getCookies (String cookie){
+        Map<String,String> cookies = new HashMap<>();
+        if (cookie == null){
+            return cookies;
+        }
+        String[] cookieArray = cookie.split(";");
+        for (String singleCookie : cookieArray){
+            String[] cookieParts = singleCookie.split("=");
+            if (cookieParts.length == 2){
+                cookies.put(cookieParts[0], cookieParts[1]);
+            }
+        }
+        return cookies;
+    }
 
-
+    private static boolean isIvelt(String url){
+        return  (url != null && (url.startsWith("https://www.ivelt.com/")
+                || url.startsWith("http://www.ivelt.com/")
+                || url.startsWith("https://www.yiddishworld.com/")
+                || url.startsWith("http://www.yiddishworld.com/")));
+    }
 
 
     public class CustomWebViewClient extends WebViewClient {
@@ -389,19 +431,22 @@ public class MainActivity extends AppCompatActivity {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
             this.showProgress();
-
         }
 
+
+
         @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (url != null && url.startsWith("https://www.ivelt.com/")
-                    || url.startsWith("http://www.ivelt.com/")
-                    || url.startsWith("https://www.yiddishworld.com/")
-                    || url.startsWith("http://www.yiddishworld.com/")
-                    || url.startsWith("https://drive.google.com/")
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+
+            String url = request.getUrl().toString();
+            if (isIvelt(url)){
+                handleIvelt(url, view);
+                return true;
+            }
+            if (url != null && ( url.startsWith("https://drive.google.com/")
                     || url.startsWith("https://www.yiddish24.com/")
                     || url.startsWith("https://accounts.google.com/")
-                    || url.startsWith("https://www.dropbox.com/")) {
+                    || url.startsWith("https://www.dropbox.com/"))) {
                 return false;
 
             }
@@ -410,9 +455,6 @@ public class MainActivity extends AppCompatActivity {
             // reject anything other
             return true;
         }
-
-
-
 
 
 

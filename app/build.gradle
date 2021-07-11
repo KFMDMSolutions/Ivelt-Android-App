@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.android.cts.ivelt"
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
         versionName "2.2"
@@ -38,6 +38,7 @@ android {
         implementation "androidx.appcompat:appcompat-resources:1.3.0"
         implementation "androidx.constraintlayout:constraintlayout:2.0.4"
         implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+        implementation 'org.jsoup:jsoup:1.13.1'
         testImplementation 'junit:junit:4.+'
         androidTestImplementation 'androidx.test.ext:junit:1.1.3'
         androidTestImplementation 'androidx.test:runner:1.4.0'
