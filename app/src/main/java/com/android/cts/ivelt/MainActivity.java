@@ -436,19 +436,19 @@ public class MainActivity extends AppCompatActivity {
 
 
         @Override
+
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 
             String url = request.getUrl().toString();
             if (isIvelt(url)){
                 handleIvelt(url, view);
                 return true;
+                    || url.startsWith("https://www.yiddish24.com/")
             }
             if (url != null && ( url.startsWith("https://drive.google.com/")
-                    || url.startsWith("https://www.yiddish24.com/")
                     || url.startsWith("https://accounts.google.com/")
                     || url.startsWith("https://www.dropbox.com/"))) {
                 return false;
-
             }
 
 
