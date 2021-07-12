@@ -85,6 +85,17 @@ public class MainActivity extends AppCompatActivity {
         mywebView.setPadding(0, 0, 0, 0);
         registerForContextMenu(mywebView);
         url = getIntent().getDataString();
+        
+        ActivityCompat.requestPermissions(this, new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+
+
+        }, 0);
+        
+        
 
         if (savedInstanceState != null) {
             mywebView.restoreState(savedInstanceState);
@@ -131,10 +142,8 @@ public class MainActivity extends AppCompatActivity {
                                 == PackageManager.PERMISSION_GRANTED)
                             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                     == PackageManager.PERMISSION_GRANTED) {
-                                downloadFile(fileName, url, userAgent);
-                            } else {
-                                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.CAMERA,}, 1);
-                            }
+                                downloadFile(fileName, url, userAgent);}
+
 
                 } else {
                     downloadFile(fileName, url, userAgent);
