@@ -365,25 +365,70 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-    @Override
+   @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-
         WebView webView = (WebView) v;
         WebView.HitTestResult result = webView.getHitTestResult();
 
-        if (result != null) {
-            if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
-                String linkToCopy = result.getExtra();
-                ClipboardManager clipboard = (ClipboardManager)
-                        getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(getApplicationContext(), "Link Copied!",
-                        Toast.LENGTH_SHORT).show();
+        MenuItem.OnMenuItemClickListener handler = new MenuItem.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getTitle() == "Copy image link") {
+                    String linkToCopy = result.getExtra();
+                    ClipboardManager clipboard = (ClipboardManager)
+                            getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(getApplicationContext(), "Link Copied!",
+                            Toast.LENGTH_SHORT).show();
+                }else if (item.getTitle() == "Save - Download Image") {
+
+                    String DownloadImageURL = result.getExtra();
+
+
+                    if (URLUtil.isValidUrl(DownloadImageURL)) {
+
+
+
+
+                        //TODO set the file name
+                        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
+                        request.allowScanningByMediaScanner();
+                        request.setMimeType(getFileType(url));
+
+
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                        downloadManager.enqueue(request);
+
+                        Toast.makeText(MainActivity.this, "Image Downloaded Successfully.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Sorry.. Something Went Wrong.", Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                return true;
             }
+        };
+
+        if (result.getType() == WebView.HitTestResult.IMAGE_TYPE ||
+                result.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+            menu.setHeaderTitle("Image options");
+            menu.add(0, 2, 1, "Copy image link").setOnMenuItemClickListener(handler);
+            menu.add(0, 1, 0, "Save - Download Image").setOnMenuItemClickListener(handler);
+        } else if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+            String linkToCopy = result.getExtra();
+            ClipboardManager clipboard = (ClipboardManager)
+                    getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(getApplicationContext(), "Link Copied!",
+                    Toast.LENGTH_SHORT).show();
         }
     }
+
+
+
 
 
 
