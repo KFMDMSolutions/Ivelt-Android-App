@@ -110,14 +110,18 @@ public class MainActivity extends AppCompatActivity {
                 WebView webView1 = (WebView) v;
                 WebView.HitTestResult result = webView1.getHitTestResult();
 
-                if (result != null) {
-
-
-                    return false;
-
-                }else
-                    return true;
+                if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+                    String linkToCopy = result.getExtra();
+                    ClipboardManager clipboard = (ClipboardManager)
+                            getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(getApplicationContext(), "Link Copied!",
+                            Toast.LENGTH_SHORT).show();
+                }
+                return false;
             }
+
 
 
         });
@@ -352,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-   @Override
+    @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         WebView webView = (WebView) v;
@@ -375,10 +379,6 @@ public class MainActivity extends AppCompatActivity {
 
                     if (URLUtil.isValidUrl(DownloadImageURL)) {
 
-
-
-
-                        //TODO set the file name if needed
                         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
                         String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
                         request.allowScanningByMediaScanner();
@@ -388,6 +388,7 @@ public class MainActivity extends AppCompatActivity {
                         request.setAllowedOverRoaming(true);
                         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,"ivelt image.jpg");
+
                         DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                         downloadManager.enqueue(request);
 
@@ -406,14 +407,6 @@ public class MainActivity extends AppCompatActivity {
             menu.setHeaderTitle("Image options");
             menu.add(0, 2, 1, "Copy image link").setOnMenuItemClickListener(handler);
             menu.add(0, 1, 0, "Save - Download Image").setOnMenuItemClickListener(handler);
-        } else if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
-            String linkToCopy = result.getExtra();
-            ClipboardManager clipboard = (ClipboardManager)
-                    getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
-            clipboard.setPrimaryClip(clip);
-            Toast.makeText(getApplicationContext(), "Link Copied!",
-                    Toast.LENGTH_SHORT).show();
         }
     }
 
