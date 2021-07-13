@@ -96,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
         }, 0);
         
         
-
         if (savedInstanceState != null) {
             mywebView.restoreState(savedInstanceState);
         } else if (url == null) {
@@ -122,9 +121,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         });
-
-
-
 
         mywebView.setDownloadListener(new DownloadListener() {
             @Override
@@ -153,15 +149,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         });
-
-
-
-
-
-
-
-
-
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
@@ -391,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                        //TODO set the file name
+                        //TODO set the file name if needed
                         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
                         String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
                         request.allowScanningByMediaScanner();
@@ -430,15 +417,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
-
-
-
-
-
-
-
     public class CustomWebViewClient extends WebViewClient {
 
 
@@ -471,11 +449,6 @@ public class MainActivity extends AppCompatActivity {
             // reject anything other
             return true;
         }
-
-
-
-
-
 
         @Override
         public void onPageFinished(WebView view, String url) {
