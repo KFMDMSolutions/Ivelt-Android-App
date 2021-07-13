@@ -393,11 +393,14 @@ public class MainActivity extends AppCompatActivity {
 
                         //TODO set the file name
                         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
+                        String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
                         request.allowScanningByMediaScanner();
-                        request.setMimeType(getFileType(url));
-
-
-                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        request.addRequestHeader("coockie", cookie);
+                        request.setMimeType(getFileType(DownloadImageURL));
+                        request.setAllowedOverMetered(true);
+                        request.setAllowedOverRoaming(true);
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,"ivelt image.jpg");
                         DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                         downloadManager.enqueue(request);
 
