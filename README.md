@@ -2,7 +2,8 @@
 
 Ivelt app that can not access any nonkosher websites. Unfortunately, it's not on the Play Store, and there are no plans to launch it there either. If you'd like to see it on Play Store, please let me know in the issues tab (any support is also graciously accepted).
 
-
+Official Releases can be seen here:  
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/KFMDMSolutions/Ivelt?label=Latest%20Release&style=for-the-badge)](https://github.com/KFMDMSolutions/Ivelt/releases)
 
 **So what does this app do?**  
 Ivelt app is intended for users running Android Smart/Flipphone (Min SDK 16)
