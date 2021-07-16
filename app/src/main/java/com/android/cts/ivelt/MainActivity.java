@@ -79,6 +79,9 @@ public class MainActivity extends AppCompatActivity {
         initListener();
         WebSettings webSettings = mywebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        mywebView.getSettings().setSupportZoom(true);
+        mywebView.getSettings().setBuiltInZoomControls(true);
+        mywebView.getSettings().setDisplayZoomControls(false);
         mywebView.getSettings().setAppCacheEnabled(true);
         mywebView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
         mywebView.setLongClickable(true);
