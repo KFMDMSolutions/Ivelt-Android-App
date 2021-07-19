@@ -3,6 +3,7 @@ package com.kfmdmsolutions.ivelt;
 import android.Manifest;
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
@@ -405,9 +406,24 @@ public class MainActivity extends AppCompatActivity {
                 return false;
 
             } else {
-                view.getContext().startActivity(
-                        new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                try {
+                    startActivity(i);
+                }catch (ActivityNotFoundException activityNotFoundException){
+                    if (
+                            url.startsWith("https://drive.google.com/") ||
+                                    url.startsWith("https://accounts.google.com/") ||
+                                    url.startsWith("https://www.yiddish24.com/") ||
+                                    url.startsWith("https://www.dropbox.com/")) {
+                        return false;
+                    }else{
+                        Toast.makeText(MainActivity.this,"לינק געבלאקט, אשריכם ישראל" ,Toast.LENGTH_LONG).show();
+                    }
+                }
                 return true;
+
+
             }
         }
 
