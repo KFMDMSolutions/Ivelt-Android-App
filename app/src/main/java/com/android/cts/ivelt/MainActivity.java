@@ -404,11 +404,11 @@ public class MainActivity extends AppCompatActivity {
                     || url.startsWith("https://www.dropbox.com/")) {
                 return false;
 
+            } else {
+                view.getContext().startActivity(
+                        new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                return true;
             }
-
-
-            // reject anything other
-            return true;
         }
 
         @Override
