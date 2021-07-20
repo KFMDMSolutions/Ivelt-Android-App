@@ -1,15 +1,13 @@
-package com.android.cts.ivelt;
+package com.kfmdmsolutions.ivelt;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.DownloadManager;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -18,15 +16,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.appcompat.app.AppCompatActivity;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
@@ -39,12 +38,19 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+
+
+
 import java.io.File;
 import java.io.IOException;
+
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static android.media.MediaRecorder.VideoSource.CAMERA;
+
+
+
 
 
 public class MainActivity extends AppCompatActivity {
@@ -53,18 +59,19 @@ public class MainActivity extends AppCompatActivity {
     SwipeRefreshLayout swipeRefreshLayout;
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
-    private static final int REQUEST_CODE_ALBUM = 1;
-    private static final int REQUEST_CODE_CAMERA = 2;
+
+    private static final String TAG = MainActivity.class.getSimpleName();
+    public static final int INPUT_FILE_REQUEST_CODE = 1;
+
+
     private ValueCallback<Uri[]> mFilePathCallback;
+    private String mCameraPhotoPath;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mywebView.saveState(outState);
     }
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,12 +86,23 @@ public class MainActivity extends AppCompatActivity {
         initListener();
         WebSettings webSettings = mywebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        mywebView.getSettings().setSupportZoom(true);
+        mywebView.getSettings().setBuiltInZoomControls(true);
+        mywebView.getSettings().setDisplayZoomControls(false);
         mywebView.getSettings().setAppCacheEnabled(true);
         mywebView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
         mywebView.setLongClickable(true);
         mywebView.setPadding(0, 0, 0, 0);
         registerForContextMenu(mywebView);
         url = getIntent().getDataString();
+
+        ActivityCompat.requestPermissions(this, new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+
+        }, 0);
 
         if (savedInstanceState != null) {
             mywebView.restoreState(savedInstanceState);
@@ -100,20 +118,21 @@ public class MainActivity extends AppCompatActivity {
                 WebView webView1 = (WebView) v;
                 WebView.HitTestResult result = webView1.getHitTestResult();
 
-                if (result != null) {
-
-
-                    return false;
-
-                }else
-                    return true;
+                if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+                    String linkToCopy = result.getExtra();
+                    ClipboardManager clipboard = (ClipboardManager)
+                            getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(getApplicationContext(), "Link Copied!",
+                            Toast.LENGTH_SHORT).show();
+                }
+                return false;
             }
 
 
+
         });
-
-
-
 
         mywebView.setDownloadListener(new DownloadListener() {
             @Override
@@ -132,9 +151,8 @@ public class MainActivity extends AppCompatActivity {
                             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                     == PackageManager.PERMISSION_GRANTED) {
                                 downloadFile(fileName, url, userAgent);
-                            } else {
-                                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.CAMERA,}, 1);
                             }
+
 
                 } else {
                     downloadFile(fileName, url, userAgent);
@@ -142,16 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
-
         });
-
-
-
-
-
-
-
-
 
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -164,141 +173,103 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-
-
     }
 
     private void initListener() {
         mywebView.setWebChromeClient(new WebChromeClient() {
 
-            //For Android5.0+
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+            public boolean onShowFileChooser(
+                    WebView webView, ValueCallback<Uri[]> filePathCallback,
+                    WebChromeClient.FileChooserParams fileChooserParams) {
                 if (mFilePathCallback != null) {
                     mFilePathCallback.onReceiveValue(null);
                 }
                 mFilePathCallback = filePathCallback;
 
-                showChooserDialog();
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                    // Create the File where the photo should go
+                    File photoFile = null;
+                    try {
+                        photoFile = createImageFile();
+                        takePictureIntent.putExtra("PhotoPath", mCameraPhotoPath);
+                    } catch (IOException ex) {
+                        // Error occurred while creating the File
+                        Log.e(TAG, "Unable to create Image File", ex);
+                    }
+
+                    // Continue only if the File was successfully created
+                    if (photoFile != null) {
+                        mCameraPhotoPath = "file:" + photoFile.getAbsolutePath();
+                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                                Uri.fromFile(photoFile));
+                    } else {
+                        takePictureIntent = null;
+                    }
+                }
+
+                Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                contentSelectionIntent.setType("image/*");
+
+                Intent[] intentArray;
+                if (takePictureIntent != null) {
+                    intentArray = new Intent[]{takePictureIntent};
+                } else {
+                    intentArray = new Intent[0];
+                }
+
+                Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
+                chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
+                chooserIntent.putExtra(Intent.EXTRA_TITLE, "Image Chooser");
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+
+                startActivityForResult(chooserIntent, INPUT_FILE_REQUEST_CODE);
+
                 return true;
             }
         });
-
     }
-    private Dialog dialog;
-    private boolean resetCallback = true;
-
-    private void showChooserDialog() {
-        if (dialog == null) {
-            dialog = new Dialog(this);
-            dialog.setTitle(R.string.file_chooser);
-            dialog.setContentView(R.layout.dialog_chooser_layout);
-
-
-            if (dialog.getWindow() != null) {
-                dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            }
-
-            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    if (resetCallback && mFilePathCallback != null) {
-                        mFilePathCallback.onReceiveValue(null);
-                        mFilePathCallback = null;
-                    }
-                    resetCallback = true;
-                }
-            });
-
-            dialog.findViewById(R.id.text_album).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    resetCallback = false;
-                    dialog.dismiss();
-                    Intent albumIntent = new Intent(Intent.ACTION_PICK);
-                    albumIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
-                    startActivityForResult(albumIntent, REQUEST_CODE_ALBUM);
-                }
-            });
-            dialog.findViewById(R.id.text_camera).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    resetCallback = false;
-                    dialog.dismiss();
-
-                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-
-                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                        File photoFile = null;
-                        try {
-                            photoFile = createImageFile();
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-
-                        if (photoFile != null) {
-
-
-                            ContentValues contentValues = new ContentValues(1);
-                            contentValues.put(MediaStore.Images.Media.DATA, photoFile.getAbsolutePath());
-                            Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-                            startActivityForResult(takePictureIntent, CAMERA);
-
-                        }
-                    }
-                }
-            });
-        }
-        dialog.show();
-    }
-
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        return File.createTempFile(imageFileName, ".jpg", storageDir);
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File imageFile = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+        return imageFile;
     }
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        if(requestCode != INPUT_FILE_REQUEST_CODE || mFilePathCallback == null) {
+            super.onActivityResult(requestCode, resultCode, data);
+            return;
+        }
 
-
-    private String mCameraPhotoPath;
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
         Uri[] results = null;
-        if (resultCode == Activity.RESULT_OK) {
-            switch (requestCode) {
-                case REQUEST_CODE_ALBUM:
-                    if (data != null) {
-                        String dataString = data.getDataString();
-                        if (dataString != null) {
-                            results = new Uri[]{Uri.parse(dataString)};
-                            Log.d("CustomChooserActivity", dataString);
-                        }
-                    }
-                    break;
-                case REQUEST_CODE_CAMERA:
-                    if (mCameraPhotoPath != null) {
-                        results = new Uri[]{Uri.parse(mCameraPhotoPath)};
-                        Log.d("CustomChooserActivity", mCameraPhotoPath);
-                    }
-                    break;
+
+        // Check that the response is a good one
+        if(resultCode == Activity.RESULT_OK) {
+            if(data == null) {
+                // If there is not data, then we may have taken a photo
+                if(mCameraPhotoPath != null) {
+                    results = new Uri[]{Uri.parse(mCameraPhotoPath)};
+                }
+            } else {
+                String dataString = data.getDataString();
+                if (dataString != null) {
+                    results = new Uri[]{Uri.parse(dataString)};
+                }
             }
         }
-        if (mFilePathCallback != null) {
-            mFilePathCallback.onReceiveValue(results);
-            mFilePathCallback = null;
-        }
+
+        mFilePathCallback.onReceiveValue(results);
+        mFilePathCallback = null;
+        return;
     }
-
-
-
-
-
-
-
     private void downloadFile(String fileName, String url, String userAgent) {
         try {
             DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
@@ -314,7 +285,6 @@ public class MainActivity extends AppCompatActivity {
                     .setAllowedOverRoaming(true)
                     .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-
 
             downloadManager.enqueue(request);
             sURL = "";
@@ -334,7 +304,6 @@ public class MainActivity extends AppCompatActivity {
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(Uri.parse(url)));
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -347,7 +316,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     public void onBackPressed() {
         if (mywebView.canGoBack()) {
@@ -356,34 +324,63 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
+
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-
         WebView webView = (WebView) v;
         WebView.HitTestResult result = webView.getHitTestResult();
 
-        if (result != null) {
-            if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
-                String linkToCopy = result.getExtra();
-                ClipboardManager clipboard = (ClipboardManager)
-                        getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(getApplicationContext(), "Link Copied!",
-                        Toast.LENGTH_SHORT).show();
+        MenuItem.OnMenuItemClickListener handler = new MenuItem.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getTitle() == "Copy image link") {
+                    String linkToCopy = result.getExtra();
+                    ClipboardManager clipboard = (ClipboardManager)
+                            getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(getApplicationContext(), "Link Copied!",
+                            Toast.LENGTH_SHORT).show();
+                }else if (item.getTitle() == "Save - Download Image") {
+
+                    String DownloadImageURL = result.getExtra();
+
+
+                    if (URLUtil.isValidUrl(DownloadImageURL)) {
+
+                        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
+                        String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
+                        request.allowScanningByMediaScanner();
+                        request.addRequestHeader("coockie", cookie);
+                        request.setMimeType(getFileType(DownloadImageURL));
+                        request.setAllowedOverMetered(true);
+                        request.setAllowedOverRoaming(true);
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,"ivelt image.jpg");
+
+                        DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                        downloadManager.enqueue(request);
+
+                        Toast.makeText(MainActivity.this, "Image Downloaded Successfully.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Sorry.. Something Went Wrong.", Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                return true;
             }
+        };
+
+        if (result.getType() == WebView.HitTestResult.IMAGE_TYPE ||
+                result.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+            menu.setHeaderTitle("Image options");
+            menu.add(0, 2, 1, "Copy image link").setOnMenuItemClickListener(handler);
+            menu.add(0, 1, 0, "Save - Download Image").setOnMenuItemClickListener(handler);
         }
     }
 
-
-
-
-
-
-
     public class CustomWebViewClient extends WebViewClient {
-
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -396,29 +393,35 @@ public class MainActivity extends AppCompatActivity {
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url != null && url.startsWith("https://www.ivelt.com/")
                     || url.startsWith("http://www.ivelt.com/")
-                    || url.startsWith("http://ivelt.com/")
                     || url.startsWith("https://ivelt.com/")
+                    || url.startsWith("http://ivelt.com/")
                     || url.startsWith("https://www.yiddishworld.com/")
                     || url.startsWith("http://www.yiddishworld.com/")
                     || url.startsWith("https://yiddishworld.com/")
-                    || url.startsWith("http://yiddishworld.com/")
-                    || url.startsWith("https://drive.google.com/")
-                    || url.startsWith("https://www.yiddish24.com/")
-                    || url.startsWith("https://accounts.google.com/")
-                    || url.startsWith("https://www.dropbox.com/")) {
+                    || url.startsWith("http://yiddishworld.com/")) {
                 return false;
 
+            } else {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                try {
+                    startActivity(i);
+                }catch (ActivityNotFoundException activityNotFoundException){
+                    if (
+                            url.startsWith("https://drive.google.com/") ||
+                                    url.startsWith("https://accounts.google.com/") ||
+                                    url.startsWith("https://www.yiddish24.com/") ||
+                                    url.startsWith("https://www.dropbox.com/")) {
+                        return false;
+                    }else{
+                        Toast.makeText(MainActivity.this,"לינק געבלאקט, אשריכם ישראל" ,Toast.LENGTH_LONG).show();
+                    }
+                }
+                return true;
+
+
             }
-
-
-            // reject anything other
-            return true;
         }
-
-
-
-
-
 
         @Override
         public void onPageFinished(WebView view, String url) {
@@ -444,10 +447,8 @@ public class MainActivity extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(true);
         }
 
-
         private void hideProgress() {
             swipeRefreshLayout.setRefreshing(false);
-
 
         }
 

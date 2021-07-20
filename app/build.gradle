@@ -7,11 +7,11 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.android.cts.ivelt"
+        applicationId "com.kfmdmsolutions.ivelt"
         minSdkVersion 16
         targetSdkVersion 30
-        versionCode 1
-        versionName "2.2"
+        versionCode 6
+        versionName "2.4"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
