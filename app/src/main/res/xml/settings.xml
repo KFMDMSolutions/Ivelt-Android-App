@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Check for Notifications...">
+        <!--EditTextPreference
+            android:defaultValue="0"
+            android:key="et"
+            android:icon="@drawable/ic_baseline_power_24"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="How often should the app check for notifications when plugged in? "
+            android:dialogMessage="How often should the app check for new notifications? Enter the amount of minutes, or enter 0 for never."
+            android:title="When plugged in" />
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="etb"
+            android:icon="@drawable/ic_baseline_battery_full_24"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="How often should the app check for notifications when on battery? "
+            android:dialogMessage="How often should the app check for new notifications? Enter the amount of minutes, or enter 0 for never."
+            android:title="When on battery" /-->
+        <ListPreference android:title="When plugged in..."
+            android:icon="@drawable/ic_baseline_power_24"
+            android:defaultValue="Never"
+            android:entryValues="@array/notification_settings"
+            android:summary="How often should the app check for notifications when plugged in? "
+            android:key="plugged_in"
+            android:entries="@array/notification_settings"/>
+
+        <ListPreference android:title="When on battery..."
+            android:icon="@drawable/ic_baseline_battery_full_24"
+            android:defaultValue="Never"
+            android:entryValues="@array/notification_settings"
+            android:summary="How often should the app check for notifications when on battery? "
+            android:key="battery"
+            android:entries="@array/notification_settings"/>
+        <CheckBoxPreference
+            android:icon="@drawable/ic_baseline_notifications_paused_24"
+            android:defaultValue="false"
+            android:summary="Pause notifications. Your scheduled update times will be saved."
+            android:title="Pause Notifications"
+            android:key="pause_notifications"
+            />
+    </PreferenceCategory>
+
+
+
+    <PreferenceCategory android:title="Show Notifications For...">
+        <CheckBoxPreference
+            android:icon="@drawable/ic_baseline_message_24"
+            android:title="Private Messages"
+            android:key="private_message"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:icon="@drawable/ic_baseline_format_quote_24"
+            android:title="Quoted"
+            android:key="quoted"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:icon="@drawable/ic_baseline_bookmark_24"
+            android:title="Subscriptions &amp; Bookmarks"
+            android:key="subscriptions"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
+</PreferenceScreen>

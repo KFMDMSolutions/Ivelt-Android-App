@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.DownloadManager;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
@@ -12,13 +13,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Parcel;
 import android.provider.MediaStore;
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,19 +46,26 @@ import android.widget.Toast;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.CookieStore;
+import java.net.HttpCookie;
+import java.net.URI;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.media.MediaRecorder.VideoSource.CAMERA;
 
 
 public class MainActivity extends AppCompatActivity {
+    private static Bundle webviewBundle;
     WebView mywebView;
     String sURL, sFileName, sUserAgent;
     SwipeRefreshLayout swipeRefreshLayout;
@@ -62,19 +73,46 @@ public class MainActivity extends AppCompatActivity {
     String url = null;
     private static final int REQUEST_CODE_ALBUM = 1;
     private static final int REQUEST_CODE_CAMERA = 2;
+    public static final String EXTRA_URL = "com.kdmfs.mainactivity.url";
     private ValueCallback<Uri[]> mFilePathCallback;
 
+    public int  getBundleSizeInBytes(Bundle bundle  ) {
+        Parcel parcel = Parcel.obtain();
+        parcel.writeValue(bundle);
+        byte[] bytes = parcel.marshall();
+        parcel.recycle();
+        return bytes.length;
+    }
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        mywebView.saveState(outState);
+        webviewBundle = new Bundle();
+        mywebView.saveState(webviewBundle);
+        android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
     }
 
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+//        handleIntent(getIntent());
+//        NotificationService.checkNotifications(MainActivity.this);
+    }
+
+
+    private void handleIntent(Intent intent){
+        if (intent == null || intent.getStringExtra(EXTRA_URL) == null){
+            return;
+        }
+        String url = intent.getStringExtra(EXTRA_URL);
+            loadUrl(url);
+        android.util.Log.d("INTENTURL", "Url is " + intent.getStringExtra(EXTRA_URL));
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NotificationService.initChannels(getApplicationContext());
         mywebView = (WebView) findViewById(R.id.webview);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
         swipeRefreshLayout.setNestedScrollingEnabled(true);
@@ -87,18 +125,23 @@ public class MainActivity extends AppCompatActivity {
         WebSettings webSettings = mywebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         mywebView.getSettings().setAppCacheEnabled(true);
-        mywebView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+        mywebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+//        String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36";
+//        mywebView.getSettings().setUserAgentString(desktopuseragent);
+//        mywebView.getSettings().setLoadWithOverviewMode(true);
+//        mywebView.getSettings().setUseWideViewPort(true);
         mywebView.setLongClickable(true);
         mywebView.setPadding(0, 0, 0, 0);
         registerForContextMenu(mywebView);
         url = getIntent().getDataString();
 
-        if (savedInstanceState != null) {
-            mywebView.restoreState(savedInstanceState);
+        if (webviewBundle != null) {
+            mywebView.restoreState(webviewBundle);
+            webviewBundle = null;
         } else if (url == null) {
             mywebView.loadUrl(currentUrl);
         } else {
-            mywebView.loadUrl(url);
+           loadUrl(url);
         }
 
         mywebView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -148,21 +191,34 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-
-
+        if (getIntent() != null){
+            handleIntent(getIntent());
+        }
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
 
             @Override
             public void onRefresh() {
-                if(isIvelt(currentUrl)){
-                    handleIvelt(currentUrl, mywebView);
-                }else{
-                    mywebView.loadUrl(currentUrl);
-                }
+                loadUrl(currentUrl);
             }
 
         });
+    }
+
+    private void loadUrl(String url2) {
+        if (isIvelt(url2)) {
+            if (!handleIvelt(url2, mywebView)){
+                mywebView.loadUrl(url2);
+            }
+        } else {
+            mywebView.loadUrl(url2);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
     }
 
     private void initListener() {
@@ -174,7 +230,6 @@ public class MainActivity extends AppCompatActivity {
                     mFilePathCallback.onReceiveValue(null);
                 }
                 mFilePathCallback = filePathCallback;
-
                 showChooserDialog();
                 return true;
             }
@@ -234,13 +289,12 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         if (photoFile != null) {
-
-
+                            mCameraPhotoPath = photoFile.getAbsolutePath();
                             ContentValues contentValues = new ContentValues(1);
                             contentValues.put(MediaStore.Images.Media.DATA, photoFile.getAbsolutePath());
                             Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-                            startActivityForResult(takePictureIntent, CAMERA);
+                            startActivityForResult(takePictureIntent, REQUEST_CODE_CAMERA);
 
                         }
                     }
@@ -255,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+
         return File.createTempFile(imageFileName, ".jpg", storageDir);
     }
 
@@ -373,32 +428,69 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void handleIvelt(String url, WebView view){
-        android.util.Log.d("JSOUP", "is ivelt");
+    private boolean handleIvelt(String url, WebView view){
+//        if (url.endsWith("unread")){
+//            return false;
+//        }
+//        if (url.contains("ivelt")){
+//            return false;
+//        }
+        if (url.contains("download")){
+            return false;
+        }
+        if (url.contains("mark_notification")){
+            int id = NotificationService.NotificationInfo.extractIDFromURL(url);
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getApplicationContext());
+            notificationManagerCompat.cancel(id);
+        }
+        if (url.endsWith("settings")){
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        swipeRefreshLayout.setRefreshing(true);
+        android.util.Log.d("JSOUP", "is ivelt " + url);
         String useragent = view.getSettings().getUserAgentString();
         Utils.executeAsync(() -> {
             try {
                 android.util.Log.d("JSOUP", "starting try");
                 String cookies = CookieManager.getInstance().getCookie(url);
                 android.util.Log.d("JSOUP", "starting with url " + url + " cookies " + cookies + " useragent " + useragent);
-                Document doc = Jsoup.connect(url).cookies(getCookies(cookies)).userAgent(useragent).get();
+                Document doc = Jsoup.connect(url).
+                        cookies(Utils.convertCookies(cookies)).
+                        sslSocketFactory(Utils.socketFactory()).
+                        userAgent(useragent).get();
                 Elements h1 = doc.select("h1");
-                h1.first().html("Ivelt Android App");
+                h1.first().html("אידישע וועלט פארומס, ענדרויד עפפ");
+                Elements quickLinks = doc.select("#quick-links");
                 Elements postButtons = doc.select(".post-buttons");
-
-                android.util.Log.d("JSOUP", "h1 " + h1);
-                android.util.Log.d("JSOUP", "ending try");
+                Elements quickLinksList = quickLinks.select(".dropdown-contents");
+                if (quickLinksList.size() > 0 && (quickLinksList.first().childrenSize() > 1)){
+                    Element settingListElement = new Element("li");
+                    settingListElement.addClass("small-icon");
+                    Element settingsElement = new Element("a");
+                    settingsElement.html("עפפ סעטטינגס");
+                    settingsElement.attr("href", "./settings");
+                    settingsElement.attr("role", "menuitem");
+                    settingListElement.appendChild(settingsElement);
+                    settingListElement.attr("style", "background-image: url(./styles/prosilver_yidddish/theme/images/icon_topic_poll.gif)");
+//                    quickLinksList.first().appendChild(settingListElement);
+                    quickLinksList.first().insertChildren(quickLinksList.first().childrenSize(), settingListElement);
+                }
+//                android.util.Log.d("JSOUP", "linkslist " + quickLinksList);
+                android.util.Log.d("JSOUP", "endin g try");
                 final String mime = "text/html";
                 final String encoding = "utf-8";
                 String html = doc.outerHtml();
                 runOnUiThread(() -> {
-                    view.loadDataWithBaseURL(url, html, mime, encoding, null);
+                    view.loadDataWithBaseURL(url, html, mime, encoding, "");
                 });
             } catch (IOException e) {
 //                    return false;
                 android.util.Log.d("JSOUP", "error", e);
             }
         });
+        return true;
     }
 
     private Map<String, String> getCookies (String cookie){
@@ -417,10 +509,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static boolean isIvelt(String url){
-        return  (url != null && (url.startsWith("https://www.ivelt.com/")
-                || url.startsWith("http://www.ivelt.com/")
-                || url.startsWith("https://www.yiddishworld.com/")
-                || url.startsWith("http://www.yiddishworld.com/")));
+        boolean isIvelt =  (url != null && (
+                url.startsWith("https://www.ivelt.com/") ||
+                url.startsWith("http://www.ivelt.com/") ||
+                url.startsWith("https://ivelt.com")||
+                url.startsWith("http://ivelt.com")||
+                        url.startsWith("https://yiddishworld.com/") ||
+                        url.startsWith("http://yiddishworld.com/")||
+                        url.startsWith("https://www.yiddishworld.com/") ||
+                        url.startsWith("http://www.yiddishworld.com/")));
+        android.util.Log.d("URLComp", "url is " + url + " is ivelt " + isIvelt);
+        return isIvelt;
     }
 
 
@@ -431,6 +530,9 @@ public class MainActivity extends AppCompatActivity {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
             this.showProgress();
+            android.util.Log.d("JSOUP", "showing progress");
+
+
         }
 
 
@@ -441,18 +543,25 @@ public class MainActivity extends AppCompatActivity {
 
             String url = request.getUrl().toString();
             if (isIvelt(url)){
-                handleIvelt(url, view);
-                return true;
-                    || url.startsWith("https://www.yiddish24.com/")
-            }
-            if (url != null && ( url.startsWith("https://drive.google.com/")
-                    || url.startsWith("https://accounts.google.com/")
-                    || url.startsWith("https://www.dropbox.com/"))) {
-                return false;
+//                return  false;
+                return handleIvelt(url, view);
             }
 
-
-            // reject anything other
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(request.getUrl());
+            try {
+                startActivity(i);
+            }catch (ActivityNotFoundException activityNotFoundException){
+                if (
+                        url.startsWith("https://drive.google.com/") ||
+                                url.startsWith("https://accounts.google.com/") ||
+                                url.startsWith("https://www.yiddish24.com/") ||
+                                url.startsWith("https://www.dropbox.com/")) {
+                    return false;
+                }else{
+                    Toast.makeText(MainActivity.this,"לינק געבלאקט, אשריכם ישראל" ,Toast.LENGTH_LONG).show();
+                }
+            }
             return true;
         }
 
@@ -489,6 +598,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-    }
 
+    }
 }
