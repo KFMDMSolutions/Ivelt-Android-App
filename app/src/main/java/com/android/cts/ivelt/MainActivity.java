@@ -398,11 +398,7 @@ public class MainActivity extends AppCompatActivity {
                     || url.startsWith("https://www.yiddishworld.com/")
                     || url.startsWith("http://www.yiddishworld.com/")
                     || url.startsWith("https://yiddishworld.com/")
-                    || url.startsWith("http://yiddishworld.com/")
-                    || url.startsWith("https://drive.google.com/")
-                    || url.startsWith("https://www.yiddish24.com/")
-                    || url.startsWith("https://accounts.google.com/")
-                    || url.startsWith("https://www.dropbox.com/")) {
+                    || url.startsWith("http://yiddishworld.com/")) {
                 return false;
 
             } else {
