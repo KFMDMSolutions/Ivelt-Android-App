@@ -442,6 +442,7 @@ public class MainActivity extends AppCompatActivity {
             int id = NotificationService.NotificationInfo.extractIDFromURL(url);
             NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getApplicationContext());
             notificationManagerCompat.cancel(id);
+            return false;
         }
         if (url.endsWith("settings")){
             Intent intent = new Intent(this, SettingsActivity.class);
@@ -460,25 +461,12 @@ public class MainActivity extends AppCompatActivity {
                         cookies(Utils.convertCookies(cookies)).
                         sslSocketFactory(Utils.socketFactory()).
                         userAgent(useragent).get();
-                Elements h1 = doc.select("h1");
-                h1.first().html("אידישע וועלט פארומס, ענדרויד עפפ");
-                Elements quickLinks = doc.select("#quick-links");
-                Elements postButtons = doc.select(".post-buttons");
-                Elements quickLinksList = quickLinks.select(".dropdown-contents");
-                if (quickLinksList.size() > 0 && (quickLinksList.first().childrenSize() > 1)){
-                    Element settingListElement = new Element("li");
-                    settingListElement.addClass("small-icon");
-                    Element settingsElement = new Element("a");
-                    settingsElement.html("עפפ סעטטינגס");
-                    settingsElement.attr("href", "./settings");
-                    settingsElement.attr("role", "menuitem");
-                    settingListElement.appendChild(settingsElement);
-                    settingListElement.attr("style", "background-image: url(./styles/prosilver_yidddish/theme/images/icon_topic_poll.gif)");
-//                    quickLinksList.first().appendChild(settingListElement);
-                    quickLinksList.first().insertChildren(quickLinksList.first().childrenSize(), settingListElement);
+                if(url.contains("ucp.php")){
+                    handleUserControlPage(doc);
+                }else {
+                    handleGeneralPage(doc);
                 }
 //                android.util.Log.d("JSOUP", "linkslist " + quickLinksList);
-                android.util.Log.d("JSOUP", "endin g try");
                 final String mime = "text/html";
                 final String encoding = "utf-8";
                 String html = doc.outerHtml();
@@ -491,6 +479,49 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         return true;
+    }
+
+    private void handleGeneralPage(Document doc) {
+        Elements postButtons = doc.select(".post-buttons");
+        addSettingsToQuickLinks(doc);
+    }
+
+    private void addSettingsToQuickLinks(Document doc) {
+
+        Elements quickLinks = doc.select("#quick-links");
+        Elements quickLinksList = quickLinks.select(".dropdown-contents");
+        if (quickLinksList.size() > 0 && (quickLinksList.first().childrenSize() > 1)){
+            Element settingListElement = new Element("li");
+            settingListElement.addClass("small-icon");
+            Element settingsElement = new Element("a");
+            settingsElement.html("עפפ סעטטינגס");
+            settingsElement.attr("href", "./settings");
+            settingsElement.attr("role", "menuitem");
+            settingListElement.appendChild(settingsElement);
+            settingListElement.attr("style", "background-image: url(./styles/prosilver_yidddish/theme/images/icon_topic_poll.gif)");
+//                    quickLinksList.first().appendChild(settingListElement);
+            quickLinksList.first().insertChildren(quickLinksList.first().childrenSize(), settingListElement);
+        }
+    }
+
+    private void handleUserControlPage(Document doc) {
+        addSettingsToQuickLinks(doc);
+        Element tabs = doc.select("#tabs").first();
+        android.util.Log.d("UCP", "tabs " + tabs);
+        if (tabs != null){
+            Element tabList = tabs.getElementsByTag("ul").first();
+            if (tabList != null){
+                android.util.Log.d("UCP", "tabList " + tabList);
+                Element appSettingElement = new Element("li");
+                appSettingElement.addClass("tab");
+                Element appSettingLink = new Element("a");
+                appSettingLink.attr("href", "./settings");
+                appSettingLink.html("עפפ סעטטינגס");
+                appSettingElement.appendChild(appSettingLink);
+                tabList.appendChild(appSettingElement);
+//                tabList.insertChildren(2, appSettingElement);
+            }
+        }
     }
 
     private Map<String, String> getCookies (String cookie){

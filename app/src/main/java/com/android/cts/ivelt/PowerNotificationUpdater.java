@@ -15,10 +15,11 @@ public class PowerNotificationUpdater extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        BatteryManager batteryManager = (BatteryManager) getApplicationContext().getSystemService(Context.BATTERY_SERVICE);
-        if (batteryManager.isCharging()){
+//        BatteryManager batteryManager = (BatteryManager) getApplicationContext().getSystemService(Context.BATTERY_SERVICE);
+//        if (batteryManager.isCharging()){
+        android.util.Log.d("NotifUpdate", "power work");
             NotificationService.checkForNotifications(getApplicationContext());
-        }
+//        }
         return Result.success();
     }
 }

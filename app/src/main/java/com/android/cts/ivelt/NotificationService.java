@@ -320,7 +320,7 @@ public class NotificationService extends IntentService {
         }
         if (batteryDelay >= 15 * MINUTE_IN_MILLIS){
             PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(BatteryNotificationUpdater.class, pluggedInDelay , TimeUnit.MILLISECONDS)
-                    .setConstraints(new Constraints.Builder().setRequiresCharging(true).build())
+                    .setConstraints(new Constraints.Builder().setRequiresCharging(false).build())
                     .build();
             WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork("Battery", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
 
