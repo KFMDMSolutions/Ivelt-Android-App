@@ -164,7 +164,7 @@ public class NotificationService extends IntentService {
                 case "ציטירט":
                     return QUOTE;
                 case "תגובה":
-                case "אשכול":
+                case "נייע אשכול":
                     return BOOKMARK;
                 default:
                     return OTHER;

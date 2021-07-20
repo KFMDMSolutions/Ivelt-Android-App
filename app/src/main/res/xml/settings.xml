@@ -46,7 +46,7 @@
 
 
 
-    <PreferenceCategory android:title="Show Notifications For...">
+    <!--PreferenceCategory android:title="Show Notifications For...">
         <CheckBoxPreference
             android:icon="@drawable/ic_baseline_message_24"
             android:title="Private Messages"
@@ -62,5 +62,5 @@
             android:title="Subscriptions &amp; Bookmarks"
             android:key="subscriptions"
             android:defaultValue="true"/>
-    </PreferenceCategory>
+    </PreferenceCategory-->
 </PreferenceScreen>
