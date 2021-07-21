@@ -1,4 +1,4 @@
-package com.android.cts.ivelt;
+package com.kfmdmsolutions.ivelt;
 
 import org.junit.Test;
 

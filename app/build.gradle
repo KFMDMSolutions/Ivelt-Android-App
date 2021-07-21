@@ -7,7 +7,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.android.cts.ivelt"
+        applicationId "com.kfmdmsolutions.ivelt"
         minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
