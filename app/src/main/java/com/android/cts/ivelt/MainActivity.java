@@ -10,17 +10,19 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Parcel;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -38,15 +40,22 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-
-
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
-
-
+import java.net.CookieStore;
+import java.net.HttpCookie;
+import java.net.URI;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -54,6 +63,7 @@ import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity {
+    private static Bundle webviewBundle;
     WebView mywebView;
     String sURL, sFileName, sUserAgent;
     SwipeRefreshLayout swipeRefreshLayout;
@@ -67,17 +77,43 @@ public class MainActivity extends AppCompatActivity {
     private ValueCallback<Uri[]> mFilePathCallback;
     private String mCameraPhotoPath;
 
+    public int  getBundleSizeInBytes(Bundle bundle  ) {
+        Parcel parcel = Parcel.obtain();
+        parcel.writeValue(bundle);
+        byte[] bytes = parcel.marshall();
+        parcel.recycle();
+        return bytes.length;
+    }
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        mywebView.saveState(outState);
+        webviewBundle = new Bundle();
+        mywebView.saveState(webviewBundle);
+        android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
     }
 
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+//        handleIntent(getIntent());
+//        NotificationService.checkNotifications(MainActivity.this);
+    }
+
+
+    private void handleIntent(Intent intent){
+        if (intent == null || intent.getStringExtra(EXTRA_URL) == null){
+            return;
+        }
+        String url = intent.getStringExtra(EXTRA_URL);
+            loadUrl(url);
+        android.util.Log.d("INTENTURL", "Url is " + intent.getStringExtra(EXTRA_URL));
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NotificationService.initChannels(getApplicationContext());
         mywebView = (WebView) findViewById(R.id.webview);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
         swipeRefreshLayout.setNestedScrollingEnabled(true);
@@ -90,7 +126,11 @@ public class MainActivity extends AppCompatActivity {
         mywebView.getSettings().setBuiltInZoomControls(true);
         mywebView.getSettings().setDisplayZoomControls(false);
         mywebView.getSettings().setAppCacheEnabled(true);
-        mywebView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+        mywebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+//        String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36";
+//        mywebView.getSettings().setUserAgentString(desktopuseragent);
+//        mywebView.getSettings().setLoadWithOverviewMode(true);
+//        mywebView.getSettings().setUseWideViewPort(true);
         mywebView.setLongClickable(true);
         mywebView.setPadding(0, 0, 0, 0);
         registerForContextMenu(mywebView);
@@ -104,12 +144,13 @@ public class MainActivity extends AppCompatActivity {
 
         }, 0);
 
-        if (savedInstanceState != null) {
-            mywebView.restoreState(savedInstanceState);
+        if (webviewBundle != null) {
+            mywebView.restoreState(webviewBundle);
+            webviewBundle = null;
         } else if (url == null) {
             mywebView.loadUrl(currentUrl);
         } else {
-            mywebView.loadUrl(url);
+           loadUrl(url);
         }
 
         mywebView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -162,17 +203,35 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-
+        if (getIntent() != null){
+            handleIntent(getIntent());
+        }
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
 
             @Override
             public void onRefresh() {
-                mywebView.loadUrl(currentUrl);
+                loadUrl(currentUrl);
             }
 
         });
 
+    }
+
+    private void loadUrl(String url2) {
+        if (isIvelt(url2)) {
+            if (!handleIvelt(url2, mywebView)){
+                mywebView.loadUrl(url2);
+            }
+        } else {
+            mywebView.loadUrl(url2);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
     }
 
     private void initListener() {
@@ -368,9 +427,101 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                return true;
+    private boolean handleIvelt(String url, WebView view){
+//        if (url.endsWith("unread")){
+//            return false;
+//        }
+//        if (url.contains("ivelt")){
+//            return false;
+//        }
+        if (url.contains("download")){
+            return false;
+        }
+        if (url.contains("mark_notification")){
+            int id = NotificationService.NotificationInfo.extractIDFromURL(url);
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getApplicationContext());
+            notificationManagerCompat.cancel(id);
+            return false;
+        }
+        if (url.endsWith("settings")){
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        swipeRefreshLayout.setRefreshing(true);
+        android.util.Log.d("JSOUP", "is ivelt " + url);
+        String useragent = view.getSettings().getUserAgentString();
+        Utils.executeAsync(() -> {
+            try {
+                android.util.Log.d("JSOUP", "starting try");
+                String cookies = CookieManager.getInstance().getCookie(url);
+                android.util.Log.d("JSOUP", "starting with url " + url + " cookies " + cookies + " useragent " + useragent);
+                Document doc = Jsoup.connect(url).
+                        cookies(Utils.convertCookies(cookies)).
+                        sslSocketFactory(Utils.socketFactory()).
+                        userAgent(useragent).get();
+                if(url.contains("ucp.php")){
+                    handleUserControlPage(doc);
+                }else {
+                    handleGeneralPage(doc);
+                }
+//                android.util.Log.d("JSOUP", "linkslist " + quickLinksList);
+                final String mime = "text/html";
+                final String encoding = "utf-8";
+                String html = doc.outerHtml();
+                runOnUiThread(() -> {
+                    view.loadDataWithBaseURL(url, html, mime, encoding, "");
+                });
+            } catch (IOException e) {
+//                    return false;
+                android.util.Log.d("JSOUP", "error", e);
             }
-        };
+        });
+        return true;
+    }
+
+    private void handleGeneralPage(Document doc) {
+        Elements postButtons = doc.select(".post-buttons");
+        addSettingsToQuickLinks(doc);
+    }
+
+    private void addSettingsToQuickLinks(Document doc) {
+
+        Elements quickLinks = doc.select("#quick-links");
+        Elements quickLinksList = quickLinks.select(".dropdown-contents");
+        if (quickLinksList.size() > 0 && (quickLinksList.first().childrenSize() > 1)){
+            Element settingListElement = new Element("li");
+            settingListElement.addClass("small-icon");
+            Element settingsElement = new Element("a");
+            settingsElement.html("עפפ סעטטינגס");
+            settingsElement.attr("href", "./settings");
+            settingsElement.attr("role", "menuitem");
+            settingListElement.appendChild(settingsElement);
+            settingListElement.attr("style", "background-image: url(./styles/prosilver_yidddish/theme/images/icon_topic_poll.gif)");
+//                    quickLinksList.first().appendChild(settingListElement);
+            quickLinksList.first().insertChildren(quickLinksList.first().childrenSize(), settingListElement);
+        }
+    }
+
+    private void handleUserControlPage(Document doc) {
+        addSettingsToQuickLinks(doc);
+        Element tabs = doc.select("#tabs").first();
+        android.util.Log.d("UCP", "tabs " + tabs);
+        if (tabs != null){
+            Element tabList = tabs.getElementsByTag("ul").first();
+            if (tabList != null){
+                android.util.Log.d("UCP", "tabList " + tabList);
+                Element appSettingElement = new Element("li");
+                appSettingElement.addClass("tab");
+                Element appSettingLink = new Element("a");
+                appSettingLink.attr("href", "./settings");
+                appSettingLink.html("עפפ סעטטינגס");
+                appSettingElement.appendChild(appSettingLink);
+                tabList.appendChild(appSettingElement);
+//                tabList.insertChildren(2, appSettingElement);
+            }
+        }
+    }
 
         if (result.getType() == WebView.HitTestResult.IMAGE_TYPE ||
                 result.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
@@ -379,6 +530,21 @@ public class MainActivity extends AppCompatActivity {
             menu.add(0, 1, 0, "Save - Download Image").setOnMenuItemClickListener(handler);
         }
     }
+
+    private static boolean isIvelt(String url){
+        boolean isIvelt =  (url != null && (
+                url.startsWith("https://www.ivelt.com/") ||
+                url.startsWith("http://www.ivelt.com/") ||
+                url.startsWith("https://ivelt.com")||
+                url.startsWith("http://ivelt.com")||
+                        url.startsWith("https://yiddishworld.com/") ||
+                        url.startsWith("http://yiddishworld.com/")||
+                        url.startsWith("https://www.yiddishworld.com/") ||
+                        url.startsWith("http://www.yiddishworld.com/")));
+        android.util.Log.d("URLComp", "url is " + url + " is ivelt " + isIvelt);
+        return isIvelt;
+    }
+
 
     public class CustomWebViewClient extends WebViewClient {
 
@@ -401,26 +567,30 @@ public class MainActivity extends AppCompatActivity {
                     || url.startsWith("http://yiddishworld.com/")) {
                 return false;
 
-            } else {
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(url));
-                try {
-                    startActivity(i);
-                }catch (ActivityNotFoundException activityNotFoundException){
-                    if (
-                            url.startsWith("https://drive.google.com/") ||
-                                    url.startsWith("https://accounts.google.com/") ||
-                                    url.startsWith("https://www.yiddish24.com/") ||
-                                    url.startsWith("https://www.dropbox.com/")) {
-                        return false;
-                    }else{
-                        Toast.makeText(MainActivity.this,"לינק געבלאקט, אשריכם ישראל" ,Toast.LENGTH_LONG).show();
-                    }
-                }
-                return true;
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 
-
+            String url = request.getUrl().toString();
+            if (isIvelt(url)){
+//                return  false;
+                return handleIvelt(url, view);
             }
+
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(request.getUrl());
+            try {
+                startActivity(i);
+            }catch (ActivityNotFoundException activityNotFoundException){
+                if (
+                        url.startsWith("https://drive.google.com/") ||
+                                url.startsWith("https://accounts.google.com/") ||
+                                url.startsWith("https://www.yiddish24.com/") ||
+                                url.startsWith("https://www.dropbox.com/")) {
+                    return false;
+                }else{
+                    Toast.makeText(MainActivity.this,"לינק געבלאקט, אשריכם ישראל" ,Toast.LENGTH_LONG).show();
+                }
+            }
+            return true;
         }
 
         @Override
@@ -452,6 +622,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-    }
 
+    }
 }
