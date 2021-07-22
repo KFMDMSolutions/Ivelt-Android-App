@@ -314,7 +314,6 @@ public class NotificationService extends IntentService {
         if (pluggedInDelay >= 15 * MINUTE_IN_MILLIS){
             PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(PowerNotificationUpdater.class, pluggedInDelay , TimeUnit.MILLISECONDS)
                     .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).setRequiresCharging(true).build())
-
                     .build();
             WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork("Power", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
             WorkManager.getInstance(getApplicationContext()).pruneWork();
