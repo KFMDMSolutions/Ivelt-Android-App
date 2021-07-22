@@ -48,7 +48,7 @@
         android:key="APP_NOTIF"
         android:title="Notification Settings"
         android:icon="@drawable/ic_baseline_edit_notifications_24"
-        android:summary="Go to the Notification Settings on your phone"
+        android:summary="Go to the Notification Settings page on your phone. You can change the settings for the notification channels."
         >
         <intent android:action="android.settings.APP_NOTIFICATION_SETTINGS"/>
         <!--extra
