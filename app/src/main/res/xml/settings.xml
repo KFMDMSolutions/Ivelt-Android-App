@@ -44,7 +44,17 @@
             />
     </PreferenceCategory>
 
-
+    <Preference
+        android:key="APP_NOTIF"
+        android:title="Notification Settings"
+        android:icon="@drawable/ic_baseline_edit_notifications_24"
+        android:summary="Go to the Notification Settings on your phone"
+        >
+        <intent android:action="android.settings.APP_NOTIFICATION_SETTINGS"/>
+        <!--extra
+            android:name="android.provider.extra.APP_PACKAGE"
+            android:value="com.kfmdmsolutions.ivelt"/-->
+    </Preference>
 
     <!--PreferenceCategory android:title="Show Notifications For...">
         <CheckBoxPreference

@@ -1,5 +1,7 @@
 package com.kfmdmsolutions.ivelt;
 
+import android.provider.Settings;
+
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

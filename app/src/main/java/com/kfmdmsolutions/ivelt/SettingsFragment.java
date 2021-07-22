@@ -1,6 +1,9 @@
 package com.kfmdmsolutions.ivelt;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -14,6 +17,26 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         delayPreferenceChanged("plugged_in");
         delayPreferenceChanged("pause_notifications");
         delayPreferenceChanged("battery");
+        Preference preference = findPreference("APP_NOTIF");
+        Context context = getContext();
+        if (preference != null && context != null) {
+            preference.setOnPreferenceClickListener(preference1 -> {
+                Intent intent = new Intent();
+                intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
+
+                intent.putExtra("app_package", context.getPackageName());
+                intent.putExtra("app_uid", context.getApplicationInfo().uid);
+
+                intent.putExtra("android.provider.extra.APP_PACKAGE", context.getPackageName());
+
+                try {
+                    startActivity(intent);
+                }catch (Exception e){
+                    android.util.Log.d("error", "can't find activity", e);
+                }
+                return true;
+                    });
+        }
     }
 
     private void delayPreferenceChanged(String key) {
@@ -21,10 +44,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         if (preference == null) return;
         preference.setOnPreferenceChangeListener(
                 (changedPreference, newValue) -> {
-                   NotificationService.startNotificationService(getContext(), NotificationService.ACTION_UPDATE_DELAY_TIME);
+                    NotificationService.startNotificationService(getContext(), NotificationService.ACTION_UPDATE_DELAY_TIME);
                     return true;
-                }
-                );
+                });
     }
 
 }
