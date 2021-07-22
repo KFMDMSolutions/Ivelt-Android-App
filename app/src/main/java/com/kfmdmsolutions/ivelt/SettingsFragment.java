@@ -17,18 +17,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         delayPreferenceChanged("plugged_in");
         delayPreferenceChanged("pause_notifications");
         delayPreferenceChanged("battery");
-        Preference preference = findPreference("APP_NOTIF");
         Context context = getContext();
+        Preference preference = findPreference("APP_NOTIF");
         if (preference != null && context != null) {
             preference.setOnPreferenceClickListener(preference1 -> {
                 Intent intent = new Intent();
                 intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
-
                 intent.putExtra("app_package", context.getPackageName());
                 intent.putExtra("app_uid", context.getApplicationInfo().uid);
-
                 intent.putExtra("android.provider.extra.APP_PACKAGE", context.getPackageName());
-
                 try {
                     startActivity(intent);
                 }catch (Exception e){
@@ -36,6 +33,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 }
                 return true;
                     });
+        }
+        Preference emailPreference = findPreference("Logs");
+        if (emailPreference != null){
+            emailPreference.setOnPreferenceClickListener( emailPref -> {
+                Logger.getInstance(context).emailLogs(getActivity());
+                return true;
+            });
         }
     }
 

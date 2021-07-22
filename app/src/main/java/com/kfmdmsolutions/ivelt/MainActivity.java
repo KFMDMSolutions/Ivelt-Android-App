@@ -3,6 +3,8 @@ package com.kfmdmsolutions.ivelt;
 import android.Manifest;
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -59,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     SwipeRefreshLayout swipeRefreshLayout;
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
+    Logger logger;
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final int INPUT_FILE_REQUEST_CODE = 1;
@@ -101,9 +104,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        logger = Logger.getInstance(getApplicationContext());
         setContentView(R.layout.activity_main);
 
         NotificationService.initChannels(getApplicationContext());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            for (NotificationChannel channel : manager.getNotificationChannels()){
+                logger.log(channel.toString());
+            }
+
+        }
         mywebView = (WebView) findViewById(R.id.webview);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
         swipeRefreshLayout.setNestedScrollingEnabled(true);
@@ -476,7 +488,8 @@ public class MainActivity extends AppCompatActivity {
                 });
             } catch (IOException e) {
 //                    return false;
-                android.util.Log.d("JSOUP", "error", e);
+                swipeRefreshLayout.setRefreshing(false);
+                logger.log("unable to load url " + url, e);
             }
         });
         return true;
@@ -567,13 +580,15 @@ public class MainActivity extends AppCompatActivity {
             try {
                 startActivity(i);
             }catch (ActivityNotFoundException activityNotFoundException){
+                logger.log("No browser found, trying to open URL = " + request.getUrl());
                 if (
                         url.startsWith("https://drive.google.com/") ||
                                 url.startsWith("https://accounts.google.com/") ||
                                 url.startsWith("https://www.yiddish24.com/") ||
                                 url.startsWith("https://www.dropbox.com/")) {
                     return false;
-                }else{
+                } else {
+                    logger.log("Url blocked. URL = " + request.getUrl());
                     Toast.makeText(MainActivity.this,"לינק געבלאקט, אשריכם ישראל" ,Toast.LENGTH_LONG).show();
                 }
             }

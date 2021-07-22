@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import java.util.concurrent.TimeUnit;
 import android.os.Build;
+import android.os.Looper;
 import android.text.Html;
 import android.webkit.CookieManager;
 
@@ -78,7 +79,7 @@ public class NotificationService extends IntentService {
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this
             if (context != null){
-                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+                NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
                 notificationManager.createNotificationChannel(channel);
             }
         }
@@ -100,7 +101,8 @@ public class NotificationService extends IntentService {
         String cookie = CookieManager.getInstance().getCookie(url);
         Utils.executeAsync(() -> {
             try {
-                Document doc = Jsoup.connect(url).cookies(Utils.convertCookies(cookie)).sslSocketFactory(Utils.socketFactory()).get();
+                Document doc = Jsoup.connect(url).cookies(Utils.convertCookies(cookie)).
+                        ignoreHttpErrors(true).sslSocketFactory(Utils.socketFactory()).get();
                 Elements notificationList = doc.select(".notification_list");
                 Elements newNotifications = notificationList.select(".row.bg3");
                 Elements notifications = newNotifications.select(".notifications");
@@ -108,23 +110,13 @@ public class NotificationService extends IntentService {
                     android.util.Log.d("Notif", "Element " + element.child(0).attr("href"));
                     NotificationInfo info = new NotificationInfo(element);
                     showNotification(context, info);
-                    // Private Message
-                    // a href="./index.php?mark_notification=5281934&amp;hash=9ae985f1"> <p class="notifications_title"><strong>פריוואטע מעסעדזש</strong> פון <span class="username">Waukesha</span>:
-                    // "Fwd: טעסט"</p> </a> <p class="notifications_time">דינסטאג יולי 13, 2021 6:41 pm</p>
-
-                    // Quoted
-                    // <a href="./index.php?mark_notification=5281922&amp;hash=9ae985f1"> <p class="notifications_title"><strong>ציטירט</strong> דורך
-                    // <span class="username">Waukesha</span> אין: "טעסטינג טעסטינג - פרובירט דא אויס צו שרייבן"</p> </a>  <p class="notifications_time">דינסטאג יולי 13, 2021 6:40 pm</p>
-
-                    // Subscription
-                    // <a href="./index.php?mark_notification=5282029&amp;hash=9ae985f1"> <p class="notifications_title">
-                    // חיעהב<strong>תגובה</strong> פון <span class="username">Waukesha</span> אין די אשכול וואס דו האסט געבעטן מעלדונגען: "טעסטינג טעסטינג - פרובירט דא אויס צו שרייבן"</p> </a>
-                    //    <p class="notifications_time">דינסטאג יולי 13, 2021 6:52 pm</p>
-
                 }
-
-                android.util.Log.d("Notif", "newNotifications size " + newNotifications.size());
+                if (notifications.isEmpty()){
+                    Logger.getInstance(context).log("Do we have notifications? " + (notificationList.first() != null));
+                }
+                Logger.getInstance(context).log("Notifications found: " + notifications.size());
             } catch (IOException e) {
+                Logger.getInstance(context).log("Checking for notifications failed", e);
                 e.printStackTrace();
             }
         });
@@ -143,8 +135,8 @@ public class NotificationService extends IntentService {
                 .setContentIntent(pendingIntent)
                 .setContentText(notificationInfo.text)
                 .setPriority(NotificationCompat.PRIORITY_MAX);
-        android.util.Log.d("Notif", "Showing Notification");
         NotificationManagerCompat.from(context.getApplicationContext()).notify(notificationInfo.id, notificationBuilder.build());
+        Logger.getInstance(context).log("Sent notification with ID " + notificationInfo.id);
     }
     enum NotificationType {
         PRIVATE_MESSAGE(DIRECT_MESSAGES_NOTIFICATION_CHANNEL), QUOTE(QUOTES_NOTIFICATION_CHANNEL), BOOKMARK(BOOKMARK_NOTIFICATION_CHANNEL), OTHER(OTHER_NOTIFICATION_CHANNEL);
@@ -223,8 +215,11 @@ public class NotificationService extends IntentService {
     }
 
     private boolean shouldStartForeground(boolean paused, int pluggedInDelay, int batteryDelay){
-        int minTime = Math.min(pluggedInDelay, batteryDelay);
-        return paused || (minTime < 15 * MINUTE_IN_MILLIS);
+//        int minTime = Math.min(pluggedInDelay, batteryDelay);
+//        return paused || (minTime < 15 * MINUTE_IN_MILLIS);
+
+        // For the time being, until we implement foreground service.
+        return false;
     }
 
     private static final int MINUTE_IN_MILLIS = 60 * 1000;
