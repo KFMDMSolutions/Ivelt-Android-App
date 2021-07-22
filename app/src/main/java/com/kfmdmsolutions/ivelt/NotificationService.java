@@ -283,7 +283,7 @@ public class NotificationService extends IntentService {
         String battery_delay = preferences.getString("battery", "Never2");
         int pluggedInDelay = convertDurationStringToMilliSeconds(plugged_in_delay);
         int batteryDelay = convertDurationStringToMilliSeconds(battery_delay);
-        android.util.Log.d("AppSettings", "paused " + paused + " plugged_in_delay " + pluggedInDelay + " battery " + batteryDelay);
+        Logger.getInstance(getApplicationContext()).log("AppSettings: paused " + paused + " plugged_in_delay " + pluggedInDelay + " battery " + batteryDelay);
         boolean useForeground = shouldStartForeground(paused, pluggedInDelay, batteryDelay);
         if (useForeground) {
             startForeground();
@@ -312,7 +312,7 @@ public class NotificationService extends IntentService {
                     .build();
             WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork("Power", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
             WorkManager.getInstance(getApplicationContext()).pruneWork();
-            android.util.Log.d("WMNS", "plugged in delay enqued");
+            Logger.getInstance(getApplicationContext()).log("WMNS plugged in delay enqued");
         }else{
             WorkManager.getInstance(getApplicationContext()).cancelUniqueWork("Power");
         }
@@ -322,7 +322,7 @@ public class NotificationService extends IntentService {
                     .build();
             WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork("Battery", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
             WorkManager.getInstance(getApplicationContext()).pruneWork();
-            android.util.Log.d("WMNS", "battery delay enqued");
+            Logger.getInstance(getApplicationContext()).log("WMNS plugged in delay enqued");
         }else{
             WorkManager.getInstance(getApplicationContext()).cancelUniqueWork("Battery");
         }

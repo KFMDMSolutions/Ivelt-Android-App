@@ -17,8 +17,9 @@ public class BatteryNotificationUpdater extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        android.util.Log.d("NotifUpdate","Doing battery work");
         BatteryManager batteryManager = (BatteryManager) getApplicationContext().getSystemService(Context.BATTERY_SERVICE);
+
+        Logger.getInstance(getApplicationContext()).log("NotifUpdate Doing battery work isCharging? " + batteryManager.isCharging());
 //        if (!batteryManager.isCharging()){
             NotificationService.checkForNotifications(getApplicationContext());
 //        }
