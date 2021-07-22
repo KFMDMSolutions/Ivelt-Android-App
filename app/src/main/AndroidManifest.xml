@@ -51,8 +51,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <service android:name=".NotificationService" android:exported="false"/>
-        <activity android:name=".SettingsActivity"/>
+
+
     </application>
 
 </manifest>

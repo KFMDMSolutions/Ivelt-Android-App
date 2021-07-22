@@ -1,6 +1,5 @@
 package com.kfmdmsolutions.ivelt;
 
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.DownloadManager;
@@ -18,9 +17,16 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Parcel;
 import android.provider.MediaStore;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
@@ -35,13 +41,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.core.content.ContextCompat;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -51,8 +50,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -63,10 +60,9 @@ public class MainActivity extends AppCompatActivity {
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
 
-    public static final String EXTRA_URL = "com.kdmfs.mainactivity.url";
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final int INPUT_FILE_REQUEST_CODE = 1;
-
+    public static final String EXTRA_URL = "com.kdmfs.mainactivity.url";
 
     private ValueCallback<Uri[]> mFilePathCallback;
     private String mCameraPhotoPath;
@@ -99,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         String url = intent.getStringExtra(EXTRA_URL);
-        loadUrl(url);
+            loadUrl(url);
         android.util.Log.d("INTENTURL", "Url is " + intent.getStringExtra(EXTRA_URL));
     }
     @Override
@@ -113,12 +109,12 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setNestedScrollingEnabled(true);
         mywebView.setWebViewClient(new CustomWebViewClient());
         mywebView.setWebChromeClient(new WebChromeClient());
-        if (BuildConfig.DEBUG){
-            WebView.setWebContentsDebuggingEnabled(true);
-        }
-
+        initListener();
         WebSettings webSettings = mywebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        mywebView.getSettings().setSupportZoom(true);
+        mywebView.getSettings().setBuiltInZoomControls(true);
+        mywebView.getSettings().setDisplayZoomControls(false);
         mywebView.getSettings().setAppCacheEnabled(true);
         mywebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
 //        String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36";
@@ -129,9 +125,14 @@ public class MainActivity extends AppCompatActivity {
         mywebView.setPadding(0, 0, 0, 0);
         registerForContextMenu(mywebView);
         url = getIntent().getDataString();
-        initListener();
 
+        ActivityCompat.requestPermissions(this, new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
 
+        }, 0);
 
         if (webviewBundle != null) {
             mywebView.restoreState(webviewBundle);
@@ -139,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (url == null) {
             mywebView.loadUrl(currentUrl);
         } else {
-            loadUrl(url);
+           loadUrl(url);
         }
 
         mywebView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -148,17 +149,22 @@ public class MainActivity extends AppCompatActivity {
                 WebView webView1 = (WebView) v;
                 WebView.HitTestResult result = webView1.getHitTestResult();
 
-                if (result != null) {
-
-
-                    return false;
-
-                }else
-                    return true;
+                if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+                    String linkToCopy = result.getExtra();
+                    ClipboardManager clipboard = (ClipboardManager)
+                            getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(getApplicationContext(), "Link Copied!",
+                            Toast.LENGTH_SHORT).show();
+                }
+                return false;
             }
 
 
+
         });
+
         mywebView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
@@ -176,16 +182,14 @@ public class MainActivity extends AppCompatActivity {
                             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                     == PackageManager.PERMISSION_GRANTED) {
                                 downloadFile(fileName, url, userAgent);
-                            } else {
-                                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.CAMERA,}, 1);
                             }
+
 
                 } else {
                     downloadFile(fileName, url, userAgent);
                 }
 
             }
-
 
         });
 
@@ -201,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+
     }
 
     private void loadUrl(String url2) {
@@ -218,7 +223,6 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
         handleIntent(intent);
     }
-
 
     private void initListener() {
         mywebView.setWebChromeClient(new WebChromeClient() {
@@ -315,10 +319,6 @@ public class MainActivity extends AppCompatActivity {
         mFilePathCallback = null;
         return;
     }
-
-
-
-
     private void downloadFile(String fileName, String url, String userAgent) {
         try {
             DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
@@ -334,7 +334,6 @@ public class MainActivity extends AppCompatActivity {
                     .setAllowedOverRoaming(true)
                     .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-
 
             downloadManager.enqueue(request);
             sURL = "";
@@ -354,7 +353,6 @@ public class MainActivity extends AppCompatActivity {
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(Uri.parse(url)));
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -367,7 +365,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     public void onBackPressed() {
         if (mywebView.canGoBack()) {
@@ -376,23 +373,59 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
+
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-
         WebView webView = (WebView) v;
         WebView.HitTestResult result = webView.getHitTestResult();
 
-        if (result != null) {
-            if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
-                String linkToCopy = result.getExtra();
-                ClipboardManager clipboard = (ClipboardManager)
-                        getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(getApplicationContext(), "Link Copied!",
-                        Toast.LENGTH_SHORT).show();
+        MenuItem.OnMenuItemClickListener handler = new MenuItem.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getTitle() == "Copy image link") {
+                    String linkToCopy = result.getExtra();
+                    ClipboardManager clipboard = (ClipboardManager)
+                            getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(getApplicationContext(), "Link Copied!",
+                            Toast.LENGTH_SHORT).show();
+                } else if (item.getTitle() == "Save - Download Image") {
+
+                    String DownloadImageURL = result.getExtra();
+
+
+                    if (URLUtil.isValidUrl(DownloadImageURL)) {
+
+                        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
+                        String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
+                        request.allowScanningByMediaScanner();
+                        request.addRequestHeader("coockie", cookie);
+                        request.setMimeType(getFileType(DownloadImageURL));
+                        request.setAllowedOverMetered(true);
+                        request.setAllowedOverRoaming(true);
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "ivelt image.jpg");
+
+                        DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                        downloadManager.enqueue(request);
+
+                        Toast.makeText(MainActivity.this, "Image Downloaded Successfully.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Sorry.. Something Went Wrong.", Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                return true;
             }
+        };
+
+        if (result.getType() == WebView.HitTestResult.IMAGE_TYPE ||
+                result.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+            menu.setHeaderTitle("Image options");
+            menu.add(0, 2, 1, "Copy image link").setOnMenuItemClickListener(handler);
+            menu.add(0, 1, 0, "Save - Download Image").setOnMenuItemClickListener(handler);
         }
     }
 
@@ -476,9 +509,9 @@ public class MainActivity extends AppCompatActivity {
         addSettingsToQuickLinks(doc);
         Element tabs = doc.select("#tabs").first();
         android.util.Log.d("UCP", "tabs " + tabs);
-        if (tabs != null){
+        if (tabs != null) {
             Element tabList = tabs.getElementsByTag("ul").first();
-            if (tabList != null){
+            if (tabList != null) {
                 android.util.Log.d("UCP", "tabList " + tabList);
                 Element appSettingElement = new Element("li");
                 appSettingElement.addClass("tab");
@@ -492,27 +525,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Map<String, String> getCookies (String cookie){
-        Map<String,String> cookies = new HashMap<>();
-        if (cookie == null){
-            return cookies;
-        }
-        String[] cookieArray = cookie.split(";");
-        for (String singleCookie : cookieArray){
-            String[] cookieParts = singleCookie.split("=");
-            if (cookieParts.length == 2){
-                cookies.put(cookieParts[0], cookieParts[1]);
-            }
-        }
-        return cookies;
-    }
+
+
 
     private static boolean isIvelt(String url){
         boolean isIvelt =  (url != null && (
                 url.startsWith("https://www.ivelt.com/") ||
-                        url.startsWith("http://www.ivelt.com/") ||
-                        url.startsWith("https://ivelt.com")||
-                        url.startsWith("http://ivelt.com")||
+                url.startsWith("http://www.ivelt.com/") ||
+                url.startsWith("https://ivelt.com")||
+                url.startsWith("http://ivelt.com")||
                         url.startsWith("https://yiddishworld.com/") ||
                         url.startsWith("http://yiddishworld.com/")||
                         url.startsWith("https://www.yiddishworld.com/") ||
@@ -524,19 +545,14 @@ public class MainActivity extends AppCompatActivity {
 
     public class CustomWebViewClient extends WebViewClient {
 
-
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
             this.showProgress();
-            android.util.Log.d("JSOUP", "showing progress");
-
 
         }
 
 
-
-        @Override
 
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 
@@ -564,8 +580,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-
-
         @Override
         public void onPageFinished(WebView view, String url) {
             swipeRefreshLayout.setRefreshing(false);
@@ -590,10 +604,8 @@ public class MainActivity extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(true);
         }
 
-
         private void hideProgress() {
             swipeRefreshLayout.setRefreshing(false);
-
 
         }
 
