@@ -18,6 +18,7 @@ import androidx.core.app.TaskStackBuilder;
 import androidx.preference.PreferenceManager;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -306,24 +307,26 @@ public class NotificationService extends IntentService {
         WorkManager workManager = WorkManager.getInstance(getApplicationContext());
         workManager.cancelUniqueWork("Power");
         workManager.cancelUniqueWork("Battery");
+        WorkManager.getInstance(getApplicationContext()).pruneWork();
     }
 
     private void startWorkManagers(int pluggedInDelay, int batteryDelay){
         if (pluggedInDelay >= 15 * MINUTE_IN_MILLIS){
             PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(PowerNotificationUpdater.class, pluggedInDelay , TimeUnit.MILLISECONDS)
-                    .setConstraints(new Constraints.Builder().setRequiresCharging(true).build())
+                    .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).setRequiresCharging(true).build())
                     .build();
             WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork("Power", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
+            WorkManager.getInstance(getApplicationContext()).pruneWork();
             android.util.Log.d("WMNS", "plugged in delay enqued");
         }else{
             WorkManager.getInstance(getApplicationContext()).cancelUniqueWork("Power");
         }
         if (batteryDelay >= 15 * MINUTE_IN_MILLIS){
             PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(BatteryNotificationUpdater.class, pluggedInDelay , TimeUnit.MILLISECONDS)
-                    .setConstraints(new Constraints.Builder().setRequiresCharging(false).build())
+                    .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).setRequiresCharging(false).build())
                     .build();
             WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork("Battery", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
-
+            WorkManager.getInstance(getApplicationContext()).pruneWork();
             android.util.Log.d("WMNS", "battery delay enqued");
         }else{
             WorkManager.getInstance(getApplicationContext()).cancelUniqueWork("Battery");
