@@ -2,11 +2,12 @@ package com.kfmdmsolutions.ivelt;
 
 import android.content.Context;
 import android.os.BatteryManager;
-import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+
+import com.kfmdmsolutions.ivelt.NotificationService;
 
 public class BatteryNotificationUpdater extends Worker {
     public BatteryNotificationUpdater(@NonNull Context context, @NonNull  WorkerParameters workerParams) {

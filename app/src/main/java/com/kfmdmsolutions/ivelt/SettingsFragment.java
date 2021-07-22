@@ -1,13 +1,11 @@
 package com.kfmdmsolutions.ivelt;
 
 import android.os.Bundle;
-import android.text.InputFilter;
-import android.text.InputType;
 
-import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceManager;
+
+import com.kfmdmsolutions.ivelt.NotificationService;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
