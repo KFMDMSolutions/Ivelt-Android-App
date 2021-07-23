@@ -55,7 +55,6 @@
             android:name="android.provider.extra.APP_PACKAGE"
             android:value="com.kfmdmsolutions.ivelt"/-->
     </Preference>
-
     <Preference
         android:key="Logs"
         android:title="Share Logs"
