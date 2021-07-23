@@ -55,6 +55,12 @@
             android:name="android.provider.extra.APP_PACKAGE"
             android:value="com.kfmdmsolutions.ivelt"/-->
     </Preference>
+    <Preference
+        android:key="Logs"
+        android:title="Share Logs"
+        android:icon="@drawable/ic_baseline_file_copy_24"
+        android:summary="We do not collect logs. Logs will be sent only when you click on share logs."
+        />
 
     <!--PreferenceCategory android:title="Show Notifications For...">
         <CheckBoxPreference
