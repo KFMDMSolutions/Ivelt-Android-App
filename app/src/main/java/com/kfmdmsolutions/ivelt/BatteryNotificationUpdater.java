@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.kfmdmsolutions.ivelt.NotificationService;
+import com.kfmdmsolutions.ivelt.Utilities.Logger;
 
 public class BatteryNotificationUpdater extends Worker {
     public BatteryNotificationUpdater(@NonNull Context context, @NonNull  WorkerParameters workerParams) {

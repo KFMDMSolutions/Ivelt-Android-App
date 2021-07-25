@@ -1,4 +1,4 @@
-package com.kfmdmsolutions.ivelt;
+package com.kfmdmsolutions.ivelt.Utilities;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
