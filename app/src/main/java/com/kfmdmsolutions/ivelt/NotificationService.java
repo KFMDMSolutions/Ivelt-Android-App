@@ -8,8 +8,10 @@ import android.content.Intent;
 import android.content.Context;
 import android.content.SharedPreferences;
 import java.util.concurrent.TimeUnit;
+
+import android.os.BatteryManager;
 import android.os.Build;
-import android.os.Looper;
+import android.os.PowerManager;
 import android.text.Html;
 import android.webkit.CookieManager;
 
@@ -23,6 +25,10 @@ import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.kfmdmsolutions.ivelt.Utilities.Logger;
+import com.kfmdmsolutions.ivelt.Utilities.Utils;
+import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -31,6 +37,8 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.kfmdmsolutions.ivelt.MainActivity.coreCookieManager;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -99,6 +107,7 @@ public class NotificationService extends IntentService {
     public static void checkForNotifications (Context context){
         String url = "http://www.ivelt.com/forum/ucp.php?i=ucp_notifications";
         String cookie = CookieManager.getInstance().getCookie(url);
+        java.net.CookieManager.setDefault(coreCookieManager);
         Utils.executeAsync(() -> {
             try {
                 Document doc = Jsoup.connect(url).cookies(Utils.convertCookies(cookie)).
@@ -215,11 +224,19 @@ public class NotificationService extends IntentService {
     }
 
     private boolean shouldStartForeground(boolean paused, int pluggedInDelay, int batteryDelay){
-//        int minTime = Math.min(pluggedInDelay, batteryDelay);
-//        return paused || (minTime < 15 * MINUTE_IN_MILLIS);
 
-        // For the time being, until we implement foreground service.
-        return false;
+        // bitwise OR, will be 0 if both are 0, if only one is 0, it will be the other number, and if both are non 0, it will be some unknown number
+        int delayTime = pluggedInDelay | batteryDelay;
+
+        // both are 0 return false, or notifications are paused.
+        if (paused || ((delayTime) == 0)){
+            return false;
+        }
+        // Both are non 0, delay time is some unknown number, we need to set it  the minimum delay time.
+        if ((pluggedInDelay * batteryDelay) > 0){
+            delayTime = Math.min(pluggedInDelay, batteryDelay);
+        }
+        return ((delayTime < 15 * MINUTE_IN_MILLIS));
     }
 
     private static final int MINUTE_IN_MILLIS = 60 * 1000;
@@ -259,6 +276,14 @@ public class NotificationService extends IntentService {
     }
 
     private void startForeground(){
+        BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
+        String powerString = batteryManager.isCharging() ? "Charging" : "On Battery";
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext(), SERVICE_NOTIFICATION_CHANNEL)
+                .setSmallIcon(R.drawable.ivelt_logo48)
+                .setContentTitle("Ivelt Notification Service")
+                .setContentText("Next ")
+                .setPriority(NotificationCompat.PRIORITY_MAX);
+        startForeground(1000, notificationBuilder.build());
 
     }
 

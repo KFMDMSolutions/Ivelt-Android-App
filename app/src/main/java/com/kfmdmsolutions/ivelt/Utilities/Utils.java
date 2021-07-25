@@ -1,4 +1,4 @@
-package com.kfmdmsolutions.ivelt;
+package com.kfmdmsolutions.ivelt.Utilities;
 
 import android.provider.Settings;
 
@@ -19,7 +19,7 @@ import javax.net.ssl.X509TrustManager;
 
 public class Utils {
     static final Executor executor = Executors.newSingleThreadExecutor();
-    static void executeAsync(Runnable runnable){
+    public static void executeAsync(Runnable runnable){
         executor.execute(runnable);
     }
 

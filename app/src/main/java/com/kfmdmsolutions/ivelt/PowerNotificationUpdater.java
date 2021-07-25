@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.kfmdmsolutions.ivelt.Utilities.Logger;
 
 
 public class PowerNotificationUpdater extends Worker {

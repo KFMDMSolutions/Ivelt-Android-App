@@ -3,12 +3,11 @@ package com.kfmdmsolutions.ivelt;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.Settings;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
-import com.kfmdmsolutions.ivelt.NotificationService;
+import com.kfmdmsolutions.ivelt.Utilities.Logger;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     @Override

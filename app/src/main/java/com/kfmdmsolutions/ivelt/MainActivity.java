@@ -43,6 +43,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.kfmdmsolutions.ivelt.Utilities.Logger;
+import com.kfmdmsolutions.ivelt.Utilities.Utils;
+import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -62,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
     Logger logger;
+    public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final int INPUT_FILE_REQUEST_CODE = 1;
@@ -83,13 +88,6 @@ public class MainActivity extends AppCompatActivity {
         webviewBundle = new Bundle();
         mywebView.saveState(webviewBundle);
         android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
-    }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-//        handleIntent(getIntent());
-//        NotificationService.checkNotifications(MainActivity.this);
     }
 
 
@@ -154,6 +152,9 @@ public class MainActivity extends AppCompatActivity {
         } else {
            loadUrl(url);
         }
+
+        java.net.CookieHandler.setDefault(coreCookieManager);
+
 
         mywebView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -465,13 +466,14 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setRefreshing(true);
         android.util.Log.d("JSOUP", "is ivelt " + url);
         String useragent = view.getSettings().getUserAgentString();
+        java.net.CookieManager.setDefault(coreCookieManager);
         Utils.executeAsync(() -> {
             try {
                 android.util.Log.d("JSOUP", "starting try");
                 String cookies = CookieManager.getInstance().getCookie(url);
                 android.util.Log.d("JSOUP", "starting with url " + url + " cookies " + cookies + " useragent " + useragent);
                 Document doc = Jsoup.connect(url).
-                        cookies(Utils.convertCookies(cookies)).
+//                        cookies(Utils.convertCookies(cookies)).
                         sslSocketFactory(Utils.socketFactory()).
                         userAgent(useragent).get();
                 if(url.contains("ucp.php")){
@@ -601,7 +603,6 @@ public class MainActivity extends AppCompatActivity {
             currentUrl = url;
             super.onPageFinished(view, url);
             this.hideProgress();
-
             WindowManager manager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 
             DisplayMetrics metrics = new DisplayMetrics();
