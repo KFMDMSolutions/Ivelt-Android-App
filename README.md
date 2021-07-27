@@ -12,7 +12,7 @@ https://play.google.com/store/apps/details?id=com.kfmdmsolutions.ivelt
 
 
 **So what does this app do?**  
-Ivelt app is intended for users running Android Smart/Flipphone (Min SDK 16)
+Ivelt app is intended for users running Android Smart/Flipphone (Min SDK 24)
 
 ## Frequently Asked Questions (and Answers)
 #### Question: So, how does it work?
