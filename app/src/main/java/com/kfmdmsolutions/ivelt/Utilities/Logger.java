@@ -8,6 +8,8 @@ import android.net.Uri;
 
 import androidx.core.content.FileProvider;
 
+import com.kfmdmsolutions.ivelt.BuildConfig;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -41,12 +43,12 @@ public class Logger {
 
     public void log(String entry, Exception exc){
 
-        File dir = new File(contextWeakReference.get().getFilesDir().getAbsolutePath());
+        File dir = new File(getLogFolderPath());
         dir.mkdirs();
         File logFile = lastFileModified(dir);
         boolean append = true;
 
-        if (logFile == null || logFile.length() > 1000 * 1024) {
+        if (logFile == null || logFile.length() > 500 * 1024) {
             String dateTime = android.text.format.DateFormat.format("yyyy_MM_dd__HH_mm", new java.util.Date()).toString();
             String filePath = dir.getAbsolutePath() + File.separator + dateTime + ".log";
             logFile = new File(filePath);
@@ -54,9 +56,12 @@ public class Logger {
             deleteOldestFile(dir);
             append = false;
         }
+        if (BuildConfig.DEBUG){
+            android.util.Log.d("LOGGING", entry, exc);
+        }
         try {
             FileWriter fileWriter = new FileWriter(logFile, append);
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
+            SimpleDateFormat sdf = new SimpleDateFormat("MM_DD_HH:mm:ss.SSS", Locale.US);
             String time = sdf.format(new Date()) + " ";
             fileWriter.write( time + entry + "\n");
             if (exc != null){
@@ -68,6 +73,11 @@ public class Logger {
 
         }
     }
+
+    private String getLogFolderPath() {
+        return contextWeakReference.get().getFilesDir().getAbsolutePath() + File.separator + "Logs";
+    }
+
     public File lastFileModified(File fl) {
         File[] files = fl.listFiles(File::isFile);
         long lastMod = Long.MIN_VALUE;
@@ -101,7 +111,7 @@ public class Logger {
     }
 
     public void emailLogs(Activity activity){
-        File dir = new File(contextWeakReference.get().getFilesDir().getAbsolutePath());
+        File dir = new File(getLogFolderPath());
         File[] files = dir.listFiles(File::isFile);
         ArrayList<Uri> fileUris = new ArrayList<>();
         for (File file : files){
@@ -110,7 +120,7 @@ public class Logger {
         Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
         intent.setType("message/rfc822");
         // When sharing via email, default to my email, if you want to add other emails to copy (and\or remove mine) here is the place to do it.
-        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"bevekashivelt@gmail.com"});
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"bevakashivelt@gmail.com"});
         intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, fileUris);
 
         try {

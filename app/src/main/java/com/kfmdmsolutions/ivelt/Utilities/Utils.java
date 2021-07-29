@@ -1,6 +1,12 @@
 package com.kfmdmsolutions.ivelt.Utilities;
 
+import android.content.Context;
 import android.provider.Settings;
+
+import androidx.annotation.NonNull;
+
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -66,4 +72,17 @@ public class Utils {
         }
     }
 
+    @NonNull
+    public static Connection getConnection(String url, String useragent, Context context) {
+        Connection connection = Jsoup.connect(url)
+                .cookieStore(new JsoupCookieStore(context))
+                .header("Connection", "keep-alive")
+                .header("Host", "www.ivelt.com")
+                .ignoreHttpErrors(true)
+                .sslSocketFactory(socketFactory());
+        if (useragent != null && !useragent.isEmpty()) {
+            connection = connection.userAgent(useragent);
+        }
+        return connection;
+    }
 }
