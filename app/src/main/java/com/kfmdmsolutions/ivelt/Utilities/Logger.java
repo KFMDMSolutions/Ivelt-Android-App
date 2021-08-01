@@ -61,7 +61,7 @@ public class Logger {
         }
         try {
             FileWriter fileWriter = new FileWriter(logFile, append);
-            SimpleDateFormat sdf = new SimpleDateFormat("MM_DD_HH:mm:ss.SSS", Locale.US);
+            SimpleDateFormat sdf = new SimpleDateFormat("MM_dd_HH:mm:ss.SSS", Locale.US);
             String time = sdf.format(new Date()) + " ";
             fileWriter.write( time + entry + "\n");
             if (exc != null){

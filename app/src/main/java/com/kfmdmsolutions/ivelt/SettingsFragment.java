@@ -1,13 +1,19 @@
 package com.kfmdmsolutions.ivelt;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
+import androidx.preference.SwitchPreferenceCompat;
 
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
@@ -47,9 +53,36 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         if (preference == null) return;
         preference.setOnPreferenceChangeListener(
                 (changedPreference, newValue) -> {
+//                    List<String> arrayList = Arrays.asList("Every minute", "Once in 5 minutes","Once in 10 minutes");;
+//                    if(arrayList.contains(newValue.toString())){
+//                        showDelayDialog(key, newValue.toString());
+//                        return false;
+//                    }
                     NotificationService.startNotificationService(getContext(), NotificationService.ACTION_UPDATE_DELAY_TIME);
                     return true;
                 });
     }
 
+    private void showDelayDialog(String key, String value) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Short Refresh Time");
+        builder.setMessage("Setting a short refresh time will keep your device awake and cost power and internet");
+        builder.setNegativeButton(android.R.string.cancel, ((dialog, which) -> {
+            dialog.dismiss();
+        }));
+        builder.setPositiveButton("OK", ((dialog, which) -> {
+            updateDelay(key, value);
+            NotificationService.startNotificationService(getContext(), NotificationService.ACTION_UPDATE_DELAY_TIME);
+            dialog.dismiss();
+        }));
+        builder.create().show();
+    }
+
+    private void updateDelay(String key, String value) {
+        Context context = getContext();
+        if(context == null){
+            return;
+        }
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, value).apply();
+    }
 }

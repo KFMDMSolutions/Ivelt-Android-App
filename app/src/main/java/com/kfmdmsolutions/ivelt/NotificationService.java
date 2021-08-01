@@ -19,6 +19,9 @@ import java.io.ObjectOutputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import android.net.ConnectivityManager;
@@ -26,7 +29,10 @@ import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.PowerManager;
 import android.text.Html;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
@@ -78,12 +84,16 @@ public class NotificationService extends Service {
     public static final String SENT_NOTIFICATION_LIST = "SentNotificationList";
     public static NotificationService instance;
 
-    public static String ACTION_UPDATE_DELAY_TIME = "com.android.cts.ivelt.notification.service.action.update.delay.time";
-    public static String ACTION_CHECK_NOTIFICATIONS = "com.android.cts.ivelt.notification.service.action.check.notifications";
+    public static final String ACTION_UPDATE_DELAY_TIME = "com.android.cts.ivelt.notification.service.action.update.delay.time";
+    public static final String ACTION_CHECK_NOTIFICATIONS = "com.android.cts.ivelt.notification.service.action.check.notifications";
+    public static final String ACTION_UPDATE_NOTIFICATIONS = "com.android.cts.ivelt.notification.service.action.update.notifications";
     private int pluggedInDelay;
     private int batteryDelay;
 
     private static ConcurrentLinkedQueue<Integer> sentNotificationQueue;
+    private Runnable runnable;
+    private PowerManager.WakeLock wakeLock;
+
     public static NotificationService getInstance(){
         if(instance == null){
             instance = new NotificationService();
@@ -104,7 +114,8 @@ public class NotificationService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 //            CharSequence name = getString(R.string.channel_name);
 //            String description = getString(R.string.channel_description);
-            int importance = name.equals(SERVICE_NOTIFICATION_CHANNEL) ? NotificationManager.IMPORTANCE_MIN : NotificationManager.IMPORTANCE_HIGH;
+            int importance = channelID.equals(SERVICE_NOTIFICATION_CHANNEL) ? NotificationManager.IMPORTANCE_MIN : NotificationManager.IMPORTANCE_HIGH;
+            android.util.Log.d("TestChannel", "channel is " + name + " importance is " + importance);
             NotificationChannel channel = new NotificationChannel(channelID, name, importance);
             channel.setDescription(description);
             // Register the channel with the system; you can't change the importance
@@ -165,11 +176,7 @@ public class NotificationService extends Service {
             Logger.getInstance(context).log("Notification with ID " + notificationInfo.id + " already shown");
             return;
         }
-        Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
-        intent.putExtra(MainActivity.EXTRA_URL, notificationInfo.url);
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context.getApplicationContext());
-        stackBuilder.addNextIntentWithParentStack(intent);
-        PendingIntent pendingIntent = stackBuilder.getPendingIntent(notificationInfo.id, PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingIntent = getPendingIntent(context, notificationInfo);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context.getApplicationContext(), notificationInfo.channelID)
                 .setSmallIcon(R.drawable.ivelt_logo48)
                 .setContentTitle(notificationInfo.title)
@@ -184,6 +191,21 @@ public class NotificationService extends Service {
         }
         Logger.getInstance(context).log("Sent notification with ID " + notificationInfo.id);
     }
+
+    private static PendingIntent getPendingIntent(Context context, NotificationInfo info) {
+
+        Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
+        int id = 10001;
+        if (info != null) {
+            intent.putExtra(MainActivity.EXTRA_URL, info.url);
+            id = info.id;
+        }
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context.getApplicationContext());
+        stackBuilder.addNextIntentWithParentStack(intent);
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(id, PendingIntent.FLAG_IMMUTABLE);
+        return pendingIntent;
+    }
+
     enum NotificationType {
         PRIVATE_MESSAGE(DIRECT_MESSAGES_NOTIFICATION_CHANNEL), QUOTE(QUOTES_NOTIFICATION_CHANNEL), BOOKMARK(BOOKMARK_NOTIFICATION_CHANNEL), OTHER(OTHER_NOTIFICATION_CHANNEL);
 
@@ -214,8 +236,8 @@ public class NotificationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        handler = new Handler(Looper.myLooper());
         try {
-
             FileInputStream fis = openFileInput(SENT_NOTIFICATION_LIST);
             ObjectInputStream is = new ObjectInputStream(fis);
             sentNotificationQueue = (ConcurrentLinkedQueue<Integer>) is.readObject();
@@ -297,6 +319,7 @@ public class NotificationService extends Service {
 
     @Override
     public void onDestroy() {
+        Logger.getInstance(NotificationService.this).log("StartForeground: Stopping");
         try {
             FileOutputStream fos = openFileOutput(SENT_NOTIFICATION_LIST, Context.MODE_PRIVATE);
             ObjectOutputStream os = new ObjectOutputStream(fos);
@@ -352,42 +375,58 @@ public class NotificationService extends Service {
     }
 
 
+    Handler handler;
     private static final int SERVICE_NOTIFICATION_ID = 1000;
     private void startForeground(){
+
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        if (wakeLock == null) {
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                    "Ivelt::notificationWakeLock");
+            wakeLock.acquire();
+        }
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
         Notification notification = updateServiceNotification();
         startForeground(SERVICE_NOTIFICATION_ID, notification);
         registerReceiver(powerBroadcastReceiver, new IntentFilter(ACTION_BATTERY_CHANGED));
-        lastUpdatedTime = 0;
         isCharging = batteryManager.isCharging();
+
+//        Looper.prepare();
         startTimer();
     }
 
 
-    TimerTask task;
+//    TimerTask task;
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    ScheduledFuture<?> scheduledFuture;
     private void startTimer() {
         long period = getPeriod();
-//        android.util.Log.d("StartForeground", "Period is " + period);
-        if (task != null){
-            task.cancel();
-            timer.purge();
+        if (scheduledFuture != null){
+            Logger.getInstance(NotificationService.this).log("StartForeground: Cancelling Before starting");
+            scheduledFuture.cancel(false);
         }
-            task = new TimerTask() {
+        if (handler != null && runnable != null){
+            handler.removeCallbacks(runnable);
+        }
+        if (period > 0) {
+            runnable = new Runnable() {
                 @Override
                 public void run() {
                     Logger.getInstance(NotificationService.this).log("Checking for notifications");
                     checkForNotifications(NotificationService.this);
                     lastUpdatedTime = System.currentTimeMillis();
                     updateServiceNotification();
+                    Logger.getInstance(NotificationService.this).log("Scheduling next check in " + period);
+                    handler.postDelayed(this, period);
                 }
             };
-            if (period > 0) {
-                long delay = getDelay();
-                long period2 = getPeriod();
-                android.util.Log.d("StartForeground", "delay " + delay + " period " + period2);
-                Logger.getInstance(NotificationService.this).log("Scheduling with delay " + delay + " and period " + period2);
-                timer.schedule(task, getDelay(), getPeriod());
-            }
+            long delay = getDelay();
+            Logger.getInstance(NotificationService.this).log("StartForeground: Scheduling with delay " + delay + " period " + period + " Powered " + isCharging);
+            handler.postDelayed(runnable, delay);
+        }
+        updateServiceNotification();
     }
 
     private long getDelay(){
@@ -429,14 +468,15 @@ public class NotificationService extends Service {
 
     private long lastUpdatedTime;
 
-    Timer timer = new Timer();
 
     private void updateTimer() {
-        android.util.Log.d("StartForeground", "Updating");
-        if (task != null) {
-            task.cancel();
-            task = null;
-            timer.purge();
+        if (scheduledFuture != null) {
+            Logger.getInstance(NotificationService.this).log("StartForeground: Cancelling because updating");
+            if (handler != null && runnable != null){
+                handler.removeCallbacks(runnable);
+            }
+//            scheduledFuture.cancel(false);
+//            scheduledFuture = null;
             startTimer();
         }
     }
@@ -452,6 +492,11 @@ public class NotificationService extends Service {
         android.util.Log.d("DateNotif", "periodString " + periodString + " lastUpdated " + lastUpdated);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext(), SERVICE_NOTIFICATION_CHANNEL)
                 .setSmallIcon(R.drawable.ivelt_logo48)
+                .setUsesChronometer(true)
+                .setWhen(lastUpdatedTime)
+                .setSilent(true)
+                .addAction(new NotificationCompat.Action(1, "Check Now", getUpdateIntent()))
+                .setContentIntent(getPendingIntent(this, null))
                 .setContentTitle("Notifications updated at: " + lastUpdated )
                 .setContentText("Updates every " + periodString + powerString)
                 .setPriority(NotificationCompat.PRIORITY_MIN);
@@ -461,31 +506,46 @@ public class NotificationService extends Service {
         return notification;
     }
 
+    private PendingIntent getUpdateIntent() {
+        Intent intent = new Intent(getApplicationContext(), NotificationService.class);
+        intent.setAction(ACTION_UPDATE_NOTIFICATIONS);
+        return  PendingIntent.getService(getApplicationContext(), 2, intent, PendingIntent.FLAG_IMMUTABLE);
+    }
+
     private void stopForeground(){
-        super.stopForeground(false);
-        if (task != null) {
-            task.cancel();
-            task = null;
-            timer.purge();
+        if (wakeLock != null){
+            wakeLock.release();
+            wakeLock =  null;
         }
-        updateServiceNotification();
+        Logger.getInstance(NotificationService.this).log("StartForeground: Cancelling because stopping");
+        if (handler != null && runnable != null) {
+            handler.removeCallbacks(runnable);
+        }
         try {
             unregisterReceiver(powerBroadcastReceiver);
         }catch (IllegalArgumentException ise){
             Logger.getInstance(this).log("Unregister receiver failed", ise);
         }
+        super.stopForeground(false);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
-            if (intent.getAction().equals(ACTION_CHECK_NOTIFICATIONS)){
-                checkForNotifications(getApplicationContext());
-            }else if (intent.getAction().equals(ACTION_UPDATE_DELAY_TIME)){
-                updateCheckTimes();
+        if (intent != null && intent.getAction() != null) {
+            switch (intent.getAction()){
+                case ACTION_UPDATE_NOTIFICATIONS:
+                    checkForNotifications(getApplicationContext());
+                    lastUpdatedTime = System.currentTimeMillis();
+                    updateServiceNotification();
+                case ACTION_CHECK_NOTIFICATIONS:
+                    checkForNotifications(getApplicationContext());
+                    break;
+                case ACTION_UPDATE_DELAY_TIME:
+                    updateCheckTimes();
+                    break;
             }
         }
-        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     private void updateCheckTimes() {
@@ -498,7 +558,7 @@ public class NotificationService extends Service {
         Logger.getInstance(getApplicationContext()).log("AppSettings: paused " + paused + " plugged_in_delay " + pluggedInDelay + " battery " + batteryDelay);
         boolean useForeground = shouldStartForeground(paused, pluggedInDelay, batteryDelay);
         if (useForeground) {
-            android.util.Log.d("StartForground", "Calling start");
+            android.util.Log.d("StartForeground", "Calling start");
             startForeground();
         }else{
             stopForeground();

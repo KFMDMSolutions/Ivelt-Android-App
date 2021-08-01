@@ -36,8 +36,13 @@ public class JsoupCookieStore implements java.net.CookieStore{
         Logger.getInstance(contextWeakReference.get()).log("Cookies getting cookies");
         try {
             String cookieString = CookieManager.getInstance().getCookie(uri.toURL().toString());
-            Logger.getInstance(contextWeakReference.get()).log("Cookie String is " + cookieString);
-            List<HttpCookie> list = HttpCookie.parse(cookieString);
+            String[] cookies = cookieString.split(";");
+            List<HttpCookie> list = new ArrayList<>();
+            for(String str : cookies){
+                list.addAll(HttpCookie.parse(str));
+            }
+
+            Logger.getInstance(contextWeakReference.get()).log("Cookie String is " + cookieString + " list size is " + list.size());
             list.forEach(cookie -> android.util.Log.d("Cookies", cookie.toString()));
             return list;
         } catch (MalformedURLException e) {
