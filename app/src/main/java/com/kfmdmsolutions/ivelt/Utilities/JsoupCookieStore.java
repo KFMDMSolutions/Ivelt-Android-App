@@ -36,6 +36,9 @@ public class JsoupCookieStore implements java.net.CookieStore{
         Logger.getInstance(contextWeakReference.get()).log("Cookies getting cookies");
         try {
             String cookieString = CookieManager.getInstance().getCookie(uri.toURL().toString());
+            if (cookieString == null){
+                return new ArrayList<>();
+            }
             return  HttpCookie.parse(cookieString);
 //            String[] cookies = cookieString.split(";");
 //            List<HttpCookie> list = new ArrayList<>();
