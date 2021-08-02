@@ -236,6 +236,10 @@ public class NotificationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
+            Logger.getInstance(this).log("Fatal Error", exception);
+            System.exit(2);
+        });
         handler = new Handler(Looper.myLooper());
         try {
             FileInputStream fis = openFileInput(SENT_NOTIFICATION_LIST);
