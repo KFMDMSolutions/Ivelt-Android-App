@@ -21,7 +21,6 @@ public class WebkitCookieManagerProxy extends CookieManager
     public WebkitCookieManagerProxy(CookieStore store, CookiePolicy cookiePolicy)
     {
         super(null, cookiePolicy);
-
         this.webkitCookieManager = android.webkit.CookieManager.getInstance();
     }
 
@@ -43,6 +42,7 @@ public class WebkitCookieManagerProxy extends CookieManager
             // process each of the headers
             for (String headerValue : responseHeaders.get(headerKey))
             {
+
                 this.webkitCookieManager.setCookie(url, headerValue);
             }
         }
@@ -71,6 +71,7 @@ public class WebkitCookieManagerProxy extends CookieManager
     @Override
     public CookieStore getCookieStore()
     {
+//        return super.getCookieStore();
         // we don't want anyone to work with this cookie store directly
         throw new UnsupportedOperationException();
     }
