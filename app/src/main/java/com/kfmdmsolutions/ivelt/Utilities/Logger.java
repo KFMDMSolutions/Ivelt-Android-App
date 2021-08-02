@@ -41,7 +41,7 @@ public class Logger {
         log(entry, null);
     }
 
-    public void log(String entry, Exception exc){
+    public void log(String entry, Throwable exc){
 
         File dir = new File(getLogFolderPath());
         dir.mkdirs();

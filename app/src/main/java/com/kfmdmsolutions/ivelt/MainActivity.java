@@ -48,6 +48,7 @@ import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
 
 import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     WebView mywebView;
     String sURL, sFileName, sUserAgent;
     SwipeRefreshLayout swipeRefreshLayout;
-    String currentUrl = "http://www.ivelt.com/";
+    String currentUrl = "https://www.ivelt.com/";
     String url = null;
     Logger logger;
     public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
@@ -105,11 +106,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
+            Logger.getInstance(this).log("Fatal Error", exception);
+            System.exit(2);
+        });
         logger = Logger.getInstance(getApplicationContext());
         setContentView(R.layout.activity_main);
 
         NotificationService.initChannels(getApplicationContext());
-
 
         NotificationService.startNotificationService(this, NotificationService.ACTION_UPDATE_DELAY_TIME);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -630,7 +634,6 @@ public class MainActivity extends AppCompatActivity {
             metrics.widthPixels /= metrics.density;
 
             mywebView.loadUrl("javascript:var scale = " + metrics.widthPixels + " / document.body.scrollWidth; document.body.style.zoom = scale;");
-
 
         }
 
