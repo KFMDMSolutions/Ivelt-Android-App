@@ -46,6 +46,7 @@ import android.widget.Toast;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
+import com.kfmdmsolutions.ivelt.javascript.AddSettingsElement;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -77,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "com.kdmfs.mainactivity.url";
 
     private ValueCallback<Uri[]> mFilePathCallback;
+
     private String mCameraPhotoPath;
 
     public int  getBundleSizeInBytes(Bundle bundle  ) {
@@ -94,14 +96,20 @@ public class MainActivity extends AppCompatActivity {
         android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
     }
 
+    @Override
+    protected void onPause() {
+        android.util.Log.d("SNQ", "Stopping Activity");
+        NotificationService.startNotificationService(this, NotificationService.ACTION_SAVE_NOTIFICATION_LIST);
+        super.onPause();
+    }
 
-    private void handleIntent(Intent intent){
-        if (intent == null || intent.getStringExtra(EXTRA_URL) == null){
+    private void handleIntent(Intent intent) {
+        if (intent == null || intent.getStringExtra(EXTRA_URL) == null) {
             return;
         }
         String url = intent.getStringExtra(EXTRA_URL);
-            loadUrl(url);
-        android.util.Log.d("INTENTURL", "Url is " + intent.getStringExtra(EXTRA_URL));
+        loadUrl(url);
+        logger.log("Intent Url is " + url);
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,6 +176,10 @@ public class MainActivity extends AppCompatActivity {
            loadUrl(url);
         }
 
+        if (getIntent() != null){
+            handleIntent(getIntent());
+        }
+
         java.net.CookieHandler.setDefault(coreCookieManager);
 
 
@@ -221,9 +233,6 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        if (getIntent() != null){
-            handleIntent(getIntent());
-        }
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
 
@@ -236,13 +245,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void loadUrl(String url2) {
-        if (isIvelt(url2)) {
-            if (!handleIvelt(url2, mywebView)){
-                mywebView.loadUrl(url2);
+    private void loadUrl(String url) {
+        if (isIvelt(url)) {
+            if (!handleIvelt(url, mywebView)){
+                mywebView.loadUrl(url);
             }
         } else {
-            mywebView.loadUrl(url2);
+            mywebView.loadUrl(url);
         }
     }
 
@@ -466,7 +475,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         if (url.contains("mark_notification")){
-            int id = NotificationService.NotificationInfo.extractIDFromURL(url);
+            int id = (int) NotificationService.NotificationInfo.extractIDFromURL(url);
             NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getApplicationContext());
             notificationManagerCompat.cancel(id);
             return false;
@@ -475,6 +484,9 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;
+        }
+        if (true){
+            return false;
         }
         swipeRefreshLayout.setRefreshing(true);
         android.util.Log.d("JSOUP", "is ivelt " + url);
@@ -487,16 +499,27 @@ public class MainActivity extends AppCompatActivity {
                 Connection connection = Utils.getConnection(url, useragent, context);
 
                 Document doc = connection.get();
+                int statusCode = doc.connection().response().statusCode();
+                // Catch client side errors
+                logger.log("Url " + url + " status code " + statusCode);
+                if(statusCode >= 400 && statusCode <= 500){
+                    runOnUiThread(() -> {
+                        logger.log("Unable to load URL " + url);
+                        Toast.makeText(MainActivity.this, "Unable to load page, redirecting", Toast.LENGTH_LONG).show();
+                    });
 
-                Map<String, String> requestHeaders = doc.connection().request().headers();
-                Map<String, String> responseHeaders = doc.connection().response().headers();
+//                    connection = Utils.getConnection()
 
-                requestHeaders.forEach( (name, value) -> {
-                    android.util.Log.d("Headers", "request: " + name + ": " + value);
-                });
-                responseHeaders.forEach( (name, value) -> {
-                    android.util.Log.d("Headers", "response: " + name + ": " + value);
-                });
+                }
+//                Map<String, String> requestHeaders = doc.connection().request().headers();
+//                Map<String, String> responseHeaders = doc.connection().response().headers();
+//
+//                requestHeaders.forEach( (name, value) -> {
+//                    android.util.Log.d("Headers", "request: " + name + ": " + value);
+//                });
+//                responseHeaders.forEach( (name, value) -> {
+//                    android.util.Log.d("Headers", "response: " + name + ": " + value);
+//                });
 
                 if(url.contains("ucp.php")){
                     handleUserControlPage(doc);
@@ -568,8 +591,10 @@ public class MainActivity extends AppCompatActivity {
     private static boolean isIvelt(String url){
         boolean isIvelt =  (url != null && (
                 url.startsWith("https://www.ivelt.com/") ||
-                url.startsWith("http://www.ivelt.com/") ||
-                url.startsWith("https://ivelt.com")||
+                        url.startsWith("www.ivelt.com/") ||
+                        url.startsWith("ivelt.com")||
+                        url.startsWith("http://www.ivelt.com/") ||
+                        url.startsWith("https://ivelt.com")||
                 url.startsWith("http://ivelt.com")||
                         url.startsWith("https://yiddishworld.com/") ||
                         url.startsWith("http://yiddishworld.com/")||
@@ -624,6 +649,7 @@ public class MainActivity extends AppCompatActivity {
         public void onPageFinished(WebView view, String url) {
             swipeRefreshLayout.setRefreshing(false);
             currentUrl = url;
+            logger.log("Page finished for url " + url);
             super.onPageFinished(view, url);
             this.hideProgress();
             WindowManager manager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
@@ -634,6 +660,7 @@ public class MainActivity extends AppCompatActivity {
             metrics.widthPixels /= metrics.density;
 
             mywebView.loadUrl("javascript:var scale = " + metrics.widthPixels + " / document.body.scrollWidth; document.body.style.zoom = scale;");
+            mywebView.loadUrl("javascript:" + AddSettingsElement.JS_ADD_ELEMENT_TO_LIST);
 
         }
 

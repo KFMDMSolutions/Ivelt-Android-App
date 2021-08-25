@@ -20,13 +20,14 @@
             android:summary="How often should the app check for notifications when on battery? "
             android:dialogMessage="How often should the app check for new notifications? Enter the amount of minutes, or enter 0 for never."
             android:title="When on battery" /-->
-        <ListPreference android:title="When plugged in..."
-            android:icon="@drawable/ic_baseline_power_24"
+        <ListPreference
             android:defaultValue="Never"
+            android:entries="@array/notification_settings"
             android:entryValues="@array/notification_settings"
-            android:summary="How often should the app check for notifications when plugged in? "
+            android:icon="@drawable/ic_baseline_power_24"
             android:key="plugged_in"
-            android:entries="@array/notification_settings"/>
+            android:summary="How often should the app check for notifications when plugged in? "
+            android:title="@string/when_plugged_in" />
 
         <ListPreference android:title="When on battery..."
             android:icon="@drawable/ic_baseline_battery_full_24"
@@ -44,6 +45,7 @@
             />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="Other Notification Settings">
     <Preference
         android:key="APP_NOTIF"
         android:title="Notification Settings"
@@ -55,12 +57,24 @@
             android:name="android.provider.extra.APP_PACKAGE"
             android:value="com.kfmdmsolutions.ivelt"/-->
     </Preference>
+    <ListPreference
+        android:key="click"
+        android:title="Notification Tap"
+        android:defaultValue="@string/open_notification"
+        android:entryValues="@array/click_settings"
+        android:entries="@array/click_settings"
+        android:summary="When I tap on a notification..."
+        android:icon="@drawable/ic_baseline_click_24"
+        />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Other Settings">
     <Preference
         android:key="Logs"
         android:title="Share Logs"
         android:icon="@drawable/ic_baseline_file_copy_24"
         android:summary="We do not collect logs. Logs will be sent only when you click on share logs."
         />
+    </PreferenceCategory>
 
     <!--PreferenceCategory android:title="Show Notifications For...">
         <CheckBoxPreference

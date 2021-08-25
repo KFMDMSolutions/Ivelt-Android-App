@@ -18,4 +18,11 @@
         <item>Once a day</item>
         <item>Never</item>
     </string-array>
+    <string name="open_notification">Open Notification</string>
+    <string name="when_plugged_in">When Plugged in…</string>
+    <string-array name="click_settings">
+        <item>@string/open_notification</item>
+        <item>Open Main Page</item>
+        <item>Dismiss Notification</item>
+    </string-array>
 </resources>
