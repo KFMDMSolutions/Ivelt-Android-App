@@ -660,6 +660,7 @@ public class MainActivity extends AppCompatActivity {
             metrics.widthPixels /= metrics.density;
 
             mywebView.loadUrl("javascript:var scale = " + metrics.widthPixels + " / document.body.scrollWidth; document.body.style.zoom = scale;");
+
             mywebView.loadUrl("javascript:" + AddSettingsElement.JS_ADD_ELEMENT_TO_LIST);
 
         }
