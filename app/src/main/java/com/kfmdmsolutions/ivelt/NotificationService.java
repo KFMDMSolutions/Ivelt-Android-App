@@ -86,28 +86,30 @@ public class NotificationService extends Service {
 
     public static final String ACTION_UPDATE_DELAY_TIME = "com.android.cts.ivelt.notification.service.action.update.delay.time";
     public static final String ACTION_CHECK_NOTIFICATIONS = "com.android.cts.ivelt.notification.service.action.check.notifications";
+    public static final String ACTION_SAVE_NOTIFICATION_LIST = "com.android.cts.ivelt.notification.service.action.save.notification.list";
     public static final String ACTION_UPDATE_NOTIFICATIONS = "com.android.cts.ivelt.notification.service.action.update.notifications";
     private int pluggedInDelay;
     private int batteryDelay;
 
-    private static ConcurrentLinkedQueue<Integer> sentNotificationQueue;
+    private static ConcurrentLinkedQueue<Long> sentNotificationQueue;
     private Runnable runnable;
     private PowerManager.WakeLock wakeLock;
 
-    public static NotificationService getInstance(){
-        if(instance == null){
+    public static NotificationService getInstance() {
+        if (instance == null) {
             instance = new NotificationService();
         }
         return instance;
     }
 
-    public static void initChannels(Context context){
+    public static void initChannels(Context context) {
         createNotificationChannel(context, "Direct Messages", "Show a notification when you get a direct message", DIRECT_MESSAGES_NOTIFICATION_CHANNEL);
-        createNotificationChannel( context, "Quotes", "Show a notification when someone quotes you", QUOTES_NOTIFICATION_CHANNEL);
+        createNotificationChannel(context, "Quotes", "Show a notification when someone quotes you", QUOTES_NOTIFICATION_CHANNEL);
         createNotificationChannel(context, "Bookmarks", "Show a notification when there is a new post in a thread you bookmarked", BOOKMARK_NOTIFICATION_CHANNEL);
         createNotificationChannel(context, "Other Notifications", "Show other notifications, e. g. Report closed, Notification Accepted etc.", OTHER_NOTIFICATION_CHANNEL);
         createNotificationChannel(context, "Service Notifications", "Show app service notifications - needed for updating the notification", SERVICE_NOTIFICATION_CHANNEL);
     }
+
     private static void createNotificationChannel(Context context, String name, String description, String channelID) {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -117,33 +119,37 @@ public class NotificationService extends Service {
             int importance = channelID.equals(SERVICE_NOTIFICATION_CHANNEL) ? NotificationManager.IMPORTANCE_MIN : NotificationManager.IMPORTANCE_HIGH;
             android.util.Log.d("TestChannel", "channel is " + name + " importance is " + importance);
             NotificationChannel channel = new NotificationChannel(channelID, name, importance);
+            if (channelID.equals(SERVICE_NOTIFICATION_CHANNEL)) {
+                channel.setShowBadge(false);
+            }
             channel.setDescription(description);
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this
-            if (context != null){
+            if (context != null) {
                 NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
                 notificationManager.createNotificationChannel(channel);
             }
         }
     }
 
-    public static void startNotificationService(Context context, String action){
+    public static void startNotificationService(Context context, String action) {
         Intent intent = new Intent(context, NotificationService.class);
         intent.setAction(action);
         context.startService(intent);
     }
-    public static void checkNotifications(Context context){
+
+    public static void checkNotifications(Context context) {
         Intent intent = new Intent(context, NotificationService.class);
         intent.setAction(ACTION_CHECK_NOTIFICATIONS);
         context.startService(intent);
     }
 
-    public static void checkForNotifications (Context context){
+    public static void checkForNotifications(Context context) {
 
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         boolean connected = networkInfo != null && networkInfo.isConnected();
-        if (!connected){
+        if (!connected) {
             Logger.getInstance(context).log("Not checking for updates, not connected to internet");
             return;
         }
@@ -154,12 +160,12 @@ public class NotificationService extends Service {
                 Elements notificationList = doc.select(".notification_list");
                 Elements newNotifications = notificationList.select(".row.bg3");
                 Elements notifications = newNotifications.select(".notifications");
-                for (Element element: notifications){
-                    android.util.Log.d("Notif", "Element " + element.child(0).attr("href"));
+                for (Element element : notifications) {
                     NotificationInfo info = new NotificationInfo(element);
+                    Logger.getInstance(context).log("notificationInfo url is " + info.url + " id is " + info.id);
                     showNotification(context, info);
                 }
-                if (notifications.isEmpty()){
+                if (notifications.isEmpty()) {
                     Logger.getInstance(context).log("Do we have notifications? " + (notificationList.first() != null));
                 }
                 Logger.getInstance(context).log("Notifications found: " + notifications.size());
@@ -170,9 +176,9 @@ public class NotificationService extends Service {
         });
     }
 
-    private static void showNotification(Context context, NotificationInfo notificationInfo){
+    private static void showNotification(Context context, NotificationInfo notificationInfo) {
 
-        if (sentNotificationQueue.contains(notificationInfo.id)){
+        if (sentNotificationQueue.contains(notificationInfo.id)) {
             Logger.getInstance(context).log("Notification with ID " + notificationInfo.id + " already shown");
             return;
         }
@@ -182,28 +188,30 @@ public class NotificationService extends Service {
                 .setContentTitle(notificationInfo.title)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .setContentText(notificationInfo.text)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(notificationInfo.text))
                 .setPriority(NotificationCompat.PRIORITY_MAX);
-        NotificationManagerCompat.from(context.getApplicationContext()).notify(notificationInfo.id, notificationBuilder.build());
+        NotificationManagerCompat.from(context.getApplicationContext()).notify((int) notificationInfo.id, notificationBuilder.build());
         sentNotificationQueue.add(notificationInfo.id);
-        if(sentNotificationQueue.size() > 50){
+        if (sentNotificationQueue.size() > 50) {
             sentNotificationQueue.remove();
         }
         Logger.getInstance(context).log("Sent notification with ID " + notificationInfo.id);
     }
 
     private static PendingIntent getPendingIntent(Context context, NotificationInfo info) {
-
+        String openNotification = context.getString(R.string.open_notification);
+        String preference = PreferenceManager.getDefaultSharedPreferences(context).getString("click", openNotification);
         Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
         int id = 10001;
         if (info != null) {
-            intent.putExtra(MainActivity.EXTRA_URL, info.url);
-            id = info.id;
+//            if (openNotification.equals(preference)) {
+                intent.putExtra(MainActivity.EXTRA_URL, info.url);
+//            }
+            id = (int) info.id;
         }
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context.getApplicationContext());
         stackBuilder.addNextIntentWithParentStack(intent);
-        PendingIntent pendingIntent = stackBuilder.getPendingIntent(id, PendingIntent.FLAG_IMMUTABLE);
-        return pendingIntent;
+        return stackBuilder.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     enum NotificationType {
@@ -211,15 +219,15 @@ public class NotificationService extends Service {
 
         String channelID;
 
-        NotificationType(String channelID){
+        NotificationType(String channelID) {
             this.channelID = channelID;
         }
 
-        static NotificationType findType(String name){
-            if (name == null){
+        static NotificationType findType(String name) {
+            if (name == null) {
                 return OTHER;
             }
-            switch (name.trim()){
+            switch (name.trim()) {
                 case "פריוואטע מעסעדזש":
                     return PRIVATE_MESSAGE;
                 case "ציטירט":
@@ -244,86 +252,97 @@ public class NotificationService extends Service {
         try {
             FileInputStream fis = openFileInput(SENT_NOTIFICATION_LIST);
             ObjectInputStream is = new ObjectInputStream(fis);
-            sentNotificationQueue = (ConcurrentLinkedQueue<Integer>) is.readObject();
+            Object object = is.readObject();
+            android.util.Log.d("SNQ", " object is " + object.getClass());
+            sentNotificationQueue = (ConcurrentLinkedQueue<Long>) object;
+            android.util.Log.d("SNQ", " deserialzed " + sentNotificationQueue);
             is.close();
             fis.close();
         } catch (IOException | ClassNotFoundException | ClassCastException e) {
             sentNotificationQueue = new ConcurrentLinkedQueue<>();
             Logger.getInstance(this).log("unable to deserialize sent notification queue, created a new one");
+
+            android.util.Log.d("SNQ", " error derserializen ", e);
             e.printStackTrace();
         }
     }
 
-    public static class NotificationInfo{
+    public static class NotificationInfo {
         NotificationType type;
         CharSequence title;
         String channelID;
         CharSequence text;
         String url;
-        int id;
+        long id;
 
-        NotificationInfo(Element notificationElement){
+        NotificationInfo(Element notificationElement) {
 
             Elements link = notificationElement.getElementsByTag("a");
-            if (link.first() != null){
+            if (link.first() != null) {
                 String url = link.first().attr("href");
                 android.util.Log.d("Notif", url);
                 this.id = extractIDFromURL(url);
+//                this.url = url;
                 this.url = fixURL(url);
-                android.util.Log.d("Notif", "url is " + this.url );
-            }else{
+
+            } else {
                 android.util.Log.d("Notif", "url null");
             }
             Elements title = notificationElement.getElementsByClass("notifications_title");
-            if (title.first() != null){
+            if (title.first() != null) {
                 Elements strong = title.first().getElementsByTag("strong");
-                if (strong.first() != null){
+                if (strong.first() != null) {
                     this.title = Html.fromHtml(strong.html(), 0).toString();
                     this.type = NotificationType.findType(this.title.toString());
                     this.channelID = this.type.channelID;
                     android.util.Log.d("Notif", "title " + this.title + " type " + this.type);
                 }
-                this.text = Html.fromHtml(title.first().html(),0);
+                this.text = Html.fromHtml(title.first().html(), 0);
             }
         }
 
-        private String fixURL(String url){
-            return url.replace("./", "http://www.ivelt.com/forum/");
+        private String fixURL(String url) {
+            return url.replace("./", "www.ivelt.com/forum/");
         }
 
-        public static int extractIDFromURL(String url){
+        public static long extractIDFromURL(String url) {
+
             Pattern pattern = Pattern.compile("mark_notification=([^;]*)&");
             Matcher matcher = pattern.matcher(url);
-            if (matcher.find())
-            {
-                int id = Integer.parseInt(matcher.group().replaceAll("[^\\d]", ""));
-                android.util.Log.d("Notif", "id is " + id);
+            if (matcher.find()) {
+                long id = Long.parseLong(matcher.group().replaceAll("[^\\d]", ""));
                 return id;
             }
-            return -1;
+            return -1L;
         }
     }
 
-    private boolean shouldStartForeground(boolean paused, int pluggedInDelay, int batteryDelay){
+    private boolean shouldStartForeground(boolean paused, int pluggedInDelay, int batteryDelay) {
 
         // using plus , will be 0 if both are 0, if only one is 0, it will be the other number, and if both are non 0, it will be some unknown number
         int delayTime = pluggedInDelay + batteryDelay;
 
         // both are 0 return false, or when notifications are paused.
-        if (paused || ((delayTime) == 0)){
+        if (paused || ((delayTime) == 0)) {
             return false;
         }
         // Both are non 0, delay time is some unknown number, we need to set it the minimum delay time.
-        if ((pluggedInDelay * batteryDelay) > 0){
+        if ((pluggedInDelay * batteryDelay) > 0) {
             delayTime = Math.min(pluggedInDelay, batteryDelay);
         }
         return ((delayTime < 15 * MINUTE_IN_MILLIS));
     }
 
 
+
     @Override
     public void onDestroy() {
         Logger.getInstance(NotificationService.this).log("StartForeground: Stopping");
+        saveNotificationList();
+        super.onDestroy();
+    }
+
+    private void saveNotificationList() {
         try {
             FileOutputStream fos = openFileOutput(SENT_NOTIFICATION_LIST, Context.MODE_PRIVATE);
             ObjectOutputStream os = new ObjectOutputStream(fos);
@@ -331,16 +350,16 @@ public class NotificationService extends Service {
             os.close();
             fos.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            android.util.Log.d("SNQ", "unable to save ", e);
         }
-        super.onDestroy();
     }
 
     private static final int MINUTE_IN_MILLIS = 60 * 1000;
     private static final int HOUR_IN_MILLIS = 60 * MINUTE_IN_MILLIS;
-    private int convertDurationStringToMilliSeconds(String duration){
+
+    private int convertDurationStringToMilliSeconds(String duration) {
         duration = duration == null ? "" : duration;
-        switch (duration){
+        switch (duration) {
             case "Every minute":
                 return MINUTE_IN_MILLIS;
             case "Once in 5 minutes":
@@ -368,6 +387,7 @@ public class NotificationService extends Service {
                 return 0;
         }
     }
+
     public NotificationService() {
         super();
     }
@@ -381,7 +401,8 @@ public class NotificationService extends Service {
 
     Handler handler;
     private static final int SERVICE_NOTIFICATION_ID = 1000;
-    private void startForeground(){
+
+    private void startForeground() {
 
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         if (wakeLock == null) {
@@ -405,13 +426,14 @@ public class NotificationService extends Service {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     ScheduledFuture<?> scheduledFuture;
+
     private void startTimer() {
         long period = getPeriod();
-        if (scheduledFuture != null){
+        if (scheduledFuture != null) {
             Logger.getInstance(NotificationService.this).log("StartForeground: Cancelling Before starting");
             scheduledFuture.cancel(false);
         }
-        if (handler != null && runnable != null){
+        if (handler != null && runnable != null) {
             handler.removeCallbacks(runnable);
         }
         if (period > 0) {
@@ -433,9 +455,9 @@ public class NotificationService extends Service {
         updateServiceNotification();
     }
 
-    private long getDelay(){
+    private long getDelay() {
         android.util.Log.d("StartForeground", "Last updated = " + lastUpdatedTime);
-        if (lastUpdatedTime == 0){
+        if (lastUpdatedTime == 0) {
             return 0;
         }
         long period = getPeriod();
@@ -443,10 +465,10 @@ public class NotificationService extends Service {
         return Math.max(0, period - elapsedTime);
     }
 
-    private long getPeriod(){
-        if (isCharging){
+    private long getPeriod() {
+        if (isCharging) {
             return pluggedInDelay;
-        }else{
+        } else {
             return batteryDelay;
         }
 
@@ -460,8 +482,8 @@ public class NotificationService extends Service {
 
 
 //            BatteryManager manager = (BatteryManager) getSystemService(BATTERY_SERVICE);
-            boolean isCharging = intent.getIntExtra(EXTRA_PLUGGED, -1 ) > 0 ;
-            android.util.Log.d("StartForeground", "Receiving " + intent.getAction() + " " + isCharging + " " + intent.getIntExtra(EXTRA_PLUGGED, -1 ));
+            boolean isCharging = intent.getIntExtra(EXTRA_PLUGGED, -1) > 0;
+            android.util.Log.d("StartForeground", "Receiving " + intent.getAction() + " " + isCharging + " " + intent.getIntExtra(EXTRA_PLUGGED, -1));
             if (isCharging != NotificationService.this.isCharging) {
                 NotificationService.this.isCharging = isCharging;
                 updateServiceNotification();
@@ -476,7 +498,7 @@ public class NotificationService extends Service {
     private void updateTimer() {
         if (scheduledFuture != null) {
             Logger.getInstance(NotificationService.this).log("StartForeground: Cancelling because updating");
-            if (handler != null && runnable != null){
+            if (handler != null && runnable != null) {
                 handler.removeCallbacks(runnable);
             }
 //            scheduledFuture.cancel(false);
@@ -489,7 +511,7 @@ public class NotificationService extends Service {
         String periodString = DateUtils.formatElapsedTime(getPeriod() / 1000);
         String lastUpdated = "Never";
         if (lastUpdatedTime > 0) {
-            lastUpdated = DateUtils.formatSameDayTime( lastUpdatedTime, System.currentTimeMillis(), MEDIUM, MEDIUM).toString();
+            lastUpdated = DateUtils.formatSameDayTime(lastUpdatedTime, System.currentTimeMillis(), MEDIUM, MEDIUM).toString();
         }
         String powerString = this.isCharging ? " when plugged In" : " when on battery";
 
@@ -501,7 +523,7 @@ public class NotificationService extends Service {
                 .setSilent(true)
                 .addAction(new NotificationCompat.Action(1, "Check Now", getUpdateIntent()))
                 .setContentIntent(getPendingIntent(this, null))
-                .setContentTitle("Notifications updated at: " + lastUpdated )
+                .setContentTitle("Notifications updated at: " + lastUpdated)
                 .setContentText("Updates every " + periodString + powerString)
                 .setPriority(NotificationCompat.PRIORITY_MIN);
 
@@ -513,13 +535,13 @@ public class NotificationService extends Service {
     private PendingIntent getUpdateIntent() {
         Intent intent = new Intent(getApplicationContext(), NotificationService.class);
         intent.setAction(ACTION_UPDATE_NOTIFICATIONS);
-        return  PendingIntent.getService(getApplicationContext(), 2, intent, PendingIntent.FLAG_IMMUTABLE);
+        return PendingIntent.getService(getApplicationContext(), 2, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
-    private void stopForeground(){
-        if (wakeLock != null){
+    private void stopForeground() {
+        if (wakeLock != null) {
             wakeLock.release();
-            wakeLock =  null;
+            wakeLock = null;
         }
         Logger.getInstance(NotificationService.this).log("StartForeground: Cancelling because stopping");
         if (handler != null && runnable != null) {
@@ -527,8 +549,8 @@ public class NotificationService extends Service {
         }
         try {
             unregisterReceiver(powerBroadcastReceiver);
-        }catch (IllegalArgumentException ise){
-            Logger.getInstance(this).log("Unregister receiver failed", ise);
+        } catch (IllegalArgumentException ise) {
+            Logger.getInstance(this).log("Unregister receiver failed, receiver not registered");
         }
         super.stopForeground(false);
     }
@@ -536,7 +558,7 @@ public class NotificationService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction() != null) {
-            switch (intent.getAction()){
+            switch (intent.getAction()) {
                 case ACTION_UPDATE_NOTIFICATIONS:
                     checkForNotifications(getApplicationContext());
                     lastUpdatedTime = System.currentTimeMillis();
@@ -547,6 +569,10 @@ public class NotificationService extends Service {
                 case ACTION_UPDATE_DELAY_TIME:
                     updateCheckTimes();
                     break;
+                case ACTION_SAVE_NOTIFICATION_LIST:
+                    saveNotificationList();
+                    break;
+
             }
         }
         return START_STICKY;
@@ -564,13 +590,13 @@ public class NotificationService extends Service {
         if (useForeground) {
             android.util.Log.d("StartForeground", "Calling start");
             startForeground();
-        }else{
+        } else {
             stopForeground();
         }
-        if (shouldUseWorkManager(useForeground, paused, pluggedInDelay, batteryDelay)){
+        if (shouldUseWorkManager(useForeground, paused, pluggedInDelay, batteryDelay)) {
             checkForNotifications(getApplicationContext());
             startWorkManagers(pluggedInDelay, batteryDelay);
-        }else{
+        } else {
             cancelWork();
         }
     }
@@ -582,34 +608,34 @@ public class NotificationService extends Service {
         WorkManager.getInstance(getApplicationContext()).pruneWork();
     }
 
-    private void startWorkManagers(int pluggedInDelay, int batteryDelay){
-        if (pluggedInDelay >= 15 * MINUTE_IN_MILLIS){
-            PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(PowerNotificationUpdater.class, pluggedInDelay , TimeUnit.MILLISECONDS)
+    private void startWorkManagers(int pluggedInDelay, int batteryDelay) {
+        if (pluggedInDelay >= 15 * MINUTE_IN_MILLIS) {
+            PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(PowerNotificationUpdater.class, pluggedInDelay, TimeUnit.MILLISECONDS)
                     .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).setRequiresCharging(true).build())
                     .build();
             WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork("Power", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
             WorkManager.getInstance(getApplicationContext()).pruneWork();
             Logger.getInstance(getApplicationContext()).log("WMNS plugged in delay enqued");
-        }else{
+        } else {
             WorkManager.getInstance(getApplicationContext()).cancelUniqueWork("Power");
         }
-        if (batteryDelay >= 15 * MINUTE_IN_MILLIS){
-            PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(BatteryNotificationUpdater.class, pluggedInDelay , TimeUnit.MILLISECONDS)
+        if (batteryDelay >= 15 * MINUTE_IN_MILLIS) {
+            PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(BatteryNotificationUpdater.class, pluggedInDelay, TimeUnit.MILLISECONDS)
                     .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).setRequiresCharging(false).build())
                     .build();
             WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork("Battery", ExistingPeriodicWorkPolicy.REPLACE, workRequest);
             WorkManager.getInstance(getApplicationContext()).pruneWork();
             Logger.getInstance(getApplicationContext()).log("WMNS plugged in delay enqued");
-        }else{
+        } else {
             WorkManager.getInstance(getApplicationContext()).cancelUniqueWork("Battery");
         }
     }
 
     private boolean shouldUseWorkManager(boolean useForeground, boolean paused, int pluggedInDelay, int batteryDelay) {
-        if (paused || useForeground){
-            return  false;
+        if (paused || useForeground) {
+            return false;
         }
-        return  (pluggedInDelay + batteryDelay > 0);
+        return (pluggedInDelay + batteryDelay > 0);
     }
 
 }

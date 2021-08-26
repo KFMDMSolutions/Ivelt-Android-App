@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 
+import java.io.File;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -70,6 +71,14 @@ public class Utils {
             android.util.Log.d("SSL", "FAILED");
             throw new RuntimeException("Failed to create Factory", e);
         }
+    }
+
+    public static File getSNQFile(Context context){
+        File file = new File(context.getFilesDir().getAbsoluteFile() + File.separator + "SNQ");
+        if (!file.exists()){
+            file.mkdirs();
+        }
+        return file;
     }
 
     @NonNull
