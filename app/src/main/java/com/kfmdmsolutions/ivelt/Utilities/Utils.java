@@ -92,6 +92,7 @@ public class Utils {
         if (useragent != null && !useragent.isEmpty()) {
             connection = connection.userAgent(useragent);
         }
+
         return connection;
     }
 }

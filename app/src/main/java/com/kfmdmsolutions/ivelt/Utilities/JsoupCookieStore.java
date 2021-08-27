@@ -24,6 +24,7 @@ public class JsoupCookieStore implements java.net.CookieStore{
         Logger.getInstance(contextWeakReference.get()).log("Cookies, value is " + cookie.getValue() + " setting ");
         try {
             CookieManager.getInstance().setCookie(uri.toURL().toString(), cookie.toString());
+            CookieManager.getInstance().flush();
         } catch (MalformedURLException e) {
             Logger.getInstance(contextWeakReference.get()).log("Unable to add cookie", e);
             e.printStackTrace();
