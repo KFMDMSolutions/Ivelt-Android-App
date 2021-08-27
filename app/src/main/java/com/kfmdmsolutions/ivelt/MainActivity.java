@@ -428,6 +428,12 @@ public class MainActivity extends AppCompatActivity {
                     clipboard.setPrimaryClip(clip);
                     Toast.makeText(getApplicationContext(), "Link Copied!",
                             Toast.LENGTH_SHORT).show();
+                } else if (item.getTitle() == "Share Link") {
+                    String linkToShare = result.getExtra();
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.setType("text/plain");
+                    shareIntent.putExtra(Intent.EXTRA_TEXT,linkToShare); // your above url
+                    startActivity(Intent.createChooser(shareIntent, "Share..."));
                 } else if (item.getTitle() == "Save - Download Image") {
 
                     String DownloadImageURL = result.getExtra();
@@ -463,6 +469,7 @@ public class MainActivity extends AppCompatActivity {
             menu.setHeaderTitle("Image options");
             menu.add(0, 2, 1, "Copy image link").setOnMenuItemClickListener(handler);
             menu.add(0, 1, 0, "Save - Download Image").setOnMenuItemClickListener(handler);
+            menu.add(0, 3, 2, "Share Link").setOnMenuItemClickListener(handler);
         }
     }
 
