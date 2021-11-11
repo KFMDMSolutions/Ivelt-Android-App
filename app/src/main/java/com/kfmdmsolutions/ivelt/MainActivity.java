@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
         mywebView.getSettings().setAppCacheEnabled(true);
         mywebView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
         mywebView.getSettings().setMixedContentMode(MIXED_CONTENT_COMPATIBILITY_MODE);
-//        String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36";
+//        String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36";
 //        mywebView.getSettings().setUserAgentString(desktopuseragent);
 //        mywebView.getSettings().setLoadWithOverviewMode(true);
 //        mywebView.getSettings().setUseWideViewPort(true);
