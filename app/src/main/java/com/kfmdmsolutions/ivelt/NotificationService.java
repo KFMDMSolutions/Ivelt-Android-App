@@ -37,6 +37,7 @@ import android.text.Html;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.webkit.CookieManager;
+import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -310,8 +311,7 @@ public class NotificationService extends Service {
             Pattern pattern = Pattern.compile("mark_notification=([^;]*)&");
             Matcher matcher = pattern.matcher(url);
             if (matcher.find()) {
-                long id = Long.parseLong(matcher.group().replaceAll("[^\\d]", ""));
-                return id;
+                return Long.parseLong(matcher.group().replaceAll("[^\\d]", ""));
             }
             return -1L;
         }
@@ -350,6 +350,7 @@ public class NotificationService extends Service {
             os.close();
             fos.close();
         } catch (IOException e) {
+
             android.util.Log.d("SNQ", "unable to save ", e);
         }
     }
