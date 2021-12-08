@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
     Logger logger;
+    private boolean serviceNeedsStarting = true;
     public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -104,12 +105,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleIntent(Intent intent) {
-        if (intent == null || intent.getStringExtra(EXTRA_URL) == null) {
+        if (intent == null || (intent.getStringExtra(EXTRA_URL) == null && getIntent().getDataString() == null)) {
             return;
         }
+
         String url = intent.getStringExtra(EXTRA_URL);
+        url = url == null ? getIntent().getDataString() : url;
         loadUrl(url);
-        logger.log("Intent Url is " + url);
+        logger.log("URL Intent Url is " + url);
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
 
         NotificationService.initChannels(getApplicationContext());
 
-        NotificationService.startNotificationService(this, NotificationService.ACTION_UPDATE_DELAY_TIME);
+        serviceNeedsStarting = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             for (NotificationChannel channel : manager.getNotificationChannels()){
@@ -158,7 +161,6 @@ public class MainActivity extends AppCompatActivity {
         mywebView.setPadding(0, 0, 0, 0);
         registerForContextMenu(mywebView);
         url = getIntent().getDataString();
-
         ActivityCompat.requestPermissions(this, new String[]{
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.CAMERA,
@@ -170,6 +172,9 @@ public class MainActivity extends AppCompatActivity {
         if (webviewBundle != null) {
             mywebView.restoreState(webviewBundle);
             webviewBundle = null;
+            if (url != null){
+                mywebView.loadUrl(url);
+            }
         } else if (url == null) {
             mywebView.loadUrl(currentUrl);
         } else {
@@ -669,6 +674,10 @@ public class MainActivity extends AppCompatActivity {
             mywebView.loadUrl("javascript:var scale = " + metrics.widthPixels + " / document.body.scrollWidth; document.body.style.zoom = scale;");
 
             mywebView.loadUrl("javascript:" + AddSettingsElement.JS_ADD_ELEMENT_TO_LIST);
+            if (serviceNeedsStarting){
+                NotificationService.startNotificationService(MainActivity.this, NotificationService.ACTION_UPDATE_DELAY_TIME);
+                serviceNeedsStarting = false;
+            }
 
         }
 
