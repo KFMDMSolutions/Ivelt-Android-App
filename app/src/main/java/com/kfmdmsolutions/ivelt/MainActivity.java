@@ -171,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
 
         }, 0);
 
-        android.util.Log.d("URL01", " oncreate "+ getIntent().getDataString());
         if (webviewBundle != null) {
             mywebView.restoreState(webviewBundle);
             webviewBundle = null;
@@ -180,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        android.util.Log.d("URL01", "current url " + currentUrl);
         if (currentUrl != null) {
             mywebView.loadUrl(currentUrl);
         }
@@ -258,15 +256,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-//        if (intent == null){
-//            return;
-//        }
-//
-//        String url = intent.getStringExtra(EXTRA_URL);
-//        url = (url == null || url.isEmpty()) ? url : getIntent().getDataString();
-////        currentUrl = intent.getDataString();
-//        mywebView.loadUrl(url);
-//        android.util.Log.d("URL01", "onnewintent " + url);
         handleIntent(intent);
     }
 
