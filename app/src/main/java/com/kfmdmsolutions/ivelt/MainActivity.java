@@ -105,13 +105,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleIntent(Intent intent) {
-        if (intent == null || (intent.getStringExtra(EXTRA_URL) == null && getIntent().getDataString() == null)) {
+        if (intent == null || (intent.getStringExtra(EXTRA_URL) == null && intent.getDataString() == null)) {
             return;
         }
 
         String url = intent.getStringExtra(EXTRA_URL);
-        url = url == null ? getIntent().getDataString() : url;
-        loadUrl(url);
+        url = url == null ? intent.getDataString() : url;
+        if (url != null && !url.isEmpty()) {
+            mywebView.loadUrl(url);
+        }
         logger.log("URL Intent Url is " + url);
     }
     @Override
@@ -169,16 +171,18 @@ public class MainActivity extends AppCompatActivity {
 
         }, 0);
 
+        android.util.Log.d("URL01", " oncreate "+ getIntent().getDataString());
         if (webviewBundle != null) {
             mywebView.restoreState(webviewBundle);
             webviewBundle = null;
             if (url != null){
                 mywebView.loadUrl(url);
             }
-        } else if (url == null) {
+        }
+
+        android.util.Log.d("URL01", "current url " + currentUrl);
+        if (currentUrl != null) {
             mywebView.loadUrl(currentUrl);
-        } else {
-           loadUrl(url);
         }
 
         if (getIntent() != null){
@@ -243,26 +247,26 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onRefresh() {
-                loadUrl(currentUrl);
+                mywebView.loadUrl(currentUrl);
             }
 
         });
 
     }
 
-    private void loadUrl(String url) {
-        if (isIvelt(url)) {
-            if (!handleIvelt(url, mywebView)){
-                mywebView.loadUrl(url);
-            }
-        } else {
-            mywebView.loadUrl(url);
-        }
-    }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+//        if (intent == null){
+//            return;
+//        }
+//
+//        String url = intent.getStringExtra(EXTRA_URL);
+//        url = (url == null || url.isEmpty()) ? url : getIntent().getDataString();
+////        currentUrl = intent.getDataString();
+//        mywebView.loadUrl(url);
+//        android.util.Log.d("URL01", "onnewintent " + url);
         handleIntent(intent);
     }
 
