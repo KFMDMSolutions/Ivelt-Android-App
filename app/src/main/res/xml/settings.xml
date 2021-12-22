@@ -22,35 +22,35 @@
             android:title="When on battery" /-->
         <ListPreference
             android:defaultValue="Never"
-            android:entries="@array/notification_settings"
+            android:entries="@array/notification_settings_entries"
             android:entryValues="@array/notification_settings"
             android:icon="@drawable/ic_baseline_power_24"
             android:key="plugged_in"
-            android:summary="How often should the app check for notifications when plugged in? "
+            android:summary="@string/plugged_in_summary"
             android:title="@string/when_plugged_in" />
 
-        <ListPreference android:title="When on battery..."
+        <ListPreference android:title="@string/battery_title"
             android:icon="@drawable/ic_baseline_battery_full_24"
             android:defaultValue="Never"
             android:entryValues="@array/notification_settings"
-            android:summary="How often should the app check for notifications when on battery? "
+            android:summary="@string/battery_summary"
             android:key="battery"
-            android:entries="@array/notification_settings"/>
+            android:entries="@array/notification_settings_entries"/>
         <CheckBoxPreference
             android:icon="@drawable/ic_baseline_notifications_paused_24"
             android:defaultValue="false"
-            android:summary="Pause notifications. Your scheduled update times will be saved."
-            android:title="Pause Notifications"
+            android:summary="@string/pause_summary"
+            android:title="@string/pause_title"
             android:key="pause_notifications"
             />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Other Notification Settings">
+    <PreferenceCategory android:title="@string/other_notification_title">
     <Preference
         android:key="APP_NOTIF"
-        android:title="Notification Settings"
+        android:title="@string/notification_settings_title"
         android:icon="@drawable/ic_baseline_edit_notifications_24"
-        android:summary="Go to the Notification Settings page on your phone. You can change the settings for the notification channels."
+        android:summary="@string/notification_settings_summary"
         >
         <intent android:action="android.settings.APP_NOTIFICATION_SETTINGS"/>
         <!--extra
@@ -59,21 +59,36 @@
     </Preference>
     <ListPreference
         android:key="click"
-        android:title="Notification Tap"
+        android:title="@string/tap_title"
         android:defaultValue="@string/open_notification"
-        android:entryValues="@array/click_settings"
-        android:entries="@array/click_settings"
-        android:summary="When I tap on a notification..."
+        android:entryValues="@array/click_settings_values"
+        android:entries="@array/click_settings_entries"
+        android:summary="@string/tap_summary"
         android:icon="@drawable/ic_baseline_click_24"
         />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Other Settings">
-    <Preference
-        android:key="Logs"
-        android:title="Share Logs"
-        android:icon="@drawable/ic_baseline_file_copy_24"
-        android:summary="We do not collect logs. Logs will be sent only when you click on share logs."
-        />
+    <PreferenceCategory android:title="@string/other_settings_title">
+        <ListPreference
+            android:entries="@array/language_entries"
+            android:entryValues="@array/language_values"
+            android:defaultValue="en"
+            android:key="language"
+            android:title="@string/language_title"
+            android:icon="@drawable/ic_baseline_language_24"
+            android:summary="@string/language_summary"/>
+        <Preference
+            android:icon="@drawable/ic_baseline_file_copy_24"
+            android:key="Logs"
+            android:summary="@string/logs_summary"
+            android:title="@string/logs_title" />
+        <ListPreference
+            android:defaultValue="http://www.ivelt.com/forum/index.php"
+            android:entries="@array/pages_entries"
+            android:entryValues="@array/pages_values"
+            android:icon="@drawable/ic_baseline_app_shortcut_24"
+            android:key="default_page"
+            android:summary="@string/default_page_summary"
+            android:title="@string/default_page_title" />
     </PreferenceCategory>
 
     <!--PreferenceCategory android:title="Show Notifications For...">

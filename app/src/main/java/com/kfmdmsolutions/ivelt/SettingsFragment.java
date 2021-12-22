@@ -1,21 +1,37 @@
 package com.kfmdmsolutions.ivelt;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.core.text.TextUtilsCompat;
+import androidx.core.view.ViewCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.preference.EditTextPreference;
+import androidx.preference.EditTextPreferenceDialogFragmentCompat;
+import androidx.preference.ListPreference;
+import androidx.preference.ListPreferenceDialogFragmentCompat;
+import androidx.preference.MultiSelectListPreference;
+import androidx.preference.MultiSelectListPreferenceDialogFragmentCompat;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
-import androidx.preference.SwitchPreferenceCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Locale;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
+    private static final String DIALOG_FRAGMENT_TAG =
+            "androidx.preference.PreferenceFragment.DIALOG";
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.settings, rootKey);
@@ -48,6 +64,24 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
     }
 
+    @Override
+    public RecyclerView onCreateRecyclerView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
+        RecyclerView recyclerView = super.onCreateRecyclerView(inflater, parent, savedInstanceState);
+        recyclerView.setLayoutDirection(getLayoutDirectionFromFirstChar(Locale.getDefault()));
+        return recyclerView;
+    }
+
+    private static int getLayoutDirectionFromFirstChar(@NonNull Locale locale) {
+        switch(Character.getDirectionality(locale.getDisplayName(locale).charAt(0))) {
+            case Character.DIRECTIONALITY_RIGHT_TO_LEFT:
+            case Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC:
+                return ViewCompat.LAYOUT_DIRECTION_RTL;
+
+            case Character.DIRECTIONALITY_LEFT_TO_RIGHT:
+            default:
+                return ViewCompat.LAYOUT_DIRECTION_LTR;
+        }
+    }
     private void delayPreferenceChanged(String key) {
         Preference preference = findPreference(key);
         if (preference == null) return;
@@ -61,6 +95,32 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     NotificationService.startNotificationService(getContext(), NotificationService.ACTION_UPDATE_DELAY_TIME);
                     return true;
                 });
+    }
+
+    @Override
+    public void onDisplayPreferenceDialog(Preference preference) {
+
+        // check if dialog is already showing
+        if (getParentFragmentManager().findFragmentByTag(DIALOG_FRAGMENT_TAG) != null) {
+            return;
+        }
+
+        final DialogFragment f;
+        if (preference instanceof EditTextPreference) {
+            f = EditTextPreferenceDialogFragmentCompat.newInstance(preference.getKey());
+        } else if (preference instanceof ListPreference) {
+            f = RTLListPreference.newInstance(preference.getKey());
+        } else if (preference instanceof MultiSelectListPreference) {
+            f = MultiSelectListPreferenceDialogFragmentCompat.newInstance(preference.getKey());
+        } else {
+            throw new IllegalArgumentException(
+                    "Cannot display dialog for an unknown Preference type: "
+                            + preference.getClass().getSimpleName()
+                            + ". Make sure to implement onPreferenceDisplayDialog() to handle "
+                            + "displaying a custom dialog for this Preference.");
+        }
+        f.setTargetFragment(this, 0);
+        f.show(getParentFragmentManager(), DIALOG_FRAGMENT_TAG);
     }
 
     private void showDelayDialog(String key, String value) {
@@ -84,5 +144,22 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             return;
         }
         PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, value).apply();
+    }
+    public static class RTLListPreference extends ListPreferenceDialogFragmentCompat {
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Dialog d = super.onCreateDialog(savedInstanceState);
+            d.getWindow().getDecorView().setLayoutDirection(getLayoutDirectionFromFirstChar(Locale.getDefault()));
+            return d;
+        }
+        public static RTLListPreference newInstance(String key) {
+            final RTLListPreference fragment =
+                    new RTLListPreference();
+            final Bundle b = new Bundle(1);
+            b.putString(ARG_KEY, key);
+            fragment.setArguments(b);
+            return fragment;
+        }
     }
 }
