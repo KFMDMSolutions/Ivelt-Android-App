@@ -18,11 +18,69 @@
         <item>Once a day</item>
         <item>Never</item>
     </string-array>
+    <string-array name="notification_settings_entries">
+        <item>Every minute</item>
+        <item>Once in 5 minutes</item>
+        <item>Once in 10 minutes</item>
+        <item>Once in 15 minutes</item>
+        <item>Once every half hour</item>
+        <item>Once every hour</item>
+        <item>Once in 2 hours</item>
+        <item>Once in 3 hours</item>
+        <item>Once in 6 hours</item>
+        <item>Once in 12 hours</item>
+        <item>Once a day</item>
+        <item>Never</item>
+    </string-array>
     <string name="open_notification">Open Notification</string>
     <string name="when_plugged_in">When Plugged in…</string>
-    <string-array name="click_settings">
+    <string name="default_page_title">Default Page</string>
+    <string name="plugged_in_summary">How often should the app check for notifications when plugged in?</string>
+    <string name="battery_title">When on battery…</string>
+    <string name="battery_summary">How often should the app check for notifications when on battery?</string>
+    <string name="pause_summary">Pause notifications. Your scheduled update times will be saved.</string>
+    <string name="pause_title">Pause Notifications</string>
+    <string name="other_notification_title">Other Notification Settings</string>
+    <string name="notification_settings_title">Notification Settings</string>
+    <string name="notification_settings_summary">Go to the Notification Settings page on your phone. You can change the settings for the notification channels.</string>
+    <string name="tap_title">Notification Tap</string>
+    <string name="tap_summary">When I tap on a notification…</string>
+    <string name="other_settings_title">Other Settings</string>
+    <string name="logs_summary">We do not collect logs. Logs will be sent only when you click on share logs.</string>
+    <string name="logs_title">Share Logs</string>
+    <string name="default_page_summary">When the app opens, go to…</string>
+    <string name="language_title">Language</string>
+    <string name="language_summary">The language for the settings page, this will take effect the next time you open the page.</string>
+    <string-array name="click_settings_values">
+        <item>Open Notification</item>
+        <item>Open Main Page</item>
+        <item>Dismiss Notification</item>
+    </string-array>
+    <string-array name="click_settings_entries">
         <item>@string/open_notification</item>
         <item>Open Main Page</item>
         <item>Dismiss Notification</item>
+    </string-array>
+    <string-array name="pages_entries">
+        <item>Main Page</item>
+        <item>Your Posts</item>
+        <item>New Posts</item>
+        <item>Unread Posts</item>
+        <item>Active Topics</item>
+    </string-array>
+    <string-array name="pages_values">
+        <item>http://www.ivelt.com/forum/index.php</item>
+        <item>http://www.ivelt.com/forum/search.php?search_id=egosearch</item>
+        <item>http://www.ivelt.com/forum/search.php?search_id=newposts</item>
+        <item>http://www.ivelt.com/forum/search.php?search_id=unreadposts</item>
+        <item>http://www.ivelt.com/forum/search.php?search_id=active_topics</item>
+    </string-array>
+    <string-array name="language_entries">
+        <item>English</item>
+        <item>אידיש</item>
+    </string-array>
+    <string-array name="language_values">
+        <item>en</item>
+        <item>yi</item>
     </string-array>
 </resources>
