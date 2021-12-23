@@ -185,8 +185,8 @@ public class MainActivity extends AppCompatActivity {
         }else if (currentUrl != null) {
             String url = PreferenceManager.getDefaultSharedPreferences(this).getString("default_page", currentUrl);
             mywebView.loadUrl(url);
-        }
 
+        }
         if (getIntent() != null){
             handleIntent(getIntent());
             getIntent().setData(null);

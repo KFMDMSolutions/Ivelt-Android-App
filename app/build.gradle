@@ -10,8 +10,8 @@ android {
         applicationId "com.kfmdmsolutions.ivelt"
         minSdkVersion 24
         targetSdkVersion 30
-        versionCode 7
-        versionName "2.6"
+        versionCode 9
+        versionName "2.9"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
