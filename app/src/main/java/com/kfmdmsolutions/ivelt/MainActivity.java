@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         return bytes.length;
     }
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         webviewBundle = new Bundle();
         mywebView.saveState(webviewBundle);
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             NotificationService.startNotificationService(this, NotificationService.ACTION_SAVE_NOTIFICATION_LIST);
         }catch (IllegalStateException ise){
-
+            // can only happen on samsung when starting from android studio
         }
         super.onPause();
     }
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         }
         logger.log("URL Intent Url is " + url);
     }
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint({"ClickableViewAccessibility", "SetJavaScriptEnabled"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -144,8 +144,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-        mywebView = (WebView) findViewById(R.id.webview);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        mywebView = findViewById(R.id.webview);
+        swipeRefreshLayout = findViewById(R.id.swipeContainer);
         swipeRefreshLayout.setNestedScrollingEnabled(true);
         mywebView.setWebViewClient(new CustomWebViewClient());
         mywebView.setWebChromeClient(new WebChromeClient());
@@ -195,53 +195,38 @@ public class MainActivity extends AppCompatActivity {
         java.net.CookieHandler.setDefault(coreCookieManager);
 
 
-        mywebView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                WebView webView1 = (WebView) v;
-                WebView.HitTestResult result = webView1.getHitTestResult();
+        mywebView.setOnLongClickListener(v -> {
+            WebView webView1 = (WebView) v;
+            WebView.HitTestResult result = webView1.getHitTestResult();
 
-                if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
-                    String linkToCopy = result.getExtra();
-                    ClipboardManager clipboard = (ClipboardManager)
-                            getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
-                    clipboard.setPrimaryClip(clip);
-                    Toast.makeText(getApplicationContext(), "Link Copied!",
-                            Toast.LENGTH_SHORT).show();
-                }
-                return false;
+            if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+                String linkToCopy = result.getExtra();
+                ClipboardManager clipboard = (ClipboardManager)
+                        getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(getApplicationContext(), "Link Copied!",
+                        Toast.LENGTH_SHORT).show();
             }
-
-
-
+            return false;
         });
 
-        mywebView.setDownloadListener(new DownloadListener() {
-            @Override
-            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+        mywebView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
 
-                String fileName = URLUtil.guessFileName(url, contentDisposition, getFileType(url));
-                sFileName = fileName;
-                sURL = url;
-                sUserAgent = userAgent;
+            String fileName = URLUtil.guessFileName(url, contentDisposition, getFileType(url));
+            sFileName = fileName;
+            sURL = url;
+            sUserAgent = userAgent;
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
-                            == PackageManager.PERMISSION_GRANTED)
-                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                                == PackageManager.PERMISSION_GRANTED)
-                            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                    == PackageManager.PERMISSION_GRANTED) {
-                                downloadFile(fileName, url, userAgent);
-                            }
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED)
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED)
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        downloadFile(fileName, url, userAgent);
+                    }
 
-
-                } else {
-                    downloadFile(fileName, url, userAgent);
-                }
-
-            }
 
         });
 
@@ -265,9 +250,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @SuppressLint("DeprecatedApi")
     private void initListener() {
         mywebView.setWebChromeClient(new WebChromeClient() {
 
+            @SuppressLint("QueryPermissionsNeeded")
             public boolean onShowFileChooser(
                     WebView webView, ValueCallback<Uri[]> filePathCallback,
                     WebChromeClient.FileChooserParams fileChooserParams) {
@@ -322,16 +309,15 @@ public class MainActivity extends AppCompatActivity {
     }
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
-        File imageFile = File.createTempFile(
+        return File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-        return imageFile;
     }
     public void onActivityResult (int requestCode, int resultCode, Intent data) {
         if(requestCode != INPUT_FILE_REQUEST_CODE || mFilePathCallback == null) {
@@ -358,7 +344,6 @@ public class MainActivity extends AppCompatActivity {
 
         mFilePathCallback.onReceiveValue(results);
         mFilePathCallback = null;
-        return;
     }
     private void downloadFile(String fileName, String url, String userAgent) {
         try {
@@ -381,8 +366,8 @@ public class MainActivity extends AppCompatActivity {
             sFileName = "";
             sUserAgent = "";
             Toast.makeText(this, "Download Started", Toast.LENGTH_SHORT).show();
-        } catch (Exception ignored) {
-            Toast.makeText(this, "error" + ignored, Toast.LENGTH_SHORT).show();
+        } catch (Exception error) {
+            Toast.makeText(this, "error" + error, Toast.LENGTH_SHORT).show();
 
 
         }
@@ -422,50 +407,48 @@ public class MainActivity extends AppCompatActivity {
         WebView webView = (WebView) v;
         WebView.HitTestResult result = webView.getHitTestResult();
 
-        MenuItem.OnMenuItemClickListener handler = new MenuItem.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                if (item.getTitle() == "Copy image link") {
-                    String linkToCopy = result.getExtra();
-                    ClipboardManager clipboard = (ClipboardManager)
-                            getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
-                    clipboard.setPrimaryClip(clip);
-                    Toast.makeText(getApplicationContext(), "Link Copied!",
-                            Toast.LENGTH_SHORT).show();
-                } else if (item.getTitle() == "Share Link") {
-                    String linkToShare = result.getExtra();
-                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                    shareIntent.setType("text/plain");
-                    shareIntent.putExtra(Intent.EXTRA_TEXT,linkToShare); // your above url
-                    startActivity(Intent.createChooser(shareIntent, "Share..."));
-                } else if (item.getTitle() == "Save - Download Image") {
+        MenuItem.OnMenuItemClickListener handler = item -> {
+            if (item.getTitle() == "Copy image link") {
+                String linkToCopy = result.getExtra();
+                ClipboardManager clipboard = (ClipboardManager)
+                        getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(getApplicationContext(), "Link Copied!",
+                        Toast.LENGTH_SHORT).show();
+            } else if (item.getTitle() == "Share Link") {
+                String linkToShare = result.getExtra();
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_TEXT,linkToShare); // your above url
+                startActivity(Intent.createChooser(shareIntent, "Share..."));
+            } else if (item.getTitle() == "Save - Download Image") {
 
-                    String DownloadImageURL = result.getExtra();
+                String DownloadImageURL = result.getExtra();
 
 
-                    if (URLUtil.isValidUrl(DownloadImageURL)) {
+                if (URLUtil.isValidUrl(DownloadImageURL)) {
 
-                        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
-                        String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
-                        request.allowScanningByMediaScanner();
-                        request.addRequestHeader("coockie", cookie);
-                        request.setMimeType(getFileType(DownloadImageURL));
-                        request.setAllowedOverMetered(true);
-                        request.setAllowedOverRoaming(true);
-                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "ivelt image.jpg");
+                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
+                    String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
+                    request.allowScanningByMediaScanner();
+                    request.addRequestHeader("coockie", cookie);
+                    request.setMimeType(getFileType(DownloadImageURL));
+                    request.setAllowedOverMetered(true);
+                    request.setAllowedOverRoaming(true);
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "ivelt image.jpg");
 
-                        DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                        downloadManager.enqueue(request);
+                    DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                    downloadManager.enqueue(request);
 
-                        Toast.makeText(MainActivity.this, "Image Downloaded Successfully.", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(MainActivity.this, "Sorry.. Something Went Wrong.", Toast.LENGTH_LONG).show();
-                    }
+                    Toast.makeText(MainActivity.this, "Image Downloaded Successfully.", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Sorry.. Something Went Wrong.", Toast.LENGTH_LONG).show();
                 }
-
-                return true;
             }
+
+            return true;
         };
 
         if (result.getType() == WebView.HitTestResult.IMAGE_TYPE ||
@@ -496,61 +479,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
-        if (true){
-            return false;
-        }
         swipeRefreshLayout.setRefreshing(true);
-        android.util.Log.d("JSOUP", "is ivelt " + url);
-        String useragent = view.getSettings().getUserAgentString();
-//        java.net.CookieManager.setDefault(coreCookieManager);
-        Context context = MainActivity.this;
-        Utils.executeAsync(() -> {
-            try {
-                logger.log("JSOUP: starting with url " + url + " useragent " + useragent);
-                Connection connection = Utils.getConnection(url, useragent, context);
-
-                Document doc = connection.get();
-                int statusCode = doc.connection().response().statusCode();
-                // Catch client side errors
-                logger.log("Url " + url + " status code " + statusCode);
-                if(statusCode >= 400 && statusCode <= 500){
-                    runOnUiThread(() -> {
-                        logger.log("Unable to load URL " + url);
-                        Toast.makeText(MainActivity.this, "Unable to load page, redirecting", Toast.LENGTH_LONG).show();
-                    });
-
-//                    connection = Utils.getConnection()
-
-                }
-//                Map<String, String> requestHeaders = doc.connection().request().headers();
-//                Map<String, String> responseHeaders = doc.connection().response().headers();
-//
-//                requestHeaders.forEach( (name, value) -> {
-//                    android.util.Log.d("Headers", "request: " + name + ": " + value);
-//                });
-//                responseHeaders.forEach( (name, value) -> {
-//                    android.util.Log.d("Headers", "response: " + name + ": " + value);
-//                });
-
-                if(url.contains("ucp.php")){
-                    handleUserControlPage(doc);
-                }else {
-                    handleGeneralPage(doc);
-                }
-                final String mime = "text/html";
-                final String encoding = "utf-8";
-                String html = doc.outerHtml();
-                runOnUiThread(() -> {
-                    view.loadDataWithBaseURL(url, html, mime, encoding, "");
-                });
-            } catch (IOException e) {
-//                    return false;
-                swipeRefreshLayout.setRefreshing(false);
-                logger.log("unable to load url " + url, e);
-                e.printStackTrace();
-            }
-        });
-        return true;
+        return false;
     }
 
     private void handleGeneralPage(Document doc) {
@@ -572,7 +502,10 @@ public class MainActivity extends AppCompatActivity {
             settingListElement.appendChild(settingsElement);
             settingListElement.attr("style", "background-image: url(./styles/prosilver_yidddish/theme/images/icon_topic_poll.gif)");
 //                    quickLinksList.first().appendChild(settingListElement);
-            quickLinksList.first().insertChildren(quickLinksList.first().childrenSize(), settingListElement);
+            Element first = quickLinksList.first();
+            if (first != null) {
+                first.insertChildren(first.childrenSize(), settingListElement);
+            }
         }
     }
 

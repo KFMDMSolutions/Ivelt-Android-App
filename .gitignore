@@ -2,4 +2,6 @@
 /gradle/
 /.gradle/
 /.idea/
-/local.properties
+*.properties
+*.bin
+*.lock

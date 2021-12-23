@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ivelt</string>
+    <string name="app_name" translatable="false">Ivelt</string>
     <string name="action_settings"></string>
     <string name="file_chooser"></string>
     <string name="file_chooser_default"></string>
@@ -50,7 +50,9 @@
     <string name="logs_title">Share Logs</string>
     <string name="default_page_summary">When the app opens, go to…</string>
     <string name="language_title">Language</string>
-    <string name="language_summary">The language for the settings page, this will take effect the next time you open the page.</string>
+    <string name="language_summary">The language for the settings page.</string>
+    <string name="check_for_notifications">Check for Notifications…</string>
+    <string name="app_settings">App Settings</string>
     <string-array name="click_settings_values">
         <item>Open Notification</item>
         <item>Open Main Page</item>

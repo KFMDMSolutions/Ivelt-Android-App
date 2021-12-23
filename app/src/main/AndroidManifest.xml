@@ -26,8 +26,10 @@
 
         <activity android:name=".SettingsActivity" />
         <activity
+
             android:name=".SplashActivity"
-            android:theme="@style/SplashTheme">
+            android:theme="@style/SplashTheme"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -35,7 +37,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance"
+            android:exported="true">
             <intent-filter>
                 <data android:scheme="https" android:host="www.ivelt.com"/>
                 <data android:scheme="http" android:host="www.ivelt.com"/>
