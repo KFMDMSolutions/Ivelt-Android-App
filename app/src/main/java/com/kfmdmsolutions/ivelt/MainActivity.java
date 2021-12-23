@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.DisplayMetrics;
@@ -182,7 +183,8 @@ public class MainActivity extends AppCompatActivity {
             mywebView.restoreState(webviewBundle);
             webviewBundle = null;
         }else if (currentUrl != null) {
-            mywebView.loadUrl(currentUrl);
+            String url = PreferenceManager.getDefaultSharedPreferences(this).getString("default_page", currentUrl);
+            mywebView.loadUrl(url);
         }
 
         if (getIntent() != null){
