@@ -37,7 +37,9 @@
     <string name="logs_title">שיק לאגס</string>
     <string name="default_page_summary">ווען די עפפ עפענט זיך, גיי צו…</string>
     <string name="language_title">שפראך</string>
-    <string name="language_summary">די שפראך פון די אנשטעלונגען בלאט, דאס וועט זיך אנפאנגען נעקסטע מאל מען עפענט די בלאט</string>
+    <string name="language_summary">טויש די שפראך פון די אנשטעלונגען בלאט</string>
+    <string name="check_for_notifications">קוק פאר נאטיפקאציעס…</string>
+    <string name="app_settings">עפפ אנשטעלונגען</string>
     <string-array name="pages_entries">
         <item>הויפט בלאט</item>
         <item>דיינע תגובות</item>

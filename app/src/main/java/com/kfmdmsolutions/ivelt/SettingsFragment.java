@@ -1,5 +1,6 @@
 package com.kfmdmsolutions.ivelt;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -38,6 +39,16 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         delayPreferenceChanged("plugged_in");
         delayPreferenceChanged("pause_notifications");
         delayPreferenceChanged("battery");
+        Preference languagePreference = findPreference("language");
+        if (languagePreference != null) {
+            languagePreference.setOnPreferenceChangeListener((langPreference, newValue) -> {
+                Activity activity = getActivity();
+                if (activity != null) {
+                    activity.recreate();
+                }
+                return true;
+            });
+        }
         Context context = getContext();
         Preference preference = findPreference("APP_NOTIF");
         if (preference != null && context != null) {
