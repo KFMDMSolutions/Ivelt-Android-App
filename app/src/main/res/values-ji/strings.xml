@@ -47,4 +47,6 @@
         <item>אומגעליינטע תגובות</item>
         <item>אקטיווע אשכולות</item>
     </string-array>
+    <string name="firebase_title">ערלויב אטאמאישע קראך ריפארטס</string>
+    <string name="firebase_summary"> דאס וועט פארגרינגערען און פארשנעלערן אונזער מעגליכקייט צו פאררעכטן באגס</string>
 </resources>

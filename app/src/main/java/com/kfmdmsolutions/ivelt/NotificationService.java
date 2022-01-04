@@ -245,27 +245,34 @@ public class NotificationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
             Logger.getInstance(this).log("Fatal Error", exception);
+            if (defaultUncaughtExceptionHandler != null){
+                defaultUncaughtExceptionHandler.uncaughtException(thread, exception);
+            }
             System.exit(2);
         });
         handler = new Handler(Looper.myLooper());
-        try {
-            FileInputStream fis = openFileInput(SENT_NOTIFICATION_LIST);
-            ObjectInputStream is = new ObjectInputStream(fis);
-            Object object = is.readObject();
-            android.util.Log.d("SNQ", " object is " + object.getClass());
-            sentNotificationQueue = (ConcurrentLinkedQueue<Long>) object;
-            android.util.Log.d("SNQ", " deserialzed " + sentNotificationQueue);
-            is.close();
-            fis.close();
-        } catch (IOException | ClassNotFoundException | ClassCastException e) {
-            sentNotificationQueue = new ConcurrentLinkedQueue<>();
-            Logger.getInstance(this).log("unable to deserialize sent notification queue, created a new one");
+        Utils.executeAsync(() -> {
+            try {
+                FileInputStream fis = openFileInput(SENT_NOTIFICATION_LIST);
+                ObjectInputStream is = new ObjectInputStream(fis);
+                Object object = is.readObject();
+                android.util.Log.d("SNQ", " object is " + object.getClass());
+                sentNotificationQueue = (ConcurrentLinkedQueue<Long>) object;
+                android.util.Log.d("SNQ", " deserialzed " + sentNotificationQueue);
+                is.close();
+                fis.close();
+            } catch (NullPointerException| IOException | ClassNotFoundException | ClassCastException e) {
+                sentNotificationQueue = new ConcurrentLinkedQueue<>();
+                Logger.getInstance(this).log("unable to deserialize sent notification queue, created a new one");
 
-            android.util.Log.d("SNQ", " error derserializen ", e);
-            e.printStackTrace();
-        }
+                android.util.Log.d("SNQ", " error derserializen ", e);
+                e.printStackTrace();
+            }
+
+        });
     }
 
     public static class NotificationInfo {
@@ -553,7 +560,8 @@ public class NotificationService extends Service {
         } catch (IllegalArgumentException ise) {
             Logger.getInstance(this).log("Unregister receiver failed, receiver not registered");
         }
-        super.stopForeground(false);
+        super.stopForeground(true);
+
     }
 
     @Override

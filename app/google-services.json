@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "85491187352",
+    "project_id": "ivelt-forums",
+    "storage_bucket": "ivelt-forums.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:85491187352:android:2ef1a64709e2a3dafc5aed",
+        "android_client_info": {
+          "package_name": "com.kfmdmsolutions.ivelt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "85491187352-0buvu4ulo6v6htnh5lp2hovv6fsnt76u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-C3QEc_4P-m3oLz3L71BkuvQezJxgaV4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "85491187352-0buvu4ulo6v6htnh5lp2hovv6fsnt76u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
