@@ -53,6 +53,12 @@
     <string name="language_summary">The language for the settings page.</string>
     <string name="check_for_notifications">Check for Notifications…</string>
     <string name="app_settings">App Settings</string>
+    <string name="firebase_title">Enable Automatic Crash Reporting</string>
+    <string name="firebase_summary"><![CDATA[This will allow us to find & fix bugs faster.]]></string>
+    <string name="crash_collection_dialog_title">Crash Collection</string>
+    <string name="crash_collection_dialog_message">Turn on automatic crash collection? This will help us fix bugs quicker.</string>
+    <string name="ok">OK</string>
+    <string name="no">No</string>
     <string-array name="click_settings_values">
         <item>Open Notification</item>
         <item>Open Main Page</item>
@@ -84,5 +90,15 @@
     <string-array name="language_values">
         <item>en</item>
         <item>yi</item>
+    </string-array>
+    <string-array name="swipe_values">
+        <item>rtl</item>
+        <item>ltr</item>
+        <item>lang</item>
+    </string-array>
+    <string-array name="swipe_entries">
+        <item>Right to Left is Forward</item>
+        <item>Left to Right is Forward</item>
+        <item>Follow language</item>
     </string-array>
 </resources>

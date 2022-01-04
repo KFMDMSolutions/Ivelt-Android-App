@@ -20,6 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Ivelt"
         android:usesCleartextTraffic="true">
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
         <service
             android:name=".NotificationService"
             android:exported="false"/>

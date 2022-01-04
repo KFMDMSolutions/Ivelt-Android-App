@@ -26,6 +26,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 
 import java.util.Locale;
@@ -50,6 +51,16 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             });
         }
         Context context = getContext();
+
+        Preference firebasePref = findPreference("firebase");
+        if (firebasePref != null) {
+            firebasePref.setOnPreferenceChangeListener((preference, newValue) -> {
+                if (newValue instanceof Boolean){
+                    FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled((Boolean) newValue);
+                }
+                return true;
+            });
+        }
         Preference preference = findPreference("APP_NOTIF");
         if (preference != null && context != null) {
             preference.setOnPreferenceClickListener(preference1 -> {

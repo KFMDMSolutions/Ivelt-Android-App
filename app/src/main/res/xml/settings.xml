@@ -18,6 +18,13 @@
             android:key="default_page"
             android:summary="@string/default_page_summary"
             android:title="@string/default_page_title" />
+        <!--ListPreference/-->
+        <CheckBoxPreference
+            android:key="firebase"
+            android:icon="@drawable/ic_baseline_bug_report_24"
+            android:title="@string/firebase_title"
+            android:summary="@string/firebase_summary"
+            />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/check_for_notifications">
         <ListPreference

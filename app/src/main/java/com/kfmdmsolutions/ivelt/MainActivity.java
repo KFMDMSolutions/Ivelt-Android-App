@@ -12,6 +12,7 @@ import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -21,8 +22,10 @@ import android.os.Environment;
 import android.os.Parcel;
 import android.provider.MediaStore;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.unusedapprestrictions.IUnusedAppRestrictionsBackportCallback;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -46,6 +49,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
@@ -127,10 +131,32 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
             Logger.getInstance(this).log("Fatal Error", exception);
+            if (defaultUncaughtExceptionHandler != null){
+                defaultUncaughtExceptionHandler.uncaughtException(thread, exception);
+            }
             System.exit(2);
         });
+        boolean firebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("firebase",false);
+        boolean askFirebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("ask_firebase", true);
+        if (askFirebase) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.crash_collection_dialog_title)
+                    .setMessage(R.string.crash_collection_dialog_message)
+                    .setPositiveButton(R.string.ok, (dialog, which) -> {
+                        PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("firebase", true).apply();
+                        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true);
+                        dialog.dismiss(); })
+                    .setNegativeButton(R.string.no, (dialog, which) -> {
+                        PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("firebase", false).apply();
+                        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
+                        dialog.dismiss(); })
+                    .show();
+            PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("ask_firebase", false).apply();
+        }
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(firebase);
         logger = Logger.getInstance(getApplicationContext());
         setContentView(R.layout.activity_main);
 
