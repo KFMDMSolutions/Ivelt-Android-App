@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -54,6 +55,7 @@ import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
 import com.kfmdmsolutions.ivelt.javascript.AddSettingsElement;
+import com.kfmdmsolutions.ivelt.javascript.UnhideContactButton;
 
 import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
@@ -630,8 +632,13 @@ public class MainActivity extends AppCompatActivity {
             metrics.widthPixels /= metrics.density;
 
             mywebView.loadUrl("javascript:var scale = " + metrics.widthPixels + " / document.body.scrollWidth; document.body.style.zoom = scale;");
-
             mywebView.loadUrl("javascript:" + AddSettingsElement.JS_ADD_ELEMENT_TO_LIST);
+            mywebView.loadUrl("javascript:" + UnhideContactButton.JS_UNHIDE_CONTACT_BUTTON);
+//            try {
+//                mywebView.loadUrl("javascript:" + Utils.readTextFile(MainActivity.this, R.raw.add_contact));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             if (serviceNeedsStarting){
                 NotificationService.startNotificationService(MainActivity.this, NotificationService.ACTION_UPDATE_DELAY_TIME);
                 serviceNeedsStarting = false;

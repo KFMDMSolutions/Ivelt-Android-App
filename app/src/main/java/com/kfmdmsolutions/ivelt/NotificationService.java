@@ -212,7 +212,7 @@ public class NotificationService extends Service {
         }
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context.getApplicationContext());
         stackBuilder.addNextIntentWithParentStack(intent);
-        return stackBuilder.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT);
+        return stackBuilder.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     enum NotificationType {

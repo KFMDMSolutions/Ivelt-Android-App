@@ -1,5 +1,7 @@
 package com.kfmdmsolutions.ivelt.Utilities;
 
+import static android.os.Build.VERSION_CODES.R;
+
 import android.content.Context;
 import android.provider.Settings;
 
@@ -8,7 +10,11 @@ import androidx.annotation.NonNull;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -79,6 +85,24 @@ public class Utils {
             file.mkdirs();
         }
         return file;
+    }
+
+    public static String readTextFile(Context context, int res) throws IOException {
+        String string = "";
+        StringBuilder stringBuilder = new StringBuilder();
+        InputStream is = context.getResources().openRawResource(res);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        while (true) {
+            try {
+                if ((string = reader.readLine()) == null) break;
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            stringBuilder.append(string).append("\n");
+        }
+        is.close();
+        return stringBuilder.toString();
     }
 
     @NonNull
