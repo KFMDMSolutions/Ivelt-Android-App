@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">Ivelt</string>
-    <string name="action_settings"></string>
-    <string name="file_chooser"></string>
-    <string name="file_chooser_default"></string>
-    <string name="file_chooser_custom"></string>
+    <string name="action_settings" translatable="false"></string>
+    <string name="file_chooser" translatable="false"></string>
+    <string name="file_chooser_default" translatable="false"></string>
+    <string name="file_chooser_custom" translatable="false"></string>
     <string-array name="notification_settings">
         <item>Every minute</item>
         <item>Once in 5 minutes</item>
@@ -59,6 +59,7 @@
     <string name="crash_collection_dialog_message">Turn on automatic crash collection? This will help us fix bugs quicker.</string>
     <string name="ok">OK</string>
     <string name="no">No</string>
+    <string name="error_sending_logs">error getting logs</string>
     <string-array name="click_settings_values">
         <item>Open Notification</item>
         <item>Open Main Page</item>
@@ -75,6 +76,7 @@
         <item>New Posts</item>
         <item>Unread Posts</item>
         <item>Active Topics</item>
+        <item>Notification Page</item>
     </string-array>
     <string-array name="pages_values">
         <item>http://www.ivelt.com/forum/index.php</item>
@@ -82,6 +84,7 @@
         <item>http://www.ivelt.com/forum/search.php?search_id=newposts</item>
         <item>http://www.ivelt.com/forum/search.php?search_id=unreadposts</item>
         <item>http://www.ivelt.com/forum/search.php?search_id=active_topics</item>
+        <item>http://www.ivelt.com/forum/ucp.php?i=ucp_notifications</item>
     </string-array>
     <string-array name="language_entries">
         <item>English</item>
