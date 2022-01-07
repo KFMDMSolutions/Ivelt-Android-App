@@ -40,7 +40,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity"
-            android:launchMode="singleInstance"
+            android:launchMode="standard"
             android:exported="true">
             <intent-filter>
                 <data android:scheme="https" android:host="www.ivelt.com"/>

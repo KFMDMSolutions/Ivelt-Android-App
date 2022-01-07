@@ -1,5 +1,7 @@
 package com.kfmdmsolutions.ivelt;
 
+import static com.kfmdmsolutions.ivelt.R.string.error_sending_logs;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -10,6 +12,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.text.TextUtilsCompat;
@@ -80,7 +83,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         Preference emailPreference = findPreference("Logs");
         if (emailPreference != null){
             emailPreference.setOnPreferenceClickListener( emailPref -> {
-                Logger.getInstance(context).emailLogs(getActivity());
+                try {
+                    Logger.getInstance(context).emailLogs(getActivity());
+                }catch (IllegalArgumentException illegalArgumentException){
+                    Toast.makeText(getActivity(), error_sending_logs, Toast.LENGTH_SHORT).show();
+                }
                 return true;
             });
         }

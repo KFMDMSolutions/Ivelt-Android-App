@@ -16,8 +16,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,7 +26,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import android.net.ConnectivityManager;
-import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.Build;
@@ -33,11 +33,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.service.notification.StatusBarNotification;
 import android.text.Html;
-import android.text.format.DateFormat;
 import android.text.format.DateUtils;
-import android.webkit.CookieManager;
-import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -53,19 +51,19 @@ import androidx.work.WorkManager;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static android.content.Intent.ACTION_BATTERY_CHANGED;
 import static android.os.BatteryManager.EXTRA_PLUGGED;
-import static com.kfmdmsolutions.ivelt.MainActivity.coreCookieManager;
-import static java.text.DateFormat.DEFAULT;
 import static java.text.DateFormat.MEDIUM;
 
 /**
@@ -146,7 +144,6 @@ public class NotificationService extends Service {
     }
 
     public static void checkForNotifications(Context context) {
-
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         boolean connected = networkInfo != null && networkInfo.isConnected();
@@ -161,10 +158,19 @@ public class NotificationService extends Service {
                 Elements notificationList = doc.select(".notification_list");
                 Elements newNotifications = notificationList.select(".row.bg3");
                 Elements notifications = newNotifications.select(".notifications");
+                List<Integer> ids = new ArrayList<>();
                 for (Element element : notifications) {
                     NotificationInfo info = new NotificationInfo(element);
                     Logger.getInstance(context).log("notificationInfo url is " + info.url + " id is " + info.id);
+                    ids.add((int) info.id);
                     showNotification(context, info);
+                }
+                NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                List<Integer> shownNotificationIDs = Arrays.stream(manager.getActiveNotifications()).map(StatusBarNotification::getId).collect(Collectors.toList());
+                for (Integer id : shownNotificationIDs){
+                    if (!ids.contains(id)){
+                        manager.cancel(id);
+                    }
                 }
                 if (notifications.isEmpty()) {
                     Logger.getInstance(context).log("Do we have notifications? " + (notificationList.first() != null));
@@ -178,7 +184,6 @@ public class NotificationService extends Service {
     }
 
     private static void showNotification(Context context, NotificationInfo notificationInfo) {
-
         if (sentNotificationQueue.contains(notificationInfo.id)) {
             Logger.getInstance(context).log("Notification with ID " + notificationInfo.id + " already shown");
             return;
@@ -205,9 +210,7 @@ public class NotificationService extends Service {
         Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
         int id = 10001;
         if (info != null) {
-//            if (openNotification.equals(preference)) {
                 intent.putExtra(MainActivity.EXTRA_URL, info.url);
-//            }
             id = (int) info.id;
         }
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context.getApplicationContext());
@@ -254,25 +257,26 @@ public class NotificationService extends Service {
             System.exit(2);
         });
         handler = new Handler(Looper.myLooper());
-        Utils.executeAsync(() -> {
-            try {
-                FileInputStream fis = openFileInput(SENT_NOTIFICATION_LIST);
-                ObjectInputStream is = new ObjectInputStream(fis);
-                Object object = is.readObject();
-                android.util.Log.d("SNQ", " object is " + object.getClass());
-                sentNotificationQueue = (ConcurrentLinkedQueue<Long>) object;
-                android.util.Log.d("SNQ", " deserialzed " + sentNotificationQueue);
-                is.close();
-                fis.close();
-            } catch (NullPointerException| IOException | ClassNotFoundException | ClassCastException e) {
-                sentNotificationQueue = new ConcurrentLinkedQueue<>();
-                Logger.getInstance(this).log("unable to deserialize sent notification queue, created a new one");
+        Utils.executeAsync(() -> initializeSNQ(this));
+    }
 
-                android.util.Log.d("SNQ", " error derserializen ", e);
-                e.printStackTrace();
-            }
+    private static void initializeSNQ(Context context) {
+        try {
+            FileInputStream fis = context.openFileInput(SENT_NOTIFICATION_LIST);
+            ObjectInputStream is = new ObjectInputStream(fis);
+            Object object = is.readObject();
+            android.util.Log.d("SNQ", " object is " + object.getClass());
+            sentNotificationQueue = (ConcurrentLinkedQueue<Long>) object;
+            android.util.Log.d("SNQ", " deserialzed " + sentNotificationQueue);
+            is.close();
+            fis.close();
+        } catch (NullPointerException| IOException | ClassNotFoundException | ClassCastException e) {
+            sentNotificationQueue = new ConcurrentLinkedQueue<>();
+            Logger.getInstance(context).log("unable to deserialize sent notification queue, created a new one");
 
-        });
+            android.util.Log.d("SNQ", " error derserializen ", e);
+            e.printStackTrace();
+        }
     }
 
     public static class NotificationInfo {

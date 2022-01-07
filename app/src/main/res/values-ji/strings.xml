@@ -46,7 +46,13 @@
         <item>נייע תגובות</item>
         <item>אומגעליינטע תגובות</item>
         <item>אקטיווע אשכולות</item>
+        <item>נאטיפיקאקציע בלעטע</item>
     </string-array>
     <string name="firebase_title">ערלויב אטאמאישע קראך ריפארטס</string>
     <string name="firebase_summary"> דאס וועט פארגרינגערען און פארשנעלערן אונזער מעגליכקייט צו פאררעכטן באגס</string>
+    <string name="crash_collection_dialog_title">קרעש זאמלונג</string>
+    <string name="crash_collection_dialog_message">אנצינדען אוטאמאטישע קרעש ריפארטס? דאס וועט אונז העלפן שנעלער פאררעכטען באגס.</string>
+    <string name="ok">יא</string>
+    <string name="no">ניין</string>
+    <string name="error_sending_logs">פעלער שיקן לאגס</string>
 </resources>

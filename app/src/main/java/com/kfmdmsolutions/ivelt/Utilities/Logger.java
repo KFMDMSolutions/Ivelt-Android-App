@@ -114,8 +114,12 @@ public class Logger {
         File dir = new File(getLogFolderPath());
         File[] files = dir.listFiles(File::isFile);
         ArrayList<Uri> fileUris = new ArrayList<>();
-        for (File file : files){
-            fileUris.add(FileProvider.getUriForFile(contextWeakReference.get(), "com.kfmdmsolutions.ivelt.fileprovider", file));
+        try {
+            for (File file : files) {
+                fileUris.add(FileProvider.getUriForFile(contextWeakReference.get(), "com.kfmdmsolutions.ivelt.fileprovider", file));
+            }
+        }catch (IllegalStateException ise){
+
         }
         Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
         intent.setType("message/rfc822");
@@ -126,7 +130,7 @@ public class Logger {
         try {
             activity.startActivity(intent);
         }catch (ActivityNotFoundException activityNotFoundException){
-
+            Logger.getInstance(activity).log("Not able to find activity", activityNotFoundException);
         }
         /*
 
