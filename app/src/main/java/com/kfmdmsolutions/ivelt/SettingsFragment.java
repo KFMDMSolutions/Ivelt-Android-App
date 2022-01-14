@@ -80,6 +80,19 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 return true;
                     });
         }
+
+        Preference logoutPreference = findPreference("logout");
+        if (logoutPreference != null && context != null) {
+            logoutPreference.setOnPreferenceClickListener(preference12 -> {
+
+                PreferenceManager.getDefaultSharedPreferences(context)
+                        .edit()
+                        .putString(IveltWebInterface.IVELT_PASSWORD, "")
+                        .putString(IveltWebInterface.IVELT_USERNAME, "")
+                        .apply();
+                return false;
+            });
+        }
         Preference emailPreference = findPreference("Logs");
         if (emailPreference != null){
             emailPreference.setOnPreferenceClickListener( emailPref -> {

@@ -4,7 +4,7 @@
     style.innerHTML = "@media (max-width:700px){\n" +
         "\t.profile-contact {\n" +
         "\tdisplay: inline-block !important;\n" +
-        "    \tmargin-left: 0 !important;\n" +
+        "    \tmargin-right: 0 !important;\n" +
         "\tposition:absolute;\n" +
         "\t}\n" +
         "\t.profile-contact .contact-icons a {\n" +

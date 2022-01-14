@@ -46,7 +46,7 @@
         <item>נייע תגובות</item>
         <item>אומגעליינטע תגובות</item>
         <item>אקטיווע אשכולות</item>
-        <item>נאטיפיקאקציע בלעטע</item>
+        <item>נאטיפיקאציע בלאט</item>
     </string-array>
     <string name="firebase_title">ערלויב אטאמאישע קראך ריפארטס</string>
     <string name="firebase_summary"> דאס וועט פארגרינגערען און פארשנעלערן אונזער מעגליכקייט צו פאררעכטן באגס</string>
@@ -55,4 +55,6 @@
     <string name="ok">יא</string>
     <string name="no">ניין</string>
     <string name="error_sending_logs">פעלער שיקן לאגס</string>
+    <string name="logout_title">פערמעק לאג אין דעטאלען</string>
+    <string name="logout_summary">אויב האסטו אפגעהיטן דיינע לאגאין דעטאלען קענסטו עס דא פארמעקן</string>
 </resources>

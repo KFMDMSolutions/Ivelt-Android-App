@@ -56,11 +56,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static android.content.Intent.ACTION_BATTERY_CHANGED;
 import static android.os.BatteryManager.EXTRA_PLUGGED;
@@ -153,34 +151,60 @@ public class NotificationService extends Service {
         }
         String url = "http://www.ivelt.com/forum/ucp.php?i=ucp_notifications";
         Utils.executeAsync(() -> {
+
             try {
                 Document doc = Utils.getConnection(url, null, context).get();
                 Elements notificationList = doc.select(".notification_list");
-                Elements newNotifications = notificationList.select(".row.bg3");
-                Elements notifications = newNotifications.select(".notifications");
-                List<Integer> ids = new ArrayList<>();
-                for (Element element : notifications) {
-                    NotificationInfo info = new NotificationInfo(element);
-                    Logger.getInstance(context).log("notificationInfo url is " + info.url + " id is " + info.id);
-                    ids.add((int) info.id);
-                    showNotification(context, info);
+                // URL was wrong.
+                if (notificationList.isEmpty()){
+                    loginAndRetry(context);
+                }else {
+                    parseNotificationPage(context, notificationList);
                 }
-                NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                List<Integer> shownNotificationIDs = Arrays.stream(manager.getActiveNotifications()).map(StatusBarNotification::getId).collect(Collectors.toList());
-                for (Integer id : shownNotificationIDs){
-                    if (!ids.contains(id)){
-                        manager.cancel(id);
-                    }
-                }
-                if (notifications.isEmpty()) {
-                    Logger.getInstance(context).log("Do we have notifications? " + (notificationList.first() != null));
-                }
-                Logger.getInstance(context).log("Notifications found: " + notifications.size());
             } catch (IOException e) {
                 Logger.getInstance(context).log("Checking for notifications failed", e);
                 e.printStackTrace();
             }
         });
+    }
+
+    private static void loginAndRetry(Context context) throws  IOException{
+        IveltWebInterface iveltWebInterface = new IveltWebInterface(context);
+        Document doc = Utils.getConnection("https://ivelt.com/forum/ucp.php?mode=login", null, context)
+                .data("username", iveltWebInterface.getUsername())
+                .data("password", iveltWebInterface.getPassword())
+                .data("login", "android kfmdm app")
+                .data("redirect", "./ucp.php?i=ucp_notifications")
+                .data("autologin", "on")
+                .followRedirects(true)
+                .post();
+        Elements notificationList = doc.select(".notification_list");
+        if (!notificationList.isEmpty()) {
+           parseNotificationPage(context, notificationList);
+       }
+    }
+
+    private static void parseNotificationPage(Context context, Elements notificationList) {
+        Elements newNotifications = notificationList.select(".row.bg3");
+        Elements notifications = newNotifications.select(".notifications");
+        List<Integer> ids = new ArrayList<>();
+        for (Element element : notifications) {
+            NotificationInfo info = new NotificationInfo(element);
+            Logger.getInstance(context).log("notificationInfo url is " + info.url + " id is " + info.id);
+            ids.add((int) info.id);
+            showNotification(context, info);
+        }
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        List<Integer> shownNotificationIDs = Arrays.stream(manager.getActiveNotifications()).map(StatusBarNotification::getId).collect(Collectors.toList());
+        for (Integer id : shownNotificationIDs){
+            if (!ids.contains(id)){
+                manager.cancel(id);
+            }
+        }
+        if (notifications.isEmpty()) {
+            Logger.getInstance(context).log("Do we have notifications? " + (notificationList.first() != null));
+        }
+        Logger.getInstance(context).log("Notifications found: " + notifications.size());
     }
 
     private static void showNotification(Context context, NotificationInfo notificationInfo) {

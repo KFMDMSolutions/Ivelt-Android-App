@@ -25,6 +25,12 @@
             android:title="@string/firebase_title"
             android:summary="@string/firebase_summary"
             />
+        <Preference
+            android:key="logout"
+            android:title="@string/logout_title"
+            android:icon="@drawable/ic_baseline_logout_24"
+            android:summary="@string/logout_summary"
+            />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/check_for_notifications">
         <ListPreference

@@ -42,6 +42,7 @@ android {
         implementation "androidx.constraintlayout:constraintlayout:2.1.2"
         implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
         implementation "androidx.work:work-runtime:2.7.1"
+        implementation 'androidx.webkit:webkit:1.4.0'
         implementation "androidx.preference:preference:1.1.1"
         implementation "androidx.core:core:1.7.0"
         implementation 'org.jsoup:jsoup:1.14.1'

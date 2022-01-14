@@ -60,6 +60,8 @@
     <string name="ok">OK</string>
     <string name="no">No</string>
     <string name="error_sending_logs">error getting logs</string>
+    <string name="logout_title">Erase Login Details</string>
+    <string name="logout_summary">If you have saved login details, you can erase them now.</string>
     <string-array name="click_settings_values">
         <item>Open Notification</item>
         <item>Open Main Page</item>
