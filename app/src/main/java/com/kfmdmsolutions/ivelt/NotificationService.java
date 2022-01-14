@@ -142,7 +142,6 @@ public class NotificationService extends Service {
     }
 
     public static void checkForNotifications(Context context) {
-        android.util.Log.d("RELOGIN", "Checking for notifications");
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         boolean connected = networkInfo != null && networkInfo.isConnected();
@@ -153,16 +152,13 @@ public class NotificationService extends Service {
         String url = "http://www.ivelt.com/forum/ucp.php?i=ucp_notifications";
         Utils.executeAsync(() -> {
 
-            android.util.Log.d("RELOGIN", "Starting Async");
             try {
                 Document doc = Utils.getConnection(url, null, context).get();
                 Elements notificationList = doc.select(".notification_list");
                 // URL was wrong.
                 if (notificationList.isEmpty()){
-                    android.util.Log.d("RELOGIN", "Notification List empty trying to login");
                     loginAndRetry(context);
                 }else {
-                    android.util.Log.d("RELOGIN", "Notification List not empty, parsing notification");
                     parseNotificationPage(context, notificationList);
                 }
             } catch (IOException e) {
@@ -173,8 +169,6 @@ public class NotificationService extends Service {
     }
 
     private static void loginAndRetry(Context context) throws  IOException{
-
-        android.util.Log.d("RELOGIN", "starting login");
         IveltWebInterface iveltWebInterface = new IveltWebInterface(context);
         Document doc = Utils.getConnection("https://ivelt.com/forum/ucp.php?mode=login", null, context)
                 .data("username", iveltWebInterface.getUsername())
@@ -185,12 +179,9 @@ public class NotificationService extends Service {
                 .followRedirects(true)
                 .post();
         Elements notificationList = doc.select(".notification_list");
-        if (notificationList.isEmpty()){
-            android.util.Log.d("RELOGIN", "username = " + iveltWebInterface.getUsername() + " password = " + iveltWebInterface.getPassword());
-        }else{
-            android.util.Log.d("RELOGIN", "SUCCESS");
-            parseNotificationPage(context, notificationList);
-        }
+        if (!notificationList.isEmpty()) {
+           parseNotificationPage(context, notificationList);
+       }
     }
 
     private static void parseNotificationPage(Context context, Elements notificationList) {
