@@ -9,9 +9,9 @@ function addAutoLoginOption(){
     input.setAttribute("name", "applogin");
     input.setAttribute("id", "applogin");
     input.setAttribute("tabindex", 7);
+    dd.appendChild(input);
     dd.appendChild(label);
-    label.appendChild(input);
-    label.innerHTML = label.getInnerHTML() + "געדענק אין עפפ";
+    label.innerHTML = "געדענק אין עפפ";
     checkboxes.appendChild(dd);
 
     /* Will only be visible in case of error. */
