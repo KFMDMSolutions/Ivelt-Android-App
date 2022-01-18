@@ -7,7 +7,7 @@ function addStyles(){
 }
 addStyles();
 
-function addJS(String jsAssetFile){
+function addJS(jsAssetFile){
    var script = document.createElement('script');
    script.setAttribute('type', 'text/javascript');
    script.setAttribute('src', `https://appassets.androidplatform.net/assets/${jsAssetFile}`);
