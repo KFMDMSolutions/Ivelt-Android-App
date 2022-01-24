@@ -120,6 +120,7 @@
         <item>Quote Last Button</item>
         <item>Delete Button</item>
         <item>Share Button</item>
+        <item>Copy to iVelt</item>
         <item>Contact Button</item>
     </string-array>
     <string-array name="hidden_button_values">
@@ -130,6 +131,7 @@
             <item>.quote-last</item>
             <item>.delete-icon</item>
             <item>.share-icon</item>
+            <item>.copy-quote</item>
             <item>.profile-contact</item>
     </string-array>
     <string-array name="hidden_default">
