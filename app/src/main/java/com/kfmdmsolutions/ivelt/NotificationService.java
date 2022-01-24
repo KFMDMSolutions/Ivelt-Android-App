@@ -62,6 +62,7 @@ import java.util.stream.Collectors;
 
 import static android.content.Intent.ACTION_BATTERY_CHANGED;
 import static android.os.BatteryManager.EXTRA_PLUGGED;
+import static com.kfmdmsolutions.ivelt.MainActivity.EXTRA_URL;
 import static java.text.DateFormat.MEDIUM;
 
 /**
@@ -85,6 +86,16 @@ public class NotificationService extends Service {
     public static final String ACTION_CHECK_NOTIFICATIONS = "com.android.cts.ivelt.notification.service.action.check.notifications";
     public static final String ACTION_SAVE_NOTIFICATION_LIST = "com.android.cts.ivelt.notification.service.action.save.notification.list";
     public static final String ACTION_UPDATE_NOTIFICATIONS = "com.android.cts.ivelt.notification.service.action.update.notifications";
+    public static final String ACTION_DISMISS_NOTIFICATION = "com.android.kfmdm.notification.service.action.dismiss.notification";
+    public static final String ACTION_MARK_NOTIFICATION_READ = "com.android.kfmdm.notification.service.action.mark.notification.read";
+    public static final String ACTION_PAUSE_NOTIFICATIONS= "com.android.kfmdm.notification.service.action.pause.notifications";
+    public static final String ACTION_MARK_SIGN_OUT = "com.android.kfmdm.notification.service.action.mark.sign.out";
+
+    public static final String EXTRA_NOTIFICATION_ID = "com.android.kfmdm.notification.service.extra.notification.id";
+
+    public static final int ID_PAUSE_NOTIFICATIONS = 300;
+    public static final int ID_SIGN_OUT = 301;
+
     private int pluggedInDelay;
     private int batteryDelay;
 
@@ -142,6 +153,7 @@ public class NotificationService extends Service {
     }
 
     public static void checkForNotifications(Context context) {
+
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         boolean connected = networkInfo != null && networkInfo.isConnected();
@@ -152,6 +164,12 @@ public class NotificationService extends Service {
         String url = "http://www.ivelt.com/forum/ucp.php?i=ucp_notifications";
         Utils.executeAsync(() -> {
 
+            if (sentNotificationQueue == null){
+                initializeSNQ(context);
+                if (sentNotificationQueue == null){
+                    sentNotificationQueue = new ConcurrentLinkedQueue<>();
+                }
+            }
             try {
                 Document doc = Utils.getConnection(url, null, context).get();
                 Elements notificationList = doc.select(".notification_list");
@@ -218,6 +236,8 @@ public class NotificationService extends Service {
                 .setContentTitle(notificationInfo.title)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
+                .addAction(new NotificationCompat.Action(null, context.getString(R.string.dismiss), getDismissIntent(context, notificationInfo)))
+                .addAction(new NotificationCompat.Action(null, context.getString(R.string.mark_read), getMarkReadIntent(context, notificationInfo)))
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(notificationInfo.text))
                 .setPriority(NotificationCompat.PRIORITY_MAX);
         NotificationManagerCompat.from(context.getApplicationContext()).notify((int) notificationInfo.id, notificationBuilder.build());
@@ -234,13 +254,14 @@ public class NotificationService extends Service {
         Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
         int id = 10001;
         if (info != null) {
-                intent.putExtra(MainActivity.EXTRA_URL, info.url);
+                intent.putExtra(EXTRA_URL, info.url);
             id = (int) info.id;
         }
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context.getApplicationContext());
         stackBuilder.addNextIntentWithParentStack(intent);
         return stackBuilder.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
+
 
     enum NotificationType {
         PRIVATE_MESSAGE(DIRECT_MESSAGES_NOTIFICATION_CHANNEL), QUOTE(QUOTES_NOTIFICATION_CHANNEL), BOOKMARK(BOOKMARK_NOTIFICATION_CHANNEL), OTHER(OTHER_NOTIFICATION_CHANNEL);
@@ -362,8 +383,9 @@ public class NotificationService extends Service {
             return false;
         }
         // Both are non 0, delay time is some unknown number, we need to set it the minimum delay time.
-        if ((pluggedInDelay * batteryDelay) > 0) {
+        if (((long)pluggedInDelay * batteryDelay) > 0L) {
             delayTime = Math.min(pluggedInDelay, batteryDelay);
+            android.util.Log.d("AppSettings:", delayTime + "");
         }
         return ((delayTime < 15 * MINUTE_IN_MILLIS));
     }
@@ -573,6 +595,23 @@ public class NotificationService extends Service {
         intent.setAction(ACTION_UPDATE_NOTIFICATIONS);
         return PendingIntent.getService(getApplicationContext(), 2, intent, PendingIntent.FLAG_IMMUTABLE);
     }
+    private static PendingIntent getDismissIntent(Context context, NotificationInfo info) {
+        Intent intent = new Intent(context.getApplicationContext(), NotificationService.class);
+        intent.setAction(ACTION_DISMISS_NOTIFICATION);
+
+        android.util.Log.d("MNRID", "Putting id di " + info.id);
+        intent.putExtra(EXTRA_NOTIFICATION_ID, info.id);
+        return PendingIntent.getService(context.getApplicationContext(), (int) info.id, intent, PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    private static PendingIntent getMarkReadIntent(Context context, NotificationInfo info) {
+        Intent intent = new Intent(context.getApplicationContext(), NotificationService.class);
+        intent.setAction(ACTION_MARK_NOTIFICATION_READ);
+        android.util.Log.d("MNRID", "Putting id mri " + info.id);
+        intent.putExtra(EXTRA_NOTIFICATION_ID, info.id);
+        intent.putExtra(EXTRA_URL, info.url);
+        return PendingIntent.getService(context.getApplicationContext(), (int) info.id, intent, PendingIntent.FLAG_IMMUTABLE);
+    }
 
     private void stopForeground() {
         if (wakeLock != null) {
@@ -608,6 +647,32 @@ public class NotificationService extends Service {
                     break;
                 case ACTION_SAVE_NOTIFICATION_LIST:
                     saveNotificationList();
+                    break;
+                case ACTION_MARK_NOTIFICATION_READ:
+                    String url = "http://" + intent.getStringExtra(EXTRA_URL);
+                    long mnrid = intent.getLongExtra(EXTRA_NOTIFICATION_ID, -1);
+                    android.util.Log.d("MNRID", mnrid + "");
+                    if (url != null) {
+                        Utils.executeAsync(() ->
+                        {
+                            try {
+                                Utils.getConnection(url, null, this).get();
+                                if (mnrid > 0){
+                                    NotificationManagerCompat.from(getApplicationContext()).cancel((int) mnrid);
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+
+                    }
+                case ACTION_DISMISS_NOTIFICATION:
+                    long id = intent.getLongExtra(EXTRA_NOTIFICATION_ID, -1);
+
+                    android.util.Log.d("MNRID", id + "");
+                    if (id > 0){
+                        NotificationManagerCompat.from(getApplicationContext()).cancel((int) id);
+                    }
                     break;
 
             }

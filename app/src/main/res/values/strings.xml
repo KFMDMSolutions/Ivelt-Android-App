@@ -62,6 +62,12 @@
     <string name="error_sending_logs">error getting logs</string>
     <string name="logout_title">Erase Login Details</string>
     <string name="logout_summary">If you have saved login details, you can erase them now.</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="mark_read">Mark as read</string>
+    <string name="hidden_title">Hidden Buttons</string>
+    <string name="hidden_summary">Choose which buttons should be hidden</string>
+    <string name="hide_user_title">Hide Username</string>
+    <string name="hide_user_avatar">Hide username and avatar</string>
     <string-array name="click_settings_values">
         <item>Open Notification</item>
         <item>Open Main Page</item>
@@ -105,5 +111,27 @@
         <item>Right to Left is Forward</item>
         <item>Left to Right is Forward</item>
         <item>Follow language</item>
+    </string-array>
+    <string-array name="hidden_button_entries">
+        <item>Mark Unread Button</item>
+        <item>Report Button</item>
+        <item>Quote Button</item>
+        <item>Fix Button</item>
+        <item>Quote Last Button</item>
+        <item>Delete Button</item>
+        <item>Share Button</item>
+        <item>Contact Button</item>
+    </string-array>
+    <string-array name="hidden_button_values">
+            <item>.unread-icon</item>
+            <item>.report-icon</item>
+            <item>.quote-icon</item>
+            <item>.edit-icon</item>
+            <item>.quote-last</item>
+            <item>.delete-icon</item>
+            <item>.share-icon</item>
+            <item>.profile-contact</item>
+    </string-array>
+    <string-array name="hidden_default">
     </string-array>
 </resources>

@@ -31,6 +31,20 @@
             android:icon="@drawable/ic_baseline_logout_24"
             android:summary="@string/logout_summary"
             />
+        <MultiSelectListPreference
+            android:defaultValue="@array/hidden_default"
+            android:entries="@array/hidden_button_entries"
+            android:entryValues="@array/hidden_button_values"
+            android:icon="@drawable/ic_baseline_disabled_visible_24"
+            android:key="hidden_buttons"
+            android:summary="@string/hidden_summary"
+            android:title="@string/hidden_title" />
+        <CheckBoxPreference
+            android:key="hide_profile"
+            android:icon="@drawable/ic_baseline_person_off_24"
+            android:title="@string/hide_user_title"
+            android:summary="@string/hide_user_avatar"
+            />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/check_for_notifications">
         <ListPreference
