@@ -660,6 +660,7 @@ public class MainActivity extends AppCompatActivity {
                                 url.contains("docs.googleusercontent.com") ||
                                 url.startsWith("https://accounts.google.com/") ||
                                 url.startsWith("https://www.yiddish24.com/") ||
+                                url.contains("https://docs.google.com/") ||
                                 url.startsWith("https://www.dropbox.com/")) {
                     return false;
                 } else {
@@ -725,6 +726,14 @@ public class MainActivity extends AppCompatActivity {
             if (serviceNeedsStarting){
                 NotificationService.startNotificationService(MainActivity.this, NotificationService.ACTION_UPDATE_DELAY_TIME);
                 serviceNeedsStarting = false;
+            }
+            if (url.contains("https://docs.google.com/")) {
+                mywebView.zoomBy(1.1f);
+                String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/605.1.15";
+                mywebView.getSettings().setUserAgentString(desktopuseragent);
+            }else if (url.contains("https://accounts.google.com/")) {
+                String androidua = "Linux; Android 11; Android SDK built for x86 Build/RSR1.210210.001.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.106 Safari/537.36";
+                mywebView.getSettings().setUserAgentString(androidua);
             }
 
         }
