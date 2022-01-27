@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         webviewBundle = new Bundle();
         mywebView.saveState(webviewBundle);
         outState.putBundle(WEBVIEW_BUNDLE, webviewBundle);
+        FirebaseCrashlytics.getInstance().log("Bundle size " + getBundleSizeInBytes(webviewBundle));
         android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
     }
 
@@ -125,8 +126,13 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    private boolean shouldLogout = false;
     private void handleIntent(Intent intent) {
         if (intent == null || (intent.getStringExtra(EXTRA_URL) == null && intent.getDataString() == null)) {
+            if (intent.getAction() != null && intent.getAction().equals("com.kfmdm.ivelt.shortcut.logout")){
+                 mywebView.setVisibility(View.INVISIBLE);
+                shouldLogout = true;
+            }
             return;
         }
 
@@ -183,19 +189,16 @@ public class MainActivity extends AppCompatActivity {
         mywebView = findViewById(R.id.webview);
         swipeRefreshLayout = findViewById(R.id.swipeContainer);
         swipeRefreshLayout.setNestedScrollingEnabled(true);
+        WebViewAssetLoader.AssetsPathHandler assetsHandler = new WebViewAssetLoader.AssetsPathHandler(this);
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
-                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
-                .addPathHandler("/resources/", new WebViewAssetLoader.ResourcesPathHandler(this))
+                .setDomain("www.ivelt.com")
+                .setHttpAllowed(true)
+                .addPathHandler("/kfmdm/assets/", assetsHandler)
+                .addPathHandler("/kfmdm/resources/", new WebViewAssetLoader.ResourcesPathHandler(this))
+
                 .build();
         mywebView.setWebViewClient(new CustomWebViewClient(loader));
-        mywebView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-                android.util.Log.d("WCLOG", consoleMessage.message());
-//                Logger.getInstance(MainActivity.this).log("");
-                return super.onConsoleMessage(consoleMessage);
-            }
-        });
+        mywebView.setWebChromeClient(new WebChromeClient());
         initListener();
         WebSettings webSettings = mywebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -264,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
         mywebView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
 
-            String fileName = URLUtil.guessFileName(url, contentDisposition, getFileType(url));
+             String fileName = URLUtil.guessFileName(url, contentDisposition, getFileType(url));
             sFileName = fileName;
             sURL = url;
             sUserAgent = userAgent;
@@ -304,6 +307,20 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("DeprecatedApi")
     private void initListener() {
         mywebView.setWebChromeClient(new WebChromeClient() {
+
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                String logMessage = "Console " + consoleMessage.messageLevel().toString().toLowerCase() + ": " + consoleMessage.message() +
+                        ". source: " + consoleMessage.sourceId() + " (" + consoleMessage.lineNumber() + ")";
+                Logger.getInstance(getApplicationContext()).log(logMessage);
+                if(consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR){
+                    RuntimeException exception = new RuntimeException(logMessage);
+                    exception.setStackTrace(new StackTraceElement[]{new StackTraceElement(consoleMessage.sourceId(), "javascript", consoleMessage.sourceId(), consoleMessage.lineNumber())});
+
+                    FirebaseCrashlytics.getInstance().recordException(exception);
+                 }
+                return super.onConsoleMessage(consoleMessage);
+            }
 
             @SuppressLint("QueryPermissionsNeeded")
             public boolean onShowFileChooser(
@@ -614,8 +631,16 @@ public class MainActivity extends AppCompatActivity {
         @Nullable
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            try{
 
-            return loader.shouldInterceptRequest(request.getUrl());
+                WebResourceResponse resourceResponse = loader.shouldInterceptRequest(request.getUrl());
+                if (resourceResponse == null || resourceResponse.getData() == null || resourceResponse.getStatusCode() > 299){
+                    return super.shouldInterceptRequest(view, request);
+                }
+                return  resourceResponse;
+            }catch (Exception e){
+                return super.shouldInterceptRequest(view, request);
+            }
         }
 
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -693,11 +718,24 @@ public class MainActivity extends AppCompatActivity {
             metrics.widthPixels /= metrics.density;
 
             mywebView.loadUrl("javascript:var scale = " + metrics.widthPixels + " / document.body.scrollWidth; document.body.style.zoom = scale;");
-//            mywebView.loadUrl("javascript:" + AddSettingsElement.JS_ADD_ELEMENT_TO_LIST);
+
+            if (!shouldLogout){
+                mywebView.setVisibility(View.VISIBLE);
+            }
             try {
-                mywebView.loadUrl("javascript:" + Utils.readTextFile(MainActivity.this, R.raw.add_settings_element));
+
                 mywebView.loadUrl("javascript:" + Utils.readTextFile(MainActivity.this, R.raw.add_style));
-                mywebView.loadUrl("javascript:" + Utils.readTextFile(MainActivity.this, R.raw.login));
+                if (shouldLogout){
+                    shouldLogout = false;
+                    mywebView.loadUrl("javascript:" +
+                            " let logoutElement = document.querySelector(\".icon-logout a\");\n" +
+                            "    if (logoutElement){\n" +
+                            "        logoutElement.click();\n" +
+                            "    }else{\n" +
+                            "        console.info(\"logout null\");\n" +
+                            "    }");
+                    Toast.makeText(MainActivity.this, "Logging Out", Toast.LENGTH_LONG).show();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

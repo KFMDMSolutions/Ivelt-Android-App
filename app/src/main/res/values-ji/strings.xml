@@ -57,4 +57,26 @@
     <string name="error_sending_logs">פעלער שיקן לאגס</string>
     <string name="logout_title">פערמעק לאג אין דעטאלען</string>
     <string name="logout_summary">אויב האסטו אפגעהיטן דיינע לאגאין דעטאלען קענסטו עס דא פארמעקן</string>
+    <string name="dismiss">פארמאך</string>
+    <string name="mark_read">פארצייכן ווי געליינט</string>
+    <string name="hidden_title">באהאלטענע קנעפלעך</string>
+    <string name="hidden_summary">וועל אויס וועלעכע קנעפלעך די ווילסט באהאלטען</string>
+    <string name="hide_user_title">באהאלט ניק</string>
+    <string name="hide_user_avatar">בהאלט ניק און אוועטער</string>
+
+    <string name="shortcut_label">לאג ארויס</string>
+    <string name="ivelt_settings_title">אייוועלט אנטשעלונגען</string>
+    <string-array name="hidden_button_entries">
+        <item>פארצייכן אומגעליינט קנעפל</item>
+        <item>באריכט קנעפל</item>
+        <item>ציטור קנעפל</item>
+        <item>פארריכט קנעפל</item>
+        <item>ציטור לעצטע קנעפל</item>
+        <item>פארמעק קנעפל</item>
+        <item>טייל מיט קנעפל</item>
+        <item>ציטיר אין אנדערע אשכול קנעפל</item>
+        <item>פריוואטע מעסעדזש קנעפל</item>
+        <item>דערמאן קנעפל</item>
+        <item>פארבינד זיך קנעפל</item>
+    </string-array>
 </resources>

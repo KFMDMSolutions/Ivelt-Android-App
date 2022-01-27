@@ -1,5 +1,8 @@
 function addAutoLoginOption(){
     let autoLogin = document.querySelectorAll('label[for="autologin"]').item(0);
+    if (!autoLogin){
+        return;
+    }
     let checkboxes = autoLogin.parentElement.parentElement;
     let dd = document.createElement("dd");
     let label = document.createElement("label");
@@ -39,13 +42,21 @@ function addAutoLoginOption(){
 
 function onClickLogin() {
     let appLogin = document.querySelectorAll("#applogin").item(0);
-    let username = document.querySelectorAll("#username").item(0);
-    let password = document.querySelectorAll("#password").item(0);
     if (appLogin.checked) {
+        let username = document.querySelectorAll("#username").item(0);
+        let password = document.querySelectorAll("#password").item(0);
         android.saveCredentials(username.value, password.value);
     }else{
         android.saveCredentials("", "");
     }
 }
 
+function logout(){
+    let logoutElement = document.querySelector(".icon-logout");
+    if (logoutElement){
+        logoutElement.click();
+    }else{
+        console.info("logout null");
+    }
+}
 addAutoLoginOption();

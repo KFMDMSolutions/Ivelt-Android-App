@@ -1,0 +1,256 @@
+function createButton(icon, reference, customClass, title, text, onclick) {
+    let li = document.createElement('li');
+    let a = document.createElement('a');
+    let span = document.createElement('span');
+    let img = document.createElement('img');
+    img.setAttribute('src', `https://www.ivelt.com/kfmdm/resources/drawable/${icon}`)
+    if (reference){
+        a.setAttribute('href', reference);
+    }
+    if (onclick){
+        a.setAttribute('onClick', onclick)
+    }
+    a.setAttribute('class', `button custom-button ${customClass}`);
+    a.setAttribute('title',title );
+    span.innerText = text;
+    a.appendChild(span);
+    a.appendChild(img);
+    li.appendChild(a);
+    return {li, a, span, img}
+}
+
+function addBtn(){
+    let btns = document.querySelectorAll('.post-buttons');
+    let isPosting = (window.location.href.includes("posting.php"));
+    var needUpdating = false;
+    btns.forEach(btn => {
+        // Check if custom buttons have been added already, if yes ignore.
+        if(btn.getElementsByClassName('custom-button').length > 0){
+            return;
+        }
+        needUpdating = true
+        btn.querySelectorAll('li.hidden:not(.responsive-menu)').forEach(b => {
+            if (b.getAttribute('class') == "hidden"){
+                b.removeAttribute('class')
+            }
+        })
+
+        let contentElement = btn.parentElement.getElementsByClassName("content").item(0)
+//        addSimpleButton(btn, 'ivelt_logo48.png', null, "logo-class", 'logo', 'logo')
+        let id = btn.parentElement.getAttribute("id")
+        let strippedId = id.replace("post_content", "")
+        strippedId = strippedId.replace("pr", "")
+        if (!isPosting){
+            addSimpleButton(btn, 'share.png', null, 'share-icon', 'טייל מיט די תגובה','טייל מיט', `sharePost(${id})`)
+            addCopyQuoteButton(btn, id.replace("post_content", ""))
+            let pm_button = document.querySelector(`#profile${id.replace("post_content", "")} .pm-icon`)
+            if (pm_button){
+                addSimpleButton(btn, 'pm_icon.png', pm_button.parentElement.getAttribute("href"), "app-pm-icon", 'שיק א פריוואטע מעסעדזש', 'שיק א פריוואטע מעסעדזש')
+            }
+        }
+
+        let pingOnClick = `ping_user(${strippedId})`
+        addSimpleButton(btn, 'baseline_alternate_email_black_24dp.png', null, 'ping-icon', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
+        if (contentElement.innerHTML.includes("blockquote")) {
+            addQuoteLastButton(btn, isPosting);
+        }
+        let responsiveMenu = btn.getElementsByClassName('responsive-menu').item(0);
+        btn.removeChild(btn.getElementsByClassName('responsive-menu').item(0))
+    });
+    if (needUpdating){
+        let navBar = document.querySelector('#nav-footer');
+        navBar.querySelectorAll('li.hidden:not(.responsive-menu)').forEach(si => {
+            si.setAttribute('class', si.getAttribute('class').replace('hidden', ''))
+        })
+        navBar.removeChild(navBar.getElementsByClassName('responsive-menu').item(0))
+        parseDocument($('body'));
+    }
+}
+
+function addSimpleButton(btn, icon, href, customClass, title, text, onclick){
+    let button = createButton(icon, href, customClass, title, text, onclick);
+    btn.appendChild(button.li);
+}
+
+function getQuoteURL(btn){
+    let quoteButton = btn.querySelector('a.button.icon-button.quote-icon');
+    if (!quoteButton){
+        return null;
+    }
+    let href = quoteButton.getAttribute('href');
+    return href;
+}
+function addCopyQuoteButton(btn, postID){
+    let href = getQuoteURL(btn)
+    if (!href){
+        addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
+        return;
+    }
+    addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuote("${href}", "${postID}")`)
+}
+function addQuoteLastButton(btn, isPosting) {
+
+    let href = getQuoteURL(btn)
+    if (!href){
+        return;
+    }
+    var onclick = null;
+    if (isPosting){
+       onclick = "last" + btn.querySelector('a.button.icon-button.quote-icon').getAttribute('onclick');
+//       button.a.setAttribute("onclick", "last" + onclick);
+    }
+    let button = createButton('quote_last.png', href + '&last=true', 'quote-last', 'ציטיר בלויז די לעצטע תגובה', 'ציטיר לעצטע', onclick);
+
+    btn.appendChild(button.li);
+}
+
+function hideButtons(){
+    let hidden = android.getHiddenElements()
+    let parsed = JSON.parse(hidden);
+    for (button of parsed){
+        hideButton(button)
+    }
+}
+
+function hideButton(selector){
+    let buttons = document.querySelectorAll(selector);
+    buttons.forEach(button => {
+        button.classList.add('app-hidden');
+        if(button.parentElement.classList.contains('clone-first')){
+            button.parentElement.classList.add('app-hidden')
+        }
+    })
+}
+
+function addDefaultPage(){
+
+    let a = document.createElement('a');
+    a.setAttribute('onClick', "saveDefaultPage()")
+    a.innerText = "מאך די בלאט די דיפאולט בלאט •"
+    let pagination = document.querySelectorAll(".action-bar.top .pagination").item(0)
+    if (pagination){
+        pagination.insertBefore(a, pagination.firstChild);
+    }
+}
+
+function saveDefaultPage(){
+    let page = window.location.href;
+    android.saveDefaultPage(page)
+}
+
+function addCopyright(){
+    let br = document.createElement("br");
+    let span = document.createElement("span")
+    span.innerText = "App by KF MDM v" + android.getVersionString();
+    let copyright = document.querySelectorAll('.copyright').item(0);
+    if (copyright){
+        copyright.appendChild(br);
+        copyright.appendChild(span);
+    }
+}
+
+function sharePost(id){
+
+    console.log("Sharing ID " + id)
+    console.log("selector " + `#${id}`)
+
+    let content = id.getElementsByClassName("content").item(0);
+    let a = document.createElement("a")
+    let postID = id.id.replace("post_content", "")
+    let link = getPostLink(postID)
+    a.setAttribute("href",link )
+    a.innerText = " זעה אויף אייוועלט: "
+    content.appendChild(a)
+    let html = content.innerHTML;
+    content.removeChild(a)
+    android.sharePost(html)
+}
+
+function getPostLink(postID){
+    return `https://www.ivelt.com/forum/viewtopic.php?p=${postID}#p${postID}`;
+}
+
+function copyQuoteParse(post_id){
+    var html = document.querySelector(`#post_content${post_id} .content`).innerHTML
+    let post_url = getPostLink(post_id)
+    var username = getUsername(post_id)
+    let converter = new HTML2BBCode();
+    html = html.replaceAll("./download", "www.ivelt.com/forum/download")
+//    android.copyToClipboard(`[quote="${username}"]${bbcodeParser.htmlToBBCode(html).replaceAll('<br>', '')} [/quote] [url=${post_url}]מקור[/url]`)
+    android.copyToClipboard(`[quote="${username}"]${converter.feed(html)} [/quote] [url=${post_url}]מקור[/url]`)
+}
+function getUsername(post_id, prefix = 'p'){
+    var usernameE = document.querySelector(`#${prefix}${post_id} .username`)
+    if (!usernameE){
+       var usernameE = document.querySelector(`#p${prefix}${post_id} .username-coloured`)
+    }
+    var username = ""
+    if(usernameE){
+       username = usernameE.innerText
+    }
+    return username
+}
+function ping_user(post_id){
+    let link = getPostLink(post_id)
+    if (window.location.href.includes("posting.php")){
+        let username = getUsername(post_id,"pr")
+        let text = `[url=${link}][quote="${username}"]\n[/quote][/url]`
+        insert_text(text)
+    }else{
+        let username = getUsername(post_id)
+        let text = `[url=${link}][quote="${username}"]\n[/quote][/url]`
+        addText(text)
+    }
+}
+
+function addText(text){
+    var textarea = document.querySelector("#message-box textarea");
+
+    if (!isNaN(textarea.selectionStart)) {
+    	var sel_start = textarea.selectionStart;
+    	var sel_end = textarea.selectionEnd;
+    	mozWrapApp(textarea, text, '');
+    	textarea.selectionStart = sel_start + text.length;
+    	textarea.selectionEnd = sel_end + text.length;
+    } else if (textarea.createTextRange && textarea.caretPos) {
+    	if (baseHeight !== textarea.caretPos.boundingHeight) {
+    		textarea.focus();
+    		storeCaret(textarea);
+    	}
+    	var caret_pos = textarea.caretPos;
+    	caret_pos.text = caret_pos.text.charAt(caret_pos.text.length - 1) === ' ' ? caret_pos.text + text + ' ' : caret_pos.text + text;
+    } else {
+    	textarea.value = textarea.value + text;
+    }
+    textarea.focus();
+}
+function mozWrapApp(txtarea, open, close) {
+	var selLength = (typeof(txtarea.textLength) === 'undefined') ? txtarea.value.length : txtarea.textLength;
+	var selStart = txtarea.selectionStart;
+	var selEnd = txtarea.selectionEnd;
+	var scrollTop = txtarea.scrollTop;
+
+	var s1 = (txtarea.value).substring(0,selStart);
+	var s2 = (txtarea.value).substring(selStart, selEnd);
+	var s3 = (txtarea.value).substring(selEnd, selLength);
+
+	txtarea.value = s1 + open + s2 + close + s3;
+	txtarea.selectionStart = selStart + open.length;
+	txtarea.selectionEnd = selEnd + open.length;
+	txtarea.focus();
+	txtarea.scrollTop = scrollTop;
+
+	return;
+}
+
+addBtn();
+hideButtons();
+addCopyright();
+addDefaultPage();
+
+
+
+
+
+
+

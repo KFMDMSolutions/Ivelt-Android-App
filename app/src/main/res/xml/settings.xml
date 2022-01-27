@@ -2,6 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory android:title="@string/app_settings">
+
         <ListPreference
             android:entries="@array/language_entries"
             android:entryValues="@array/language_values"
@@ -10,14 +11,7 @@
             android:title="@string/language_title"
             android:icon="@drawable/ic_baseline_language_24"
             android:summary="@string/language_summary"/>
-        <ListPreference
-            android:defaultValue="http://www.ivelt.com/forum/index.php"
-            android:entries="@array/pages_entries"
-            android:entryValues="@array/pages_values"
-            android:icon="@drawable/ic_baseline_app_shortcut_24"
-            android:key="default_page"
-            android:summary="@string/default_page_summary"
-            android:title="@string/default_page_title" />
+
         <!--ListPreference/-->
         <CheckBoxPreference
             android:key="firebase"
@@ -31,6 +25,34 @@
             android:icon="@drawable/ic_baseline_logout_24"
             android:summary="@string/logout_summary"
             />
+
+
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="@string/ivelt_settings_title">
+        <ListPreference
+            android:defaultValue="http://www.ivelt.com/forum/index.php"
+            android:entries="@array/pages_entries"
+            android:entryValues="@array/pages_values"
+            android:icon="@drawable/ic_baseline_app_shortcut_24"
+            android:key="default_page"
+            android:summary="@string/default_page_summary"
+            android:title="@string/default_page_title" />
+        <MultiSelectListPreference
+            android:defaultValue="@array/hidden_default"
+            android:entries="@array/hidden_button_entries"
+            android:entryValues="@array/hidden_button_values"
+            android:icon="@drawable/ic_baseline_disabled_visible_24"
+            android:key="hidden_buttons"
+            android:summary="@string/hidden_summary"
+            android:title="@string/hidden_title" />
+        <CheckBoxPreference
+            android:key="hide_profile"
+            android:icon="@drawable/ic_baseline_person_off_24"
+            android:title="@string/hide_user_title"
+            android:summary="@string/hide_user_avatar"
+            />
+
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/check_for_notifications">
         <ListPreference
