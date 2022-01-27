@@ -51,8 +51,8 @@
     display: none;
 }
 .custom-button{
-    height:22px;
-    width:28px;
+    min-height:22px;
+    min-width:28px;
     object-fit: contain;
     margin:0;
     padding: 0;

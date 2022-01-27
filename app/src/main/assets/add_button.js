@@ -24,12 +24,11 @@ function addBtn(){
     let isPosting = (window.location.href.includes("posting.php"));
     var needUpdating = false;
     btns.forEach(btn => {
-
-        needUpdating = true
         // Check if custom buttons have been added already, if yes ignore.
         if(btn.getElementsByClassName('custom-button').length > 0){
             return;
         }
+        needUpdating = true
         btn.querySelectorAll('li.hidden:not(.responsive-menu)').forEach(b => {
             if (b.getAttribute('class') == "hidden"){
                 b.removeAttribute('class')
@@ -38,12 +37,20 @@ function addBtn(){
 
         let contentElement = btn.parentElement.getElementsByClassName("content").item(0)
 //        addSimpleButton(btn, 'ivelt_logo48.png', null, "logo-class", 'logo', 'logo')
+        let id = btn.parentElement.getAttribute("id")
+        let strippedId = id.replace("post_content", "")
+        strippedId = strippedId.replace("pr", "")
         if (!isPosting){
-            let id = btn.parentElement.getAttribute("id")
             addSimpleButton(btn, 'share.png', null, 'share-icon', 'טייל מיט די תגובה','טייל מיט', `sharePost(${id})`)
             addCopyQuoteButton(btn, id.replace("post_content", ""))
-
+            let pm_button = document.querySelector(`#profile${id.replace("post_content", "")} .pm-icon`)
+            if (pm_button){
+                addSimpleButton(btn, 'pm_icon.png', pm_button.parentElement.getAttribute("href"), "app-pm-icon", 'שיק א פריוואטע מעסעדזש', 'שיק א פריוואטע מעסעדזש')
+            }
         }
+
+        let pingOnClick = `ping_user(${strippedId})`
+        addSimpleButton(btn, 'baseline_alternate_email_black_24dp.png', null, 'ping-icon', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
         if (contentElement.innerHTML.includes("blockquote")) {
             addQuoteLastButton(btn, isPosting);
         }
@@ -79,8 +86,6 @@ function addCopyQuoteButton(btn, postID){
         addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
         return;
     }
-//    console.log(`copyQuote(${href})`)
-    console.log(`copyQuote("${href}", "${postID}")`)
     addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuote("${href}", "${postID}")`)
 }
 function addQuoteLastButton(btn, isPosting) {
@@ -94,7 +99,7 @@ function addQuoteLastButton(btn, isPosting) {
        onclick = "last" + btn.querySelector('a.button.icon-button.quote-icon').getAttribute('onclick');
 //       button.a.setAttribute("onclick", "last" + onclick);
     }
-    let button = createButton('quote_last.png', href + '&last=true', 'quote-last', 'ציטיר בלויז די לעצטע תגובה', 'ציטור לעצטע', onclick);
+    let button = createButton('quote_last.png', href + '&last=true', 'quote-last', 'ציטיר בלויז די לעצטע תגובה', 'ציטיר לעצטע', onclick);
 
     btn.appendChild(button.li);
 }
@@ -105,12 +110,10 @@ function hideButtons(){
     for (button of parsed){
         hideButton(button)
     }
-//    hideButton('.logo-class')
 }
 
 function hideButton(selector){
     let buttons = document.querySelectorAll(selector);
-    console.log("reportButtons " + buttons.length)
     buttons.forEach(button => {
         button.classList.add('app-hidden');
         if(button.parentElement.classList.contains('clone-first')){
@@ -140,8 +143,10 @@ function addCopyright(){
     let span = document.createElement("span")
     span.innerText = "App by KF MDM v" + android.getVersionString();
     let copyright = document.querySelectorAll('.copyright').item(0);
-    copyright.appendChild(br);
-    copyright.appendChild(span);
+    if (copyright){
+        copyright.appendChild(br);
+        copyright.appendChild(span);
+    }
 }
 
 function sharePost(id){
@@ -165,20 +170,77 @@ function getPostLink(postID){
     return `https://www.ivelt.com/forum/viewtopic.php?p=${postID}#p${postID}`;
 }
 
-//theSelection = divArea.innerHTML.replace(/<br>/ig, '\n');
-//              theSelection = theSelection.replace(/<br\/>/ig, '\n');
 function copyQuoteParse(post_id){
     var html = document.querySelector(`#post_content${post_id} .content`).innerHTML
     let post_url = getPostLink(post_id)
-    var usernameE = document.querySelector(`#p${post_id} .username`)
+    var username = getUsername(post_id)
+    let converter = new HTML2BBCode();
+    html = html.replaceAll("./download", "www.ivelt.com/forum/download")
+//    android.copyToClipboard(`[quote="${username}"]${bbcodeParser.htmlToBBCode(html).replaceAll('<br>', '')} [/quote] [url=${post_url}]מקור[/url]`)
+    android.copyToClipboard(`[quote="${username}"]${converter.feed(html)} [/quote] [url=${post_url}]מקור[/url]`)
+}
+function getUsername(post_id, prefix = 'p'){
+    var usernameE = document.querySelector(`#${prefix}${post_id} .username`)
     if (!usernameE){
-        var usernameE = document.querySelector(`#p${post_id} .username-coloured`)
+       var usernameE = document.querySelector(`#p${prefix}${post_id} .username-coloured`)
     }
     var username = ""
     if(usernameE){
-        username = usernameE.innerText
+       username = usernameE.innerText
     }
-    android.copyToClipboard(`[quote="${username}"]${bbcodeParser.htmlToBBCode(html).replaceAll('<br>', '')} [/quote] [url=${post_url}]מקור[/url]`)
+    return username
+}
+function ping_user(post_id){
+    let link = getPostLink(post_id)
+    if (window.location.href.includes("posting.php")){
+        let username = getUsername(post_id,"pr")
+        let text = `[url=${link}][quote="${username}"]\n[/quote][/url]`
+        insert_text(text)
+    }else{
+        let username = getUsername(post_id)
+        let text = `[url=${link}][quote="${username}"]\n[/quote][/url]`
+        addText(text)
+    }
+}
+
+function addText(text){
+    var textarea = document.querySelector("#message-box textarea");
+
+    if (!isNaN(textarea.selectionStart)) {
+    	var sel_start = textarea.selectionStart;
+    	var sel_end = textarea.selectionEnd;
+    	mozWrapApp(textarea, text, '');
+    	textarea.selectionStart = sel_start + text.length;
+    	textarea.selectionEnd = sel_end + text.length;
+    } else if (textarea.createTextRange && textarea.caretPos) {
+    	if (baseHeight !== textarea.caretPos.boundingHeight) {
+    		textarea.focus();
+    		storeCaret(textarea);
+    	}
+    	var caret_pos = textarea.caretPos;
+    	caret_pos.text = caret_pos.text.charAt(caret_pos.text.length - 1) === ' ' ? caret_pos.text + text + ' ' : caret_pos.text + text;
+    } else {
+    	textarea.value = textarea.value + text;
+    }
+    textarea.focus();
+}
+function mozWrapApp(txtarea, open, close) {
+	var selLength = (typeof(txtarea.textLength) === 'undefined') ? txtarea.value.length : txtarea.textLength;
+	var selStart = txtarea.selectionStart;
+	var selEnd = txtarea.selectionEnd;
+	var scrollTop = txtarea.scrollTop;
+
+	var s1 = (txtarea.value).substring(0,selStart);
+	var s2 = (txtarea.value).substring(selStart, selEnd);
+	var s3 = (txtarea.value).substring(selEnd, selLength);
+
+	txtarea.value = s1 + open + s2 + close + s3;
+	txtarea.selectionStart = selStart + open.length;
+	txtarea.selectionEnd = selEnd + open.length;
+	txtarea.focus();
+	txtarea.scrollTop = scrollTop;
+
+	return;
 }
 
 addBtn();

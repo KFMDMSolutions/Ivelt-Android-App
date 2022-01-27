@@ -125,7 +125,6 @@ public class NotificationService extends Service {
 //            CharSequence name = getString(R.string.channel_name);
 //            String description = getString(R.string.channel_description);
             int importance = channelID.equals(SERVICE_NOTIFICATION_CHANNEL) ? NotificationManager.IMPORTANCE_MIN : NotificationManager.IMPORTANCE_HIGH;
-            android.util.Log.d("TestChannel", "channel is " + name + " importance is " + importance);
             NotificationChannel channel = new NotificationChannel(channelID, name, importance);
             if (channelID.equals(SERVICE_NOTIFICATION_CHANNEL)) {
                 channel.setShowBadge(false);
@@ -248,6 +247,19 @@ public class NotificationService extends Service {
         Logger.getInstance(context).log("Sent notification with ID " + notificationInfo.id);
     }
 
+    private static PendingIntent getSettingsIntent(Context context){
+        Intent intent = new Intent(context.getApplicationContext(), SettingsActivity.class);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context.getApplicationContext());
+        stackBuilder.addNextIntentWithParentStack(intent);
+        return stackBuilder.getPendingIntent(10002, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+    private static PendingIntent getLogoutIntent(Context context){
+        Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
+        intent.setAction( "com.kfmdm.ivelt.shortcut.logout");
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context.getApplicationContext());
+        stackBuilder.addNextIntentWithParentStack(intent);
+        return stackBuilder.getPendingIntent(10003, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
     private static PendingIntent getPendingIntent(Context context, NotificationInfo info) {
         String openNotification = context.getString(R.string.open_notification);
         String preference = PreferenceManager.getDefaultSharedPreferences(context).getString("click", openNotification);
@@ -580,6 +592,8 @@ public class NotificationService extends Service {
                 .setWhen(lastUpdatedTime)
                 .setSilent(true)
                 .addAction(new NotificationCompat.Action(1, "Check Now", getUpdateIntent()))
+                .addAction(new NotificationCompat.Action(1, "Settings", getSettingsIntent(this)))
+                .addAction(new NotificationCompat.Action(1, "Logout", getLogoutIntent(this)))
                 .setContentIntent(getPendingIntent(this, null))
                 .setContentTitle("Notifications updated at: " + lastUpdated)
                 .setContentText("Updates every " + periodString + powerString)

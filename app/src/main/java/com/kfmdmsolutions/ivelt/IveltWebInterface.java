@@ -60,7 +60,6 @@ public class IveltWebInterface {
 
     @JavascriptInterface
     public void saveCredentials(String username, String password){
-        android.util.Log.d("IWI", "in android username is " + username + " password is " + password);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.edit().putString(IVELT_USERNAME, username).putString(IVELT_PASSWORD, password).apply();
     }
@@ -91,7 +90,6 @@ public class IveltWebInterface {
         shareIntent.putExtra(Intent.EXTRA_TEXT, parsedHtml);
         shareIntent.putExtra(Intent.EXTRA_TITLE, "Share");
         shareIntent.setType("text/*");
-        android.util.Log.d("CONSOLEHTML", "text " + text + " html " + html);
 //        context.startActivity(shareIntent);
         context.startActivity(Intent.createChooser(shareIntent, "null"));
     }

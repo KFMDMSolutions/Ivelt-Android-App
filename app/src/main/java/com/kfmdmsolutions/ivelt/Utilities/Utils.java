@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -35,6 +37,18 @@ public class Utils {
     public static void executeAsync(Runnable runnable){
         executor.execute(runnable);
     }
+
+    public static void executeAsync(Runnable runnable, int delay){
+        ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutor.schedule(runnable, delay, TimeUnit.SECONDS);
+        scheduledExecutor.shutdown();
+        try {
+            scheduledExecutor.awaitTermination(delay + 1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public static Map<String, String> convertCookies(String cookie){
         Map<String,String> cookies = new HashMap<>();

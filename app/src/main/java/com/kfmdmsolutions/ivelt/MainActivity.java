@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         webviewBundle = new Bundle();
         mywebView.saveState(webviewBundle);
         outState.putBundle(WEBVIEW_BUNDLE, webviewBundle);
+        FirebaseCrashlytics.getInstance().log("Bundle size " + getBundleSizeInBytes(webviewBundle));
         android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
     }
 
@@ -125,8 +126,13 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    private boolean shouldLogout = false;
     private void handleIntent(Intent intent) {
         if (intent == null || (intent.getStringExtra(EXTRA_URL) == null && intent.getDataString() == null)) {
+            if (intent.getAction() != null && intent.getAction().equals("com.kfmdm.ivelt.shortcut.logout")){
+                 mywebView.setVisibility(View.INVISIBLE);
+                shouldLogout = true;
+            }
             return;
         }
 
@@ -261,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
         mywebView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
 
-            String fileName = URLUtil.guessFileName(url, contentDisposition, getFileType(url));
+             String fileName = URLUtil.guessFileName(url, contentDisposition, getFileType(url));
             sFileName = fileName;
             sURL = url;
             sUserAgent = userAgent;
@@ -308,9 +314,11 @@ public class MainActivity extends AppCompatActivity {
                         ". source: " + consoleMessage.sourceId() + " (" + consoleMessage.lineNumber() + ")";
                 Logger.getInstance(getApplicationContext()).log(logMessage);
                 if(consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR){
-                    FirebaseCrashlytics.getInstance().recordException(new RuntimeException(logMessage));
-                    android.util.Log.d("Non-Fatal", "recording non fatal crash");
-                }
+                    RuntimeException exception = new RuntimeException(logMessage);
+                    exception.setStackTrace(new StackTraceElement[]{new StackTraceElement(consoleMessage.sourceId(), "javascript", consoleMessage.sourceId(), consoleMessage.lineNumber())});
+
+                    FirebaseCrashlytics.getInstance().recordException(exception);
+                 }
                 return super.onConsoleMessage(consoleMessage);
             }
 
@@ -710,11 +718,24 @@ public class MainActivity extends AppCompatActivity {
             metrics.widthPixels /= metrics.density;
 
             mywebView.loadUrl("javascript:var scale = " + metrics.widthPixels + " / document.body.scrollWidth; document.body.style.zoom = scale;");
-//            mywebView.loadUrl("javascript:" + AddSettingsElement.JS_ADD_ELEMENT_TO_LIST);
+
+            if (!shouldLogout){
+                mywebView.setVisibility(View.VISIBLE);
+            }
             try {
-//                mywebView.loadUrl("javascript:" + Utils.readTextFile(MainActivity.this, R.raw.add_settings_element));
+
                 mywebView.loadUrl("javascript:" + Utils.readTextFile(MainActivity.this, R.raw.add_style));
-//                mywebView.loadUrl("javascript:" + Utils.readTextFile(MainActivity.this, R.raw.login));
+                if (shouldLogout){
+                    shouldLogout = false;
+                    mywebView.loadUrl("javascript:" +
+                            " let logoutElement = document.querySelector(\".icon-logout a\");\n" +
+                            "    if (logoutElement){\n" +
+                            "        logoutElement.click();\n" +
+                            "    }else{\n" +
+                            "        console.info(\"logout null\");\n" +
+                            "    }");
+                    Toast.makeText(MainActivity.this, "Logging Out", Toast.LENGTH_LONG).show();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

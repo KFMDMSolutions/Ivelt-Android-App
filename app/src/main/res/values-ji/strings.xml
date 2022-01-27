@@ -63,6 +63,9 @@
     <string name="hidden_summary">וועל אויס וועלעכע קנעפלעך די ווילסט באהאלטען</string>
     <string name="hide_user_title">באהאלט ניק</string>
     <string name="hide_user_avatar">בהאלט ניק און אוועטער</string>
+
+    <string name="shortcut_label">לאג ארויס</string>
+    <string name="ivelt_settings_title">אייוועלט אנטשעלונגען</string>
     <string-array name="hidden_button_entries">
         <item>פארצייכן אומגעליינט קנעפל</item>
         <item>באריכט קנעפל</item>
@@ -70,8 +73,10 @@
         <item>פארריכט קנעפל</item>
         <item>ציטור לעצטע קנעפל</item>
         <item>פארמעק קנעפל</item>
-        <item>טייל מיט קנפעל</item>
+        <item>טייל מיט קנעפל</item>
         <item>ציטיר אין אנדערע אשכול קנעפל</item>
-        <item>פארבינד זוך קנעפל</item>
+        <item>פריוואטע מעסעדזש קנעפל</item>
+        <item>דערמאן קנעפל</item>
+        <item>פארבינד זיך קנעפל</item>
     </string-array>
 </resources>
