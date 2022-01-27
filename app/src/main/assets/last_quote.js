@@ -61,8 +61,12 @@
         $.get(
             url,
             response => {
-                let res = $("#message-box #message", response)[0].innerText
-                android.copyToClipboard(`${res} [url=${post_url}]מקור[/url]`)
+                var res = $("#message-box #message", response)[0].innerText
+                console.log(url)
+                if (url.toString().includes("posting.php")){
+                    res = `${res} [url=${post_url}]מקור[/url]`
+                }
+                android.copyToClipboard(res)
             }
         )
     }

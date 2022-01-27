@@ -19,6 +19,14 @@ function createButton(icon, reference, customClass, title, text, onclick) {
     return {li, a, span, img}
 }
 
+function getPMHref(id) {
+    let pm_button = document.querySelector(`#profile${id.replace("post_content", "")} .pm-icon`)
+    if (pm_button){
+        return pm_button.parentElement.getAttribute("href")
+    }
+    return null;
+}
+
 function addBtn(){
     let btns = document.querySelectorAll('.post-buttons');
     let isPosting = (window.location.href.includes("posting.php"));
@@ -36,19 +44,17 @@ function addBtn(){
         })
 
         let contentElement = btn.parentElement.getElementsByClassName("content").item(0)
-//        addSimpleButton(btn, 'ivelt_logo48.png', null, "logo-class", 'logo', 'logo')
         let id = btn.parentElement.getAttribute("id")
         let strippedId = id.replace("post_content", "")
         strippedId = strippedId.replace("pr", "")
         if (!isPosting){
             addSimpleButton(btn, 'share.png', null, 'share-icon', 'טייל מיט די תגובה','טייל מיט', `sharePost(${id})`)
             addCopyQuoteButton(btn, id.replace("post_content", ""))
-            let pm_button = document.querySelector(`#profile${id.replace("post_content", "")} .pm-icon`)
-            if (pm_button){
-                addSimpleButton(btn, 'pm_icon.png', pm_button.parentElement.getAttribute("href"), "app-pm-icon", 'שיק א פריוואטע מעסעדזש', 'שיק א פריוואטע מעסעדזש')
+            let pm_href = getPMHref(id);
+            if (pm_href){
+                addSimpleButton(btn, 'pm_icon.png', pm_href, "app-pm-icon", 'שיק א פריוואטע מעסעדזש', 'שיק א פריוואטע מעסעדזש')
             }
         }
-
         let pingOnClick = `ping_user(${strippedId})`
         addSimpleButton(btn, 'baseline_alternate_email_black_24dp.png', null, 'ping-icon', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
         if (contentElement.innerHTML.includes("blockquote")) {
@@ -81,7 +87,7 @@ function getQuoteURL(btn){
     return href;
 }
 function addCopyQuoteButton(btn, postID){
-    let href = getQuoteURL(btn)
+    let href = getPMHref(postID) ?? getQuoteURL(btn)
     if (!href){
         addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
         return;
