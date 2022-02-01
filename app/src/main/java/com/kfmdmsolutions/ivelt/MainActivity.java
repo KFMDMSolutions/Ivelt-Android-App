@@ -27,8 +27,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.ShareCompat;
 import androidx.core.app.unusedapprestrictions.IUnusedAppRestrictionsBackportCallback;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.SharedPreferencesCompat;
 import androidx.core.view.GestureDetectorCompat;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -739,11 +741,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-//            try {
-//                mywebView.loadUrl("javascript:" + Utils.readTextFile(MainActivity.this, R.raw.add_contact));
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
             if (serviceNeedsStarting){
                 NotificationService.startNotificationService(MainActivity.this, NotificationService.ACTION_UPDATE_DELAY_TIME);
                 serviceNeedsStarting = false;
@@ -772,6 +769,7 @@ public class MainActivity extends AppCompatActivity {
     private class SwipeDetector implements View.OnTouchListener {
         private float startX = 0.0f;
         private float startY = 0.0f;
+        private float startX2 = 0.0f;
         private boolean swiping = false;
         @Override
         public boolean onTouch(View v, MotionEvent event) {
@@ -782,20 +780,28 @@ public class MainActivity extends AppCompatActivity {
                     swiping = true;
                     startX = event.getX(0);
                     startY = event.getY(0);
-//                    Log.d("ONTOUCH", "action: " + action + " count: " + event.getPointerCount());
+                    if (event.getPointerCount() > 1){
+                        startX2 = event.getX(1);
+                    }
                     break;
                 case MotionEvent.ACTION_POINTER_UP:
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
                     float endX = event.getX(0);
                     float endY = event.getY(0);
+                    boolean oneFingerSwipe = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("one_finger_swipe", true);
+                    boolean twoFingerSwipe = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("two_finger_swipe", true);
                     boolean isHorizontalSwipe = isHorizontalSwipe(startX, startY, endX, endY);
                     boolean isForward = startX < endX;
-                    if (!zoomed && isHorizontalSwipe && swiping && event.getPointerCount() == 1){
+                    android.util.Log.d("SWIPE", "oneFinger " + oneFingerSwipe + " two finger " +  twoFingerSwipe);
+                    if (!zoomed && isHorizontalSwipe && oneFingerSwipe && swiping && event.getPointerCount() == 1){
                         singleFingerSwipe(isForward);
                     }
-                    if (isHorizontalSwipe && swiping && event.getPointerCount() > 1){
-                        multiFingerSwipe(isForward);
+                    if (isHorizontalSwipe && twoFingerSwipe && swiping && event.getPointerCount() > 1){
+                        boolean isSecondForward = startX2 < event.getX(1);
+                        if (isSecondForward == isForward) {
+                            multiFingerSwipe(isForward);
+                        }
                     }
                     swiping = false;
 //                    Log.d("ONTOUCH", "action: " + action + " count: " + event.getPointerCount() + " start x: " + startX + " end x: "

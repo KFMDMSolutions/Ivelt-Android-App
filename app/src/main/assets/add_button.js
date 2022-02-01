@@ -44,7 +44,7 @@ function addBtn(){
         })
 
         let contentElement = btn.parentElement.getElementsByClassName("content").item(0)
-        let id = btn.parentElement.getAttribute("id")
+        let id = btn.parentElement.getAttribute("id") || ""
         let strippedId = id.replace("post_content", "")
         strippedId = strippedId.replace("pr", "")
         if (!isPosting){
@@ -61,9 +61,14 @@ function addBtn(){
             addQuoteLastButton(btn, isPosting);
         }
         let responsiveMenu = btn.getElementsByClassName('responsive-menu').item(0);
-        btn.removeChild(btn.getElementsByClassName('responsive-menu').item(0))
+        try {
+            btn.removeChild(btn.getElementsByClassName('responsive-menu').item(0))
+        }catch (e) {
+            
+        }
     });
-    if (needUpdating){
+    let navUpdate = addDefaultPage();
+    if (needUpdating || navUpdate){
         let navBar = document.querySelector('#nav-footer');
         navBar.querySelectorAll('li.hidden:not(.responsive-menu)').forEach(si => {
             si.setAttribute('class', si.getAttribute('class').replace('hidden', ''))
@@ -87,7 +92,7 @@ function getQuoteURL(btn){
     return href;
 }
 function addCopyQuoteButton(btn, postID){
-    let href = getPMHref(postID) ?? getQuoteURL(btn)
+    let href = getPMHref(postID) || getQuoteURL(btn)
     if (!href){
         addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
         return;
@@ -129,14 +134,18 @@ function hideButton(selector){
 }
 
 function addDefaultPage(){
-
+    let li = document.createElement("li")
     let a = document.createElement('a');
+    li.appendChild(a)
+    li.setAttribute("class", "rightside")
     a.setAttribute('onClick', "saveDefaultPage()")
-    a.innerText = "מאך די בלאט די דיפאולט בלאט •"
-    let pagination = document.querySelectorAll(".action-bar.top .pagination").item(0)
+    a.innerText = "מאך די בלאט די דיפאולט בלאט"
+    let pagination = document.querySelectorAll("#nav-footer").item(0)
     if (pagination){
-        pagination.insertBefore(a, pagination.firstChild);
+        pagination.insertBefore(li, pagination.firstChild);
+        return true;
     }
+    return false;
 }
 
 function saveDefaultPage(){
@@ -252,7 +261,6 @@ function mozWrapApp(txtarea, open, close) {
 addBtn();
 hideButtons();
 addCopyright();
-addDefaultPage();
 
 
 

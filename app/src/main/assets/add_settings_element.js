@@ -1,6 +1,9 @@
 
 function addSettings(){
     let quickLinks = document.querySelector('#quick-links') ;
+    if (!quickLinks){
+        return;
+    }
     let list = quickLinks.querySelector('.dropdown-contents') ;
     let settingsListItem = document.createElement('li') ;
     if(list.getElementsByClassName('app-settings-icon').length > 0){

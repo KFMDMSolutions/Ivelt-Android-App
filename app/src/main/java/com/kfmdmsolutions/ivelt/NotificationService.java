@@ -162,7 +162,6 @@ public class NotificationService extends Service {
         }
         String url = "http://www.ivelt.com/forum/ucp.php?i=ucp_notifications";
         Utils.executeAsync(() -> {
-
             if (sentNotificationQueue == null){
                 initializeSNQ(context);
                 if (sentNotificationQueue == null){

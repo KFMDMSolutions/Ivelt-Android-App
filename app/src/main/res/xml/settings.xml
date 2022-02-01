@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory android:title="@string/app_settings">
 
@@ -53,6 +54,26 @@
             android:summary="@string/hide_user_avatar"
             />
 
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/swipe_settings">
+        <CheckBoxPreference
+            android:key="one_finger_swipe"
+            android:title="@string/one_finger_swipe"
+            android:summary="@string/one_finger_swipe_summary"
+            android:defaultValue="true"
+            android:icon="@drawable/ic_baseline_looks_one_24"/>
+        <CheckBoxPreference
+            android:key="two_finger_swipe"
+            android:title="@string/two_finger_swipe"
+            android:defaultValue="true"
+            android:summary="@string/two_finger_swipe_summary"
+            android:icon="@drawable/ic_baseline_looks_two_24"/>
+        <!--ListPreference
+            android:key="swipe_direction"
+            android:title="Swipe Direction"
+            android:icon="@drawable/ic_baseline_swipe_24"
+            /-->
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/check_for_notifications">
         <ListPreference
