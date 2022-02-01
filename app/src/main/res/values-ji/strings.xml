@@ -66,6 +66,11 @@
 
     <string name="shortcut_label">לאג ארויס</string>
     <string name="ivelt_settings_title">אייוועלט אנטשעלונגען</string>
+    <string name="swipe_settings">סווייפ אנשטעלונגען</string>
+    <string name="one_finger_swipe">איין פינגער סווייפ</string>
+    <string name="one_finger_swipe_summary">ערלויב איין פינגער סווייפ צו גיין פאראויס און צוריקוועגס</string>
+    <string name="two_finger_swipe">צוויי פינגער סווייפ</string>
+    <string name="two_finger_swipe_summary">ערלויב צוויי פינגער סווייפ צו מישן בלעטער</string>
     <string-array name="hidden_button_entries">
         <item>פארצייכן אומגעליינט קנעפל</item>
         <item>באריכט קנעפל</item>

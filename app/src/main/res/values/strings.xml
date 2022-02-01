@@ -70,6 +70,11 @@
     <string name="hide_user_avatar">Hide username and avatar</string>
     <string name="shortcut_label">Sign Out</string>
     <string name="ivelt_settings_title">iVelt Settings</string>
+    <string name="swipe_settings">Swipe Settings</string>
+    <string name="one_finger_swipe">One Finger Swipe</string>
+    <string name="one_finger_swipe_summary">Enable One Finger Swipe for Back and Forward</string>
+    <string name="two_finger_swipe">Two Finger Swipe</string>
+    <string name="two_finger_swipe_summary">Enable Two Finger Swipe for Navigating Pages</string>
     <string-array name="click_settings_values">
         <item>Open Notification</item>
         <item>Open Main Page</item>

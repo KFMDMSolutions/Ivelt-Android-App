@@ -37,7 +37,9 @@ function addAutoLoginOption(){
         autoLoginCB.checked = true;
         document.querySelectorAll('input[type="submit"]').item(0).click();
     }
-    form.setAttribute("onsubmit", "onClickLogin()");
+    if (form) {
+        form.setAttribute("onsubmit", "onClickLogin()");
+    }
 }
 
 function onClickLogin() {
