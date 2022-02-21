@@ -18,4 +18,17 @@ function addSettings(){
     list.append(settingsListItem);
 }
 
+function addCopyright(){
+    let br = document.createElement("br");
+    let span = document.createElement("span")
+    span.innerText = "App by KF MDM v" + android.getVersionString();
+    let copyright = document.querySelectorAll('.copyright').item(0);
+    if (copyright){
+        copyright.appendChild(br);
+        copyright.appendChild(span);
+    }
+}
+
+
 addSettings();
+addCopyright();

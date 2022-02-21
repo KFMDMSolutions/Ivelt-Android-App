@@ -1,7 +1,6 @@
 'use strict';
 
-let html2bbcode = {version: '1.2.3'};
-
+// let html2bbcode = {version: '1.2.3'};
 //function HTMLAttribute()
 
 function HTMLTag() {
