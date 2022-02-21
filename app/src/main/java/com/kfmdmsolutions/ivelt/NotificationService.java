@@ -50,6 +50,7 @@ import androidx.work.WorkManager;
 
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
+import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -74,6 +75,7 @@ import static java.text.DateFormat.MEDIUM;
  */
 public class NotificationService extends Service {
 
+    public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
     public static final String DIRECT_MESSAGES_NOTIFICATION_CHANNEL = "DM";
     public static final String QUOTES_NOTIFICATION_CHANNEL = "Quotes";
     public static final String BOOKMARK_NOTIFICATION_CHANNEL = "BM";
@@ -646,6 +648,7 @@ public class NotificationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        java.net.CookieHandler.setDefault(coreCookieManager);
         if (intent != null && intent.getAction() != null) {
             switch (intent.getAction()) {
                 case ACTION_UPDATE_NOTIFICATIONS:

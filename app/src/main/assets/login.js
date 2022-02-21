@@ -7,15 +7,26 @@ function addAutoLoginOption(){
     let dd = document.createElement("dd");
     let label = document.createElement("label");
     let input = document.createElement("input");
-    label.setAttribute("for", "applogin");
-    input.setAttribute("type", "checkbox");
-    input.setAttribute("name", "applogin");
-    input.setAttribute("id", "applogin");
-    input.setAttribute("tabindex", 7);
-    dd.appendChild(input);
-    dd.appendChild(label);
-    label.innerHTML = "געדענק אין עפפ";
-    checkboxes.appendChild(dd);
+    if (!document.querySelector("#applogin")){
+        console.log("LIDD Before false")
+    }
+
+    if(!document.querySelector("#applogin")) {
+        label.setAttribute("for", "applogin");
+        input.setAttribute("type", "checkbox");
+        input.setAttribute("name", "applogin");
+        input.setAttribute("id", "applogin");
+        input.setAttribute("tabindex", 7);
+        dd.appendChild(input);
+        dd.appendChild(label);
+        label.innerHTML = "געדענק אין עפפ";
+        checkboxes.appendChild(dd);
+    }
+
+    if (document.querySelector("#applogin")){
+        console.log("LIDD After true")
+    }
+
 
     /* Will only be visible in case of error. */
     let errorDiv = document.querySelectorAll(".error").item(0);
@@ -61,4 +72,5 @@ function logout(){
         console.info("logout null");
     }
 }
+
 addAutoLoginOption();

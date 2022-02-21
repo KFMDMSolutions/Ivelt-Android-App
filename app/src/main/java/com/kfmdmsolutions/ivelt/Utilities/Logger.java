@@ -8,6 +8,7 @@ import android.net.Uri;
 
 import androidx.core.content.FileProvider;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.kfmdmsolutions.ivelt.BuildConfig;
 
 import java.io.File;
@@ -35,6 +36,11 @@ public class Logger {
 
     private Logger(Context context){
         contextWeakReference = new WeakReference<>(context);
+    }
+
+    public void logWithFirebase(String entry){
+        FirebaseCrashlytics.getInstance().log(entry);
+        log(entry);
     }
 
     public void log(String entry){
@@ -70,7 +76,7 @@ public class Logger {
             }
             fileWriter.close();
         } catch (IOException e) {
-
+            FirebaseCrashlytics.getInstance().log("Unable to load logs");
         }
     }
 
@@ -82,6 +88,9 @@ public class Logger {
         File[] files = fl.listFiles(File::isFile);
         long lastMod = Long.MIN_VALUE;
         File choice = null;
+        if (files == null){
+            return null;
+        }
         for (File file : files) {
             if (file.lastModified() > lastMod) {
                 choice = file;
@@ -114,12 +123,15 @@ public class Logger {
         File dir = new File(getLogFolderPath());
         File[] files = dir.listFiles(File::isFile);
         ArrayList<Uri> fileUris = new ArrayList<>();
+        if (files == null){
+            return;
+        }
         try {
             for (File file : files) {
                 fileUris.add(FileProvider.getUriForFile(contextWeakReference.get(), "com.kfmdmsolutions.ivelt.fileprovider", file));
             }
         }catch (IllegalStateException ise){
-
+            FirebaseCrashlytics.getInstance().log("Unable to email logs");
         }
         Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
         intent.setType("message/rfc822");

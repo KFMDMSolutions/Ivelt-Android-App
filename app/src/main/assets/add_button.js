@@ -64,7 +64,7 @@ function addBtn(){
         try {
             btn.removeChild(btn.getElementsByClassName('responsive-menu').item(0))
         }catch (e) {
-            
+
         }
     });
     let navUpdate = addDefaultPage();
@@ -132,12 +132,15 @@ function hideButton(selector){
         }
     })
 }
-
 function addDefaultPage(){
+    if (document.querySelector(`#kf-app-default-page`)){
+        return false
+    }
     let li = document.createElement("li")
     let a = document.createElement('a');
     li.appendChild(a)
     li.setAttribute("class", "rightside")
+    li.setAttribute("id", "kf-app-default-page")
     a.setAttribute('onClick', "saveDefaultPage()")
     a.innerText = "מאך די בלאט די דיפאולט בלאט"
     let pagination = document.querySelectorAll("#nav-footer").item(0)
@@ -151,17 +154,6 @@ function addDefaultPage(){
 function saveDefaultPage(){
     let page = window.location.href;
     android.saveDefaultPage(page)
-}
-
-function addCopyright(){
-    let br = document.createElement("br");
-    let span = document.createElement("span")
-    span.innerText = "App by KF MDM v" + android.getVersionString();
-    let copyright = document.querySelectorAll('.copyright').item(0);
-    if (copyright){
-        copyright.appendChild(br);
-        copyright.appendChild(span);
-    }
 }
 
 function sharePost(id){
@@ -217,7 +209,6 @@ function ping_user(post_id){
         addText(text)
     }
 }
-
 function addText(text){
     var textarea = document.querySelector("#message-box textarea");
 
@@ -260,7 +251,6 @@ function mozWrapApp(txtarea, open, close) {
 
 addBtn();
 hideButtons();
-addCopyright();
 
 
 

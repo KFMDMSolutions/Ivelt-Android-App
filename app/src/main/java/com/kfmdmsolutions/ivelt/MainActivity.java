@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Message;
 import android.os.Parcel;
 import android.provider.MediaStore;
 import androidx.annotation.NonNull;
@@ -44,6 +45,7 @@ import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
@@ -52,6 +54,7 @@ import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -113,7 +116,8 @@ public class MainActivity extends AppCompatActivity {
         webviewBundle = new Bundle();
         mywebView.saveState(webviewBundle);
         outState.putBundle(WEBVIEW_BUNDLE, webviewBundle);
-        FirebaseCrashlytics.getInstance().log("Bundle size " + getBundleSizeInBytes(webviewBundle));
+        Logger.getInstance(this).logWithFirebase("Bundle size " + getBundleSizeInBytes(webviewBundle));
+
         android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
     }
 
@@ -130,6 +134,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean shouldLogout = false;
     private void handleIntent(Intent intent) {
+
+        Logger.getInstance(this).logWithFirebase("Handling Intent");
         if (intent == null || (intent.getStringExtra(EXTRA_URL) == null && intent.getDataString() == null)) {
             if (intent.getAction() != null && intent.getAction().equals("com.kfmdm.ivelt.shortcut.logout")){
                  mywebView.setVisibility(View.INVISIBLE);
@@ -139,8 +145,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String url = intent.getStringExtra(EXTRA_URL);
+        Logger.getInstance(this).logWithFirebase("Intent URL " + url);
         url = url == null ? intent.getDataString() : url;
         if (url != null && !url.isEmpty()) {
+            Logger.getInstance(this).logWithFirebase("Intent Loading URL " + url);
             mywebView.loadUrl(url);
         }
         logger.log("URL Intent Url is " + url);
@@ -197,13 +205,14 @@ public class MainActivity extends AppCompatActivity {
                 .setHttpAllowed(true)
                 .addPathHandler("/kfmdm/assets/", assetsHandler)
                 .addPathHandler("/kfmdm/resources/", new WebViewAssetLoader.ResourcesPathHandler(this))
-
                 .build();
         mywebView.setWebViewClient(new CustomWebViewClient(loader));
         mywebView.setWebChromeClient(new WebChromeClient());
         initListener();
         WebSettings webSettings = mywebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        webSettings.setSupportMultipleWindows(true);
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         mywebView.getSettings().setSupportZoom(true);
         mywebView.getSettings().setBuiltInZoomControls(true);
         mywebView.getSettings().setDisplayZoomControls(false);
@@ -235,10 +244,12 @@ public class MainActivity extends AppCompatActivity {
 
         }, 0);
 
+        Logger.getInstance(this).logWithFirebase("Preparing to start with bundle " + (webviewBundle == null));
         if (webviewBundle != null) {
             mywebView.restoreState(webviewBundle);
             webviewBundle = null;
         }else if (currentUrl != null) {
+            Logger.getInstance(this).logWithFirebase("Preparing to start with currentURL " + currentUrl);
             String url = PreferenceManager.getDefaultSharedPreferences(this).getString("default_page", currentUrl);
             mywebView.loadUrl(url);
 
@@ -249,12 +260,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         java.net.CookieHandler.setDefault(coreCookieManager);
-
-
         mywebView.setOnLongClickListener(v -> {
             WebView webView1 = (WebView) v;
             WebView.HitTestResult result = webView1.getHitTestResult();
-
             if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
                 String linkToCopy = result.getExtra();
                 ClipboardManager clipboard = (ClipboardManager)
@@ -305,7 +313,6 @@ public class MainActivity extends AppCompatActivity {
         handleIntent(intent);
     }
 
-
     @SuppressLint("DeprecatedApi")
     private void initListener() {
         mywebView.setWebChromeClient(new WebChromeClient() {
@@ -317,11 +324,75 @@ public class MainActivity extends AppCompatActivity {
                 Logger.getInstance(getApplicationContext()).log(logMessage);
                 if(consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR){
                     RuntimeException exception = new RuntimeException(logMessage);
-                    exception.setStackTrace(new StackTraceElement[]{new StackTraceElement(consoleMessage.sourceId(), "javascript", consoleMessage.sourceId(), consoleMessage.lineNumber())});
+                    String sourceID = consoleMessage.sourceId();
+                    if (sourceID.contains("/kfmdm/")){
+                        sourceID = sourceID;
+                        exception.setStackTrace(new StackTraceElement[]{new StackTraceElement(consoleMessage.sourceId(), "javascript", consoleMessage.sourceId(), consoleMessage.lineNumber())});
+                    }else{
+                        sourceID = "Webpage";
+                        exception.setStackTrace(
+                                new StackTraceElement[]{
+                                        new StackTraceElement(sourceID, "javascript", sourceID, consoleMessage.lineNumber()),
+                                        new StackTraceElement(consoleMessage.sourceId(), "javascript", consoleMessage.sourceId(), consoleMessage.lineNumber()),
+                                });
 
+                    }
+                    exception.setStackTrace(new StackTraceElement[]{new StackTraceElement(consoleMessage.sourceId(), "javascript", consoleMessage.sourceId(), consoleMessage.lineNumber())});
                     FirebaseCrashlytics.getInstance().recordException(exception);
                  }
                 return super.onConsoleMessage(consoleMessage);
+            }
+
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                android.util.Log.d("OCW", "Resultmsg = " + resultMsg);
+                if (resultMsg == null){
+                    return false;
+                }
+                if (resultMsg.obj !=null && resultMsg.obj instanceof WebView.WebViewTransport) {
+                    WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                    WebView windowWebView = new WebView(MainActivity.this);
+                    windowWebView.setLayoutParams(new ViewGroup.LayoutParams(200, 200));
+                    windowWebView.getSettings().setJavaScriptEnabled(true);
+                    windowWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+                    windowWebView.getSettings().setSupportMultipleWindows(true);
+                    windowWebView.setWebViewClient(new WebViewClient(){
+                        @Override
+                        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                            super.onPageStarted(view, url, favicon);
+                        }
+
+                        @Override
+                        public void onPageFinished(WebView view, String url) {
+                            swipeRefreshLayout.setRefreshing(false);
+                            super.onPageFinished(view, url);
+                        }
+                    });
+                    transport.setWebView(windowWebView);
+
+                    AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this)
+                            .setNegativeButton(android.R.string.cancel, (dialog, which) -> {windowWebView.loadUrl("javascript:window.close()");})
+                            .setView(windowWebView).create();
+
+                    windowWebView.setWebChromeClient(new WebChromeClient() {
+                        @Override
+                        public void onCloseWindow(WebView window) {
+                           alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                            android.util.Log.d("WindowWV", "ConsoleMEssage " + consoleMessage );
+                            return super.onConsoleMessage(consoleMessage);
+                        }
+                    });
+                    resultMsg.sendToTarget();
+
+                    swipeRefreshLayout.setRefreshing(true);
+                    alertDialog.show();
+                    return true;
+                }
+                return false;
             }
 
             @SuppressLint("QueryPermissionsNeeded")
@@ -646,7 +717,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-
             logger.log("Should override url? " + request.getUrl());
             String url = request.getUrl().toString();
             if (url.startsWith("http://www.ivelt.com/forum/ucp.php?mode=logout") || url.startsWith("https://www.ivelt.com/forum/ucp.php?mode=logout")){
@@ -708,14 +778,19 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             swipeRefreshLayout.setRefreshing(false);
-            currentUrl = url;
+
+            FirebaseCrashlytics.getInstance().log("current url " + currentUrl);
             logger.log("Page finished for url " + url);
+            if (url == null){
+                FirebaseCrashlytics.getInstance().recordException(new Exception("Null URL"));
+            }else if (url.equals("about:blank")){
+                FirebaseCrashlytics.getInstance().recordException(new Exception("Blank URL returned."));
+            }else{
+                currentUrl = url;
+            }
             super.onPageFinished(view, url);
             this.hideProgress();
-            WindowManager manager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-
-            DisplayMetrics metrics = new DisplayMetrics();
-            manager.getDefaultDisplay().getMetrics(metrics);
+            DisplayMetrics metrics = getDisplayMetrics();
 
             metrics.widthPixels /= metrics.density;
 
@@ -756,6 +831,18 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        @Override
+        public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            FirebaseCrashlytics.getInstance().recordException(new Exception("Received error " + error.getErrorCode() + ": "+ error.getDescription() + " while loading URL " + request.getUrl()));
+            super.onReceivedError(view, request, error);
+        }
+
+        @Override
+        public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+            FirebaseCrashlytics.getInstance().recordException(new Exception("Received HTTP error " + errorResponse.getStatusCode() + ": "+ errorResponse.getReasonPhrase() + " while loading URL " + request.getUrl()));
+            super.onReceivedHttpError(view, request, errorResponse);
+        }
+
         private void showProgress() {
             swipeRefreshLayout.setRefreshing(true);
         }
@@ -764,6 +851,14 @@ public class MainActivity extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(false);
 
         }
+    }
+
+    @NonNull
+    private DisplayMetrics getDisplayMetrics() {
+        WindowManager manager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics metrics = new DisplayMetrics();
+        manager.getDefaultDisplay().getMetrics(metrics);
+        return metrics;
     }
 
     private class SwipeDetector implements View.OnTouchListener {
@@ -841,7 +936,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         private boolean isHorizontalSwipe(float startX, float startY, float endX, float endY){
-            return (Math.abs(startX - endX) - Math.abs(startY - endY)) > 100;
+            return (Math.abs(startX - endX) - Math.abs(startY - endY)) > (100 * getDisplayMetrics().density);
         }
     }
 }
