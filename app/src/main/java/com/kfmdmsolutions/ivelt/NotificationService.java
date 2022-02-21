@@ -370,7 +370,7 @@ public class NotificationService extends Service {
         }
 
         private String fixURL(String url) {
-            return url.replace("./", "www.ivelt.com/forum/");
+            return url.replace("./", "https://ivelt.com/forum/");
         }
 
         public static long extractIDFromURL(String url) {
@@ -662,7 +662,7 @@ public class NotificationService extends Service {
                     saveNotificationList();
                     break;
                 case ACTION_MARK_NOTIFICATION_READ:
-                    String url = "http://" + intent.getStringExtra(EXTRA_URL);
+                    String url = intent.getStringExtra(EXTRA_URL);
                     long mnrid = intent.getLongExtra(EXTRA_NOTIFICATION_ID, -1);
                     android.util.Log.d("MNRID", mnrid + "");
                     if (url != null) {
