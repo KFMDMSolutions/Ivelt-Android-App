@@ -188,7 +188,7 @@ public class NotificationService extends Service {
 
     private static void loginAndRetry(Context context) throws  IOException{
         IveltWebInterface iveltWebInterface = new IveltWebInterface(context);
-        Document doc = Utils.getConnection("https://ivelt.com/forum/ucp.php?mode=login", null, context)
+        Document doc = Utils.getConnection("https://www.ivelt.com/forum/ucp.php?mode=login", null, context)
                 .data("username", iveltWebInterface.getUsername())
                 .data("password", iveltWebInterface.getPassword())
                 .data("login", "android kfmdm app")
