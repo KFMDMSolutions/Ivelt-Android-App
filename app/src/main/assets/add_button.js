@@ -57,6 +57,10 @@ function addBtn(){
         }
         let pingOnClick = `ping_user(${strippedId})`
         addSimpleButton(btn, 'baseline_alternate_email_black_24dp.png', null, 'ping-icon', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
+        if (document.documentURI.includes("appmode=purim")) {
+            let likeOnClick = 'like()'
+            addSimpleButton(btn, 'baseline_thumb_up_black_24dp.png', null, 'like-icon', "לייק", "לייק", likeOnClick)
+        }
         if (contentElement.innerHTML.includes("blockquote")) {
             addQuoteLastButton(btn, isPosting);
         }
@@ -196,6 +200,9 @@ function getUsername(post_id, prefix = 'p'){
        username = usernameE.innerText
     }
     return username
+}
+function like(){
+    android.like()
 }
 function ping_user(post_id){
     let link = getPostLink(post_id)
