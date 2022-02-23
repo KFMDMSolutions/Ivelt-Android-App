@@ -1,6 +1,9 @@
 package com.kfmdmsolutions.ivelt;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
@@ -12,14 +15,13 @@ import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Message;
 import android.os.Parcel;
 import android.provider.MediaStore;
@@ -28,11 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.app.ShareCompat;
-import androidx.core.app.unusedapprestrictions.IUnusedAppRestrictionsBackportCallback;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.SharedPreferencesCompat;
-import androidx.core.view.GestureDetectorCompat;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,7 +39,6 @@ import androidx.webkit.WebViewAssetLoader;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
-import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -49,7 +46,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
-import android.webkit.DownloadListener;
 import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
@@ -62,14 +58,12 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
-import com.kfmdmsolutions.ivelt.javascript.AddSettingsElement;
-import com.kfmdmsolutions.ivelt.javascript.UnhideContactButton;
 
-import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -349,8 +343,16 @@ public class MainActivity extends AppCompatActivity {
                 if (resultMsg == null){
                     return false;
                 }
+                Message href = view.getHandler().obtainMessage();
+                view.requestFocusNodeHref(href);
+                android.util.Log.d("OCW", "data " + href.getData());
+                if(href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(href.getData().getString("url")))){
+                    return true;
+                }
+                android.util.Log.d("OCW",resultMsg.getData().toString());
                 if (resultMsg.obj !=null && resultMsg.obj instanceof WebView.WebViewTransport) {
                     WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+
                     WebView windowWebView = new WebView(MainActivity.this);
                     windowWebView.setLayoutParams(new ViewGroup.LayoutParams(200, 200));
                     windowWebView.getSettings().setJavaScriptEnabled(true);
@@ -360,6 +362,15 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onPageStarted(WebView view, String url, Bitmap favicon) {
                             super.onPageStarted(view, url, favicon);
+                        }
+
+                        @Override
+                        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                            boolean override = MainActivity.this.shouldOverrideUrlLoading(view, request.getUrl());
+                            if (override){
+                                windowWebView.loadUrl("javascript:window.close()");
+                            }
+                            return override;
                         }
 
                         @Override
@@ -686,6 +697,37 @@ public class MainActivity extends AppCompatActivity {
         return isIvelt;
     }
 
+    public void like() {
+        android.util.Log.d("LIKE", "Like works");
+
+        Animator animator1 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 0f, -30f).setDuration(525);
+        Animator animator2 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, -30f, 30f).setDuration(525);
+        Animator animator3 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 30f, 0f).setDuration(525);
+//        Animator animator4 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 0f, 0f).setDuration(200);
+        Animator animator5 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 0f, 720f).setDuration(525);
+        Animator alpha1 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 0, 100f ).setDuration(525);
+        Animator alpha2 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 100f, -100f ).setDuration(525);
+        Animator alpha3 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, -100f, 100f ).setDuration(525);
+        Animator alpha4 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 100f, 0f ).setDuration(525);
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playSequentially(
+                animator1,
+                animator2,
+                animator3,
+//                animator4,
+                animator5,
+                alpha1,
+                alpha2,
+                alpha3,
+                alpha4
+        );
+        Snackbar.make(mywebView, "איהר האט געדרוקט א אומריכטיג קנעפל", 2000).show();
+        new Handler().postDelayed(() -> {runOnUiThread(() -> {
+            Snackbar.make(mywebView, "א פרייליכען פורים", 2000).show();
+        });}, 2000);
+        animatorSet.start();
+  }
+
 
     public class CustomWebViewClient extends WebViewClient {
 
@@ -717,38 +759,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-            logger.log("Should override url? " + request.getUrl());
-            String url = request.getUrl().toString();
-            if (url.startsWith("http://www.ivelt.com/forum/ucp.php?mode=logout") || url.startsWith("https://www.ivelt.com/forum/ucp.php?mode=logout")){
-                iveltWebInterface.saveCredentials("","");
-            }
-            if (isIvelt(url)){
-//                return  false;
-                return handleIvelt(url, view);
-            }
-
-
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setData(request.getUrl());
-            try {
-                startActivity(i);
-            }catch (ActivityNotFoundException activityNotFoundException){
-                logger.log("No browser found, trying to open URL = " + request.getUrl());
-                if (
-                        url.startsWith("https://drive.google.com/") ||
-                                // Should change this to regex
-                                url.contains("docs.googleusercontent.com") ||
-                                url.startsWith("https://accounts.google.com/") ||
-                                url.startsWith("https://www.yiddish24.com/") ||
-                                url.contains("https://docs.google.com/") ||
-                                url.startsWith("https://www.dropbox.com/")) {
-                    return false;
-                } else {
-                    logger.log("Url blocked. URL = " + request.getUrl());
-                    Toast.makeText(MainActivity.this,"לינק געבלאקט, אשריכם ישראל" ,Toast.LENGTH_LONG).show();
-                }
-            }
-            return true;
+            return MainActivity.this.shouldOverrideUrlLoading(view, request.getUrl());
         }
         private boolean firstRun = true;
         private float initScale = 0.0f;
@@ -851,6 +862,41 @@ public class MainActivity extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(false);
 
         }
+    }
+
+    private boolean shouldOverrideUrlLoading(WebView view, Uri request) {
+        logger.log("Should override url? " + request);
+        String url = request.toString();
+        if (url.startsWith("http://www.ivelt.com/forum/ucp.php?mode=logout") || url.startsWith("https://www.ivelt.com/forum/ucp.php?mode=logout")){
+            iveltWebInterface.saveCredentials("","");
+        }
+        if (isIvelt(url)){
+//                return  false;
+            return handleIvelt(url, view);
+        }
+
+
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(request);
+        try {
+            startActivity(i);
+        }catch (ActivityNotFoundException activityNotFoundException){
+            logger.log("No browser found, trying to open URL = " + request);
+            if (
+                    url.startsWith("https://drive.google.com/") ||
+                            // Should change this to regex
+                            url.contains("docs.googleusercontent.com") ||
+                            url.startsWith("https://accounts.google.com/") ||
+                            url.startsWith("https://www.yiddish24.com/") ||
+                            url.contains("https://docs.google.com/") ||
+                            url.startsWith("https://www.dropbox.com/")) {
+                return false;
+            } else {
+                logger.log("Url blocked. URL = " + request);
+                Toast.makeText(MainActivity.this,"לינק געבלאקט, אשריכם ישראל" ,Toast.LENGTH_LONG).show();
+            }
+        }
+        return true;
     }
 
     @NonNull

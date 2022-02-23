@@ -82,6 +82,13 @@ public class IveltWebInterface {
     }
 
     @JavascriptInterface
+    public void like(){
+        if (this.context instanceof  MainActivity){
+            MainActivity activity = (MainActivity) this.context;
+            activity.like();
+        }
+    }
+    @JavascriptInterface
     public void sharePost(String html){
         String parsedHtml = parsePostHtml(html);
         Intent shareIntent = new Intent(android.content.Intent.ACTION_SEND);
