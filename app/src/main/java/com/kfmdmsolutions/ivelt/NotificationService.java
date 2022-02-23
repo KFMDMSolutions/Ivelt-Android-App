@@ -372,7 +372,7 @@ public class NotificationService extends Service {
         }
 
         private String fixURL(String url) {
-            return url.replace("./", "https://ivelt.com/forum/");
+            return url.replace("./", "https://www.ivelt.com/forum/");
         }
 
         public static long extractIDFromURL(String url) {
