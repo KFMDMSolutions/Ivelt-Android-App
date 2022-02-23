@@ -347,9 +347,9 @@ public class MainActivity extends AppCompatActivity {
                 view.requestFocusNodeHref(href);
                 android.util.Log.d("OCW", "data " + href.getData());
                 if(href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(href.getData().getString("url")))){
-                    return true;
+                    return false;
                 }
-                android.util.Log.d("OCW",resultMsg.getData().toString());
+
                 if (resultMsg.obj !=null && resultMsg.obj instanceof WebView.WebViewTransport) {
                     WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
 
@@ -366,6 +366,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                            android.util.Log.d("OCW", "override " + request.getUrl());
                             boolean override = MainActivity.this.shouldOverrideUrlLoading(view, request.getUrl());
                             if (override){
                                 windowWebView.loadUrl("javascript:window.close()");
