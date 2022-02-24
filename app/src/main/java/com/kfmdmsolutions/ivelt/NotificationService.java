@@ -238,7 +238,8 @@ public class NotificationService extends Service {
                 .setContentIntent(pendingIntent)
                 .addAction(new NotificationCompat.Action(null, context.getString(R.string.dismiss), getDismissIntent(context, notificationInfo)))
                 .addAction(new NotificationCompat.Action(null, context.getString(R.string.mark_read), getMarkReadIntent(context, notificationInfo)))
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(notificationInfo.text))
+                .setContentText(notificationInfo.text)
+                //.setStyle(new NotificationCompat.BigTextStyle().bigText(notificationInfo.text))
                 .setPriority(NotificationCompat.PRIORITY_MAX);
         NotificationManagerCompat.from(context.getApplicationContext()).notify((int) notificationInfo.id, notificationBuilder.build());
         sentNotificationQueue.add(notificationInfo.id);
