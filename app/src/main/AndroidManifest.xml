@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.CAMERA2" />
+    
 
     <application
         android:allowBackup="true"
@@ -20,6 +21,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Ivelt"
         android:usesCleartextTraffic="true">
+       <uses-library android:name="com.vzw.basicphone.view"/>
         <meta-data
             android:name="firebase_crashlytics_collection_enabled"
             android:value="false" />
