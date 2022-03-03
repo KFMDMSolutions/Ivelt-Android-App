@@ -143,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
         url = url == null ? intent.getDataString() : url;
         if (url != null && !url.isEmpty()) {
             Logger.getInstance(this).logWithFirebase("Intent Loading URL " + url);
+            url = url.replace("://ivelt.com", "://www.ivelt.com");
             mywebView.loadUrl(url);
         }
         logger.log("URL Intent Url is " + url);
@@ -215,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
         mywebView.getSettings().setMixedContentMode(MIXED_CONTENT_COMPATIBILITY_MODE);
         mywebView.getSettings().setAllowFileAccess(true);
         mywebView.getSettings().setDomStorageEnabled(true);
+        CookieManager.getInstance().acceptThirdPartyCookies(mywebView);
 //        String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36";
 //        mywebView.getSettings().setUserAgentString(desktopuseragent);
 //        mywebView.getSettings().setLoadWithOverviewMode(true);
@@ -245,6 +247,9 @@ public class MainActivity extends AppCompatActivity {
         }else if (currentUrl != null) {
             Logger.getInstance(this).logWithFirebase("Preparing to start with currentURL " + currentUrl);
             String url = PreferenceManager.getDefaultSharedPreferences(this).getString("default_page", currentUrl);
+
+            Logger.getInstance(this).logWithFirebase("Preparing to start with default/current url " + url);
+            url = url.replace("://ivelt.com", "://www.ivelt.com");
             mywebView.loadUrl(url);
 
         }
@@ -615,6 +620,11 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean handleIvelt(String url, WebView view){
 
+        if (url.contains("://ivelt")){
+            android.util.Log.d("URL","Redirecting to www");
+            mywebView.loadUrl(url.replace("://ivelt.com", "://www.ivelt.com"));
+            return true;
+        }
         if (url.contains("download")){
             return false;
         }
@@ -686,12 +696,12 @@ public class MainActivity extends AppCompatActivity {
         boolean isIvelt =  (url != null && (
                 url.startsWith("https://www.ivelt.com/") ||
                         url.startsWith("www.ivelt.com/") ||
-                        url.startsWith("ivelt.com")||
+                        url.startsWith("ivelt.com") ||
                         url.startsWith("http://www.ivelt.com/") ||
-                        url.startsWith("https://ivelt.com")||
-                url.startsWith("http://ivelt.com")||
+                        url.startsWith("https://ivelt.com") ||
+                        url.startsWith("http://ivelt.com") ||
                         url.startsWith("https://yiddishworld.com/") ||
-                        url.startsWith("http://yiddishworld.com/")||
+                        url.startsWith("http://yiddishworld.com/") ||
                         url.startsWith("https://www.yiddishworld.com/") ||
                         url.startsWith("http://www.yiddishworld.com/")));
         android.util.Log.d("URLComp", "url is " + url + " is ivelt " + isIvelt);
@@ -706,21 +716,22 @@ public class MainActivity extends AppCompatActivity {
         Animator animator3 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 30f, 0f).setDuration(525);
 //        Animator animator4 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 0f, 0f).setDuration(200);
         Animator animator5 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 0f, 720f).setDuration(525);
-        Animator alpha1 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 0, 100f ).setDuration(525);
-        Animator alpha2 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 100f, -100f ).setDuration(525);
-        Animator alpha3 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, -100f, 100f ).setDuration(525);
-        Animator alpha4 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 100f, 0f ).setDuration(525);
+        Animator jump1 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 0, 100f ).setDuration(525);
+        Animator jump2 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 100f, -100f ).setDuration(525);
+        Animator jump3 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, -100f, 100f ).setDuration(525);
+        Animator jump4 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 100f, 0f ).setDuration(525);
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playSequentially(
                 animator1,
                 animator2,
                 animator3,
 //                animator4,
-                animator5,
-                alpha1,
-                alpha2,
-                alpha3,
-                alpha4
+                animator5
+                ,
+                jump1,
+                jump2,
+                jump3,
+                jump4
         );
         Snackbar.make(mywebView, "איהר האט געדרוקט א אומריכטיג קנעפל", 2000).show();
         new Handler().postDelayed(() -> {runOnUiThread(() -> {
@@ -845,13 +856,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-            FirebaseCrashlytics.getInstance().recordException(new Exception("Received error " + error.getErrorCode() + ": "+ error.getDescription() + " while loading URL " + request.getUrl()));
+//            FirebaseCrashlytics.getInstance().recordException(new Exception("Received error " + error.getErrorCode() + ": "+ error.getDescription() + " while loading URL " + request.getUrl()));
             super.onReceivedError(view, request, error);
         }
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-            FirebaseCrashlytics.getInstance().recordException(new Exception("Received HTTP error " + errorResponse.getStatusCode() + ": "+ errorResponse.getReasonPhrase() + " while loading URL " + request.getUrl()));
+            if (errorResponse.getStatusCode() == 404){
+                Toast.makeText(MainActivity.this, request.getUrl().toString() + " not found", Toast.LENGTH_LONG).show();
+            }else {
+                FirebaseCrashlytics.getInstance().recordException(new Exception("Received HTTP error " + errorResponse.getStatusCode() + ": " + errorResponse.getReasonPhrase() + " while loading URL " + request.getUrl()));
+            }
             super.onReceivedHttpError(view, request, errorResponse);
         }
 
