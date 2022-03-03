@@ -64,6 +64,7 @@ import java.util.stream.Collectors;
 import static android.content.Intent.ACTION_BATTERY_CHANGED;
 import static android.os.BatteryManager.EXTRA_PLUGGED;
 import static com.kfmdmsolutions.ivelt.MainActivity.EXTRA_URL;
+import static com.kfmdmsolutions.ivelt.MainActivity.coreCookieManager;
 import static java.text.DateFormat.MEDIUM;
 
 /**
@@ -75,7 +76,7 @@ import static java.text.DateFormat.MEDIUM;
  */
 public class NotificationService extends Service {
 
-    public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
+//    public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
     public static final String DIRECT_MESSAGES_NOTIFICATION_CHANNEL = "DM";
     public static final String QUOTES_NOTIFICATION_CHANNEL = "Quotes";
     public static final String BOOKMARK_NOTIFICATION_CHANNEL = "BM";
@@ -162,7 +163,7 @@ public class NotificationService extends Service {
             Logger.getInstance(context).log("Not checking for updates, not connected to internet");
             return;
         }
-        String url = "http://www.ivelt.com/forum/ucp.php?i=ucp_notifications";
+        String url = "https://www.ivelt.com/forum/ucp.php?i=ucp_notifications";
         Utils.executeAsync(() -> {
             if (sentNotificationQueue == null){
                 initializeSNQ(context);

@@ -51,6 +51,7 @@ public class WebkitCookieManagerProxy extends CookieManager
     @Override
     public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException
     {
+        android.util.Log.d("Cookie02", "uri" + uri);
         // make sure our args are valid
         if ((uri == null) || (requestHeaders == null)) throw new IllegalArgumentException("Argument is null");
 
@@ -63,6 +64,7 @@ public class WebkitCookieManagerProxy extends CookieManager
         // get the cookie
         String cookie = this.webkitCookieManager.getCookie(url);
 
+        android.util.Log.d("Cookie02", "" + cookie);
         // return it
         if (cookie != null) res.put("Cookie", Arrays.asList(cookie));
         return res;
