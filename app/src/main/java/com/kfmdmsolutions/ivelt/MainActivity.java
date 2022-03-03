@@ -350,8 +350,13 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Message href = view.getHandler().obtainMessage();
                 view.requestFocusNodeHref(href);
-                android.util.Log.d("OCW", "data " + href.getData());
-                if(href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(href.getData().getString("url")))){
+                String url = href.getData().getString("url");
+//                android.util.Log.d("OCW", "data " + href.getData());
+                if(href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(url))){
+                    return false;
+                }
+                if (!isIvelt(url)){
+                    mywebView.loadUrl(url);
                     return false;
                 }
 
@@ -895,17 +900,11 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setData(request);
         try {
+//            return !isAllowedWebsite(url);
             startActivity(i);
         }catch (ActivityNotFoundException activityNotFoundException){
             logger.log("No browser found, trying to open URL = " + request);
-            if (
-                    url.startsWith("https://drive.google.com/") ||
-                            // Should change this to regex
-                            url.contains("docs.googleusercontent.com") ||
-                            url.startsWith("https://accounts.google.com/") ||
-                            url.startsWith("https://www.yiddish24.com/") ||
-                            url.contains("https://docs.google.com/") ||
-                            url.startsWith("https://www.dropbox.com/")) {
+            if (isAllowedWebsite(url)) {
                 return false;
             } else {
                 logger.log("Url blocked. URL = " + request);
@@ -913,6 +912,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return true;
+    }
+
+    private boolean isAllowedWebsite(String url) {
+        return url.startsWith("https://drive.google.com/") ||
+                // Should change this to regex
+                url.contains("docs.googleusercontent.com") ||
+                url.startsWith("https://accounts.google.com/") ||
+                url.startsWith("https://www.yiddish24.com/") ||
+                url.contains("https://docs.google.com/") ||
+                url.startsWith("https://www.dropbox.com/");
     }
 
     @NonNull
