@@ -359,8 +359,6 @@ public class MainActivity extends AppCompatActivity {
                 android.util.Log.d("OCW", "is dialog " + isDialog);
                 view.getOriginalUrl();
                 url = view.getHitTestResult().getExtra();
-
-
                 android.util.Log.d("OCW", "url " + view.getOriginalUrl());
                 if(url != null && href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(url))){
                     return false;
@@ -530,7 +528,6 @@ public class MainActivity extends AppCompatActivity {
     }
     private void downloadFile(String fileName, String url, String userAgent) {
         try {
-            logger.log("mimatype = " +getMimeType(fileName));
             String mimeType = getMimeType(fileName);
             DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
