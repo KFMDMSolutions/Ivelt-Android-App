@@ -81,7 +81,7 @@ import static android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE;
 public class MainActivity extends AppCompatActivity {
     private static Bundle webviewBundle;
     WebView mywebView;
-    String sURL, sFileName, sUserAgent;
+    String fileName, fileName1;
     SwipeRefreshLayout swipeRefreshLayout;
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
@@ -281,15 +281,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
 
-                String fileName1 = URLUtil.guessFileName(url, contentDisposition, getFileType(url));
-                String fileName = URLDecoder.decode(fileName1.toString());
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                if (!mimeType.equals("application/octet-stream")) {
+                    fileName1 = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                } else {
+                    fileName1 = URLUtil.guessFileName(url, contentDisposition, getFileType(url));
+                }
+                fileName = URLDecoder.decode(fileName1.toString());
 
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
                 request.setMimeType(mimeType);
-                //------------------------COOKIE!!------------------------
                 String cookies = CookieManager.getInstance().getCookie(url);
                 request.addRequestHeader("cookie", cookies);
-                //------------------------COOKIE!!------------------------
                 request.addRequestHeader("User-Agent", userAgent);
                 request.setDescription("Downloading file...");
                 request.setTitle(fileName);
