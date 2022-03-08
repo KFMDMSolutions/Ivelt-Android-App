@@ -30,12 +30,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
-
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -46,7 +44,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
-import android.webkit.DownloadListener;
 import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
@@ -58,17 +55,14 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
-
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
-
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -81,7 +75,7 @@ import static android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE;
 public class MainActivity extends AppCompatActivity {
     private static Bundle webviewBundle;
     WebView mywebView;
-    String fileName, fileName1;
+    String sURL, sFileName, sUserAgent;
     SwipeRefreshLayout swipeRefreshLayout;
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
@@ -134,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         Logger.getInstance(this).logWithFirebase("Handling Intent");
         if (intent == null || (intent.getStringExtra(EXTRA_URL) == null && intent.getDataString() == null)) {
             if (intent.getAction() != null && intent.getAction().equals("com.kfmdm.ivelt.shortcut.logout")){
-                 mywebView.setVisibility(View.INVISIBLE);
+                mywebView.setVisibility(View.INVISIBLE);
                 shouldLogout = true;
             }
             return;
@@ -209,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
         WebSettings webSettings = mywebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setSupportMultipleWindows(true);
-        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(false);
         mywebView.getSettings().setSupportZoom(true);
         mywebView.getSettings().setBuiltInZoomControls(true);
         mywebView.getSettings().setDisplayZoomControls(false);
@@ -218,8 +212,8 @@ public class MainActivity extends AppCompatActivity {
         mywebView.getSettings().setMixedContentMode(MIXED_CONTENT_COMPATIBILITY_MODE);
         mywebView.getSettings().setAllowFileAccess(true);
         mywebView.getSettings().setDomStorageEnabled(true);
-        CookieManager.getInstance().acceptThirdPartyCookies(mywebView);
-
+        CookieManager.getInstance().setAcceptCookie(true);
+        CookieManager.getInstance().setAcceptThirdPartyCookies(mywebView,true);
 //        String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36";
 //        mywebView.getSettings().setUserAgentString(desktopuseragent);
 //        mywebView.getSettings().setLoadWithOverviewMode(true);
@@ -277,34 +271,30 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        mywebView.setDownloadListener(new DownloadListener() {
-            @Override
-            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+        mywebView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
 
-                if (!mimeType.equals("application/octet-stream")) {
-                    fileName1 = URLUtil.guessFileName(url, contentDisposition, mimeType);
-                } else {
-                    fileName1 = URLUtil.guessFileName(url, contentDisposition, getFileType(url));
-                }
-                fileName = URLDecoder.decode(fileName1.toString());
 
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                request.setMimeType(mimeType);
-                String cookies = CookieManager.getInstance().getCookie(url);
-                request.addRequestHeader("cookie", cookies);
-                request.addRequestHeader("User-Agent", userAgent);
-                request.setDescription("Downloading file...");
-                request.setTitle(fileName);
-                request.allowScanningByMediaScanner();
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                dm.enqueue(request);
-                Toast.makeText(getApplicationContext(), "Downloading File", Toast.LENGTH_LONG).show();
-            }
+//            tryDownload(url, userAgent, contentDisposition, mimetype, contentLength);
+            handleDownload(url, userAgent, mimetype, contentDisposition);
+
+
         });
 
         swipeRefreshLayout.setOnRefreshListener(() -> mywebView.reload());
+
+    }
+
+
+    private void handleDownload(String url, String userAgent, String mimeType, String contentDisposition) {
+
+        String filename = parseContentDisposition(contentDisposition);
+        if (!filename.contains(".")){
+            filename = filename + "." + getExtension(mimeType);
+        }
+        sFileName = filename;
+        sURL = url;
+        sUserAgent = userAgent;
+        downloadFile(filename, url, userAgent);
 
     }
 
@@ -349,34 +339,44 @@ public class MainActivity extends AppCompatActivity {
                     }
                     exception.setStackTrace(new StackTraceElement[]{new StackTraceElement(consoleMessage.sourceId(), "javascript", consoleMessage.sourceId(), consoleMessage.lineNumber())});
                     FirebaseCrashlytics.getInstance().recordException(exception);
-                 }
+                }
                 return super.onConsoleMessage(consoleMessage);
             }
 
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+
                 android.util.Log.d("OCW", "Resultmsg = " + resultMsg);
                 if (resultMsg == null){
                     return false;
                 }
+
+
                 Message href = view.getHandler().obtainMessage();
                 view.requestFocusNodeHref(href);
                 String url = href.getData().getString("url");
-//                android.util.Log.d("OCW", "data " + href.getData());
-                if(href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(url))){
+                android.util.Log.d("OCW", "href " + href + " data " + href.getData());
+                android.util.Log.d("OCW", "is dialog " + isDialog);
+                view.getOriginalUrl();
+                url = view.getHitTestResult().getExtra();
+
+
+                android.util.Log.d("OCW", "url " + view.getOriginalUrl());
+                if(url != null && href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(url))){
                     return false;
                 }
-                if (!isIvelt(url)){
+                if (url != null && !(url.contains("ivelt.com") || url.contains("sefaria.com"))){
                     mywebView.loadUrl(url);
                     return false;
                 }
 
                 if (resultMsg.obj !=null && resultMsg.obj instanceof WebView.WebViewTransport) {
                     WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
-
                     WebView windowWebView = new WebView(MainActivity.this);
                     windowWebView.setLayoutParams(new ViewGroup.LayoutParams(200, 200));
                     windowWebView.getSettings().setJavaScriptEnabled(true);
+                    windowWebView.getSettings().setDomStorageEnabled(true);
+                    CookieManager.getInstance().setAcceptThirdPartyCookies(windowWebView, true);
                     windowWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
                     windowWebView.getSettings().setSupportMultipleWindows(true);
                     windowWebView.setWebViewClient(new WebViewClient(){
@@ -388,6 +388,11 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                             android.util.Log.d("OCW", "override " + request.getUrl());
+                            if (request.getUrl().toString().startsWith("https://drive.google.com") || request.getUrl().toString().startsWith("https://www.drive.google.com")){
+                                mywebView.loadUrl(request.getUrl().toString());
+                                windowWebView.loadUrl("javascript:window.close()");
+                                return true;
+                            }
                             boolean override = MainActivity.this.shouldOverrideUrlLoading(view, request.getUrl());
                             if (override){
                                 windowWebView.loadUrl("javascript:window.close()");
@@ -410,7 +415,7 @@ public class MainActivity extends AppCompatActivity {
                     windowWebView.setWebChromeClient(new WebChromeClient() {
                         @Override
                         public void onCloseWindow(WebView window) {
-                           alertDialog.dismiss();
+                            alertDialog.dismiss();
                         }
 
                         @Override
@@ -419,6 +424,10 @@ public class MainActivity extends AppCompatActivity {
                             return super.onConsoleMessage(consoleMessage);
                         }
                     });
+//                    windowWebView.setDownloadListener((url2, userAgent, contentDisposition, mimetype, contentLength) -> {
+//                        handleDownload(url2, userAgent, mimetype,contentDisposition);
+//                    });
+
                     resultMsg.sendToTarget();
 
                     swipeRefreshLayout.setRefreshing(true);
@@ -519,6 +528,35 @@ public class MainActivity extends AppCompatActivity {
         mFilePathCallback.onReceiveValue(results);
         mFilePathCallback = null;
     }
+    private void downloadFile(String fileName, String url, String userAgent) {
+        try {
+            logger.log("mimatype = " +getMimeType(fileName));
+            String mimeType = getMimeType(fileName);
+            DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+            String cookie = CookieManager.getInstance().getCookie(url);
+            request.allowScanningByMediaScanner();
+            request.setTitle(fileName)
+                    .setDescription("Downloading")
+                    .addRequestHeader("cookie", cookie)
+                    .addRequestHeader("User-Agent", userAgent)
+                    .setMimeType(mimeType)
+                    .setAllowedOverMetered(true)
+                    .setAllowedOverRoaming(true)
+                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                    .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+            
+            downloadManager.enqueue(request);
+            sURL = "";
+            sFileName = "";
+            sUserAgent = "";
+            Toast.makeText(this, "Download Started", Toast.LENGTH_SHORT).show();
+        } catch (Exception error) {
+            Toast.makeText(this, "error" + error, Toast.LENGTH_SHORT).show();
+
+
+        }
+    }
 
     public String getFileType(String url) {
         ContentResolver contentResolver = getContentResolver();
@@ -526,7 +564,24 @@ public class MainActivity extends AppCompatActivity {
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(Uri.parse(url)));
     }
 
-
+    private String getExtension(String mimeType){
+        return  MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+    }
+    public String getMimeType(String filename){
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        return mimeTypeMap.getMimeTypeFromExtension(filename.substring(filename.lastIndexOf(".") + 1));
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1001) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (!sURL.equals("") && !sFileName.equals("") && !sUserAgent.equals("")) {
+                    downloadFile(sFileName, sURL, sUserAgent);
+                }
+            }
+        }
+    }
 
     @Override
     public void onBackPressed() {
@@ -569,7 +624,7 @@ public class MainActivity extends AppCompatActivity {
                     DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
                     String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
                     request.allowScanningByMediaScanner();
-                    request.addRequestHeader("coockie", cookie);
+                    request.addRequestHeader("cookie", cookie);
                     request.setMimeType(getFileType(DownloadImageURL));
                     request.setAllowedOverMetered(true);
                     request.setAllowedOverRoaming(true);
@@ -667,7 +722,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    
+
     private static boolean isIvelt(String url){
         boolean isIvelt =  (url != null && (
                 url.startsWith("https://www.ivelt.com/") ||
@@ -680,7 +735,6 @@ public class MainActivity extends AppCompatActivity {
                         url.startsWith("http://yiddishworld.com/") ||
                         url.startsWith("https://www.yiddishworld.com/") ||
                         url.startsWith("http://www.yiddishworld.com/")));
-        android.util.Log.d("URLComp", "url is " + url + " is ivelt " + isIvelt);
         return isIvelt;
     }
 
@@ -714,7 +768,7 @@ public class MainActivity extends AppCompatActivity {
             Snackbar.make(mywebView, "א פרייליכען פורים", 2000).show();
         });}, 2000);
         animatorSet.start();
-  }
+    }
 
 
     public class CustomWebViewClient extends WebViewClient {
@@ -819,18 +873,13 @@ public class MainActivity extends AppCompatActivity {
                 NotificationService.startNotificationService(MainActivity.this, NotificationService.ACTION_UPDATE_DELAY_TIME);
                 serviceNeedsStarting = false;
             }
-
-            if (url.contains("https://docs.google.com/") ){
-//                    || url.contains("https://drive.google.com/")) {
+            if (url.contains("https://docs.google.com/")) {
                 mywebView.zoomBy(1.1f);
                 String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/605.1.15";
                 mywebView.getSettings().setUserAgentString(desktopuseragent);
-
             }else if (url.contains("https://accounts.google.com/")) {
                 String androidua = "Linux; Android 11; Android SDK built for x86 Build/RSR1.210210.001.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.106 Safari/537.36";
                 mywebView.getSettings().setUserAgentString(androidua);
-
-
             }
 
         }
@@ -894,12 +943,30 @@ public class MainActivity extends AppCompatActivity {
         return url.startsWith("https://drive.google.com/") ||
                 // Should change this to regex
                 url.contains("docs.googleusercontent.com") ||
+                url.contains("dropboxusercontent.com") ||
+                url.startsWith("https://www.sefaria.org/") ||
                 url.startsWith("https://accounts.google.com/") ||
                 url.startsWith("https://www.yiddish24.com/") ||
                 url.contains("https://docs.google.com/") ||
                 url.startsWith("https://www.dropbox.com/");
     }
+    private String parseContentDisposition(String contentDisposition){
+        String[] headers = contentDisposition.split(";");
+        String filename = null;
+        String utf8Filename = null;
+        for (String header : headers){
+            if (header.trim().startsWith("filename=")){
+                filename = header;
+            }
+            if (header.trim().startsWith("filename*=UTF-8")){
+                utf8Filename = header;
+            }
+        }
+        utf8Filename = utf8Filename == null ? filename : utf8Filename;
+        utf8Filename = utf8Filename.substring(utf8Filename.lastIndexOf("=") + 1).trim().replace("UTF-8''", "");
 
+        return URLDecoder.decode(utf8Filename);
+    }
     @NonNull
     private DisplayMetrics getDisplayMetrics() {
         WindowManager manager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
@@ -962,14 +1029,14 @@ public class MainActivity extends AppCompatActivity {
             if (forward){
                 String javaScript =
                         "let next = document.getElementsByClassName('next'); " +
-                        "let a = next[0].getElementsByTagName('a') ;" +
-                        "a[0].click()";
+                                "let a = next[0].getElementsByTagName('a') ;" +
+                                "a[0].click()";
                 mywebView.loadUrl("javascript:" + javaScript);
             }else{
                 String javaScript =
                         "let next = document.getElementsByClassName('previous'); " +
-                        "let a = next[0].getElementsByTagName('a');" +
-                        "a[0].click()";
+                                "let a = next[0].getElementsByTagName('a');" +
+                                "a[0].click()";
                 mywebView.loadUrl("javascript:" + javaScript);
             }
         }
@@ -985,5 +1052,7 @@ public class MainActivity extends AppCompatActivity {
         private boolean isHorizontalSwipe(float startX, float startY, float endX, float endY){
             return (Math.abs(startX - endX) - Math.abs(startY - endY)) > (100 * getDisplayMetrics().density);
         }
+
+
     }
 }
