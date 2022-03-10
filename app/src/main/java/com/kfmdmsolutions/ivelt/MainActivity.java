@@ -60,6 +60,9 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
+import com.orangegangsters.github.swipyrefreshlayout.library.SwipyRefreshLayout;
+import com.orangegangsters.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
+
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -72,11 +75,11 @@ import java.util.Date;
 import static android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SwipyRefreshLayout.OnRefreshListener {
     private static Bundle webviewBundle;
     WebView mywebView;
     String sURL, sFileName, sUserAgent;
-    SwipeRefreshLayout swipeRefreshLayout;
+    private SwipyRefreshLayout mSwipyRefreshLayout;
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
     Logger logger;
@@ -92,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
     private ValueCallback<Uri[]> mFilePathCallback;
 
     private String mCameraPhotoPath;
+
+//    private ActivityMainBinding mBinding;
 
     public int  getBundleSizeInBytes(Bundle bundle  ) {
         Parcel parcel = Parcel.obtain();
@@ -188,8 +193,9 @@ public class MainActivity extends AppCompatActivity {
 
         }
         mywebView = findViewById(R.id.webview);
-        swipeRefreshLayout = findViewById(R.id.swipeContainer);
-        swipeRefreshLayout.setNestedScrollingEnabled(true);
+        mSwipyRefreshLayout = (SwipyRefreshLayout) findViewById(R.id.swipeContainer);
+//        SwipyRefreshLayoutDirection = findViewById(R.id.swipeContainer);
+//        SwipyRefreshLayoutDirection.setNestedScrollingEnabled(true);
         WebViewAssetLoader.AssetsPathHandler assetsHandler = new WebViewAssetLoader.AssetsPathHandler(this);
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
                 .setDomain("www.ivelt.com")
@@ -280,7 +286,8 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        swipeRefreshLayout.setOnRefreshListener(() -> mywebView.reload());
+//        mywebView.swipe
+        mSwipyRefreshLayout.setOnRefreshListener(this);
 
     }
 
@@ -359,6 +366,8 @@ public class MainActivity extends AppCompatActivity {
                 android.util.Log.d("OCW", "is dialog " + isDialog);
                 view.getOriginalUrl();
                 url = view.getHitTestResult().getExtra();
+
+
                 android.util.Log.d("OCW", "url " + view.getOriginalUrl());
                 if(url != null && href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(url))){
                     return false;
@@ -400,7 +409,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onPageFinished(WebView view, String url) {
-                            swipeRefreshLayout.setRefreshing(false);
+                            mSwipyRefreshLayout.setRefreshing(false);
                             super.onPageFinished(view, url);
                         }
                     });
@@ -428,7 +437,7 @@ public class MainActivity extends AppCompatActivity {
 
                     resultMsg.sendToTarget();
 
-                    swipeRefreshLayout.setRefreshing(true);
+                    mSwipyRefreshLayout.setRefreshing(true);
                     alertDialog.show();
                     return true;
                 }
@@ -528,6 +537,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void downloadFile(String fileName, String url, String userAgent) {
         try {
+            logger.log("mimatype = " +getMimeType(fileName));
             String mimeType = getMimeType(fileName);
             DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -542,7 +552,7 @@ public class MainActivity extends AppCompatActivity {
                     .setAllowedOverRoaming(true)
                     .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-            
+
             downloadManager.enqueue(request);
             sURL = "";
             sFileName = "";
@@ -670,7 +680,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
-        swipeRefreshLayout.setRefreshing(true);
+//        swipeRefreshLayout.setRefreshing(true);
         return false;
     }
 
@@ -767,6 +777,12 @@ public class MainActivity extends AppCompatActivity {
         animatorSet.start();
     }
 
+    @Override
+    public void onRefresh(SwipyRefreshLayoutDirection direction) {
+        mywebView.reload();
+
+    }
+
 
     public class CustomWebViewClient extends WebViewClient {
 
@@ -827,7 +843,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            swipeRefreshLayout.setRefreshing(false);
+            mSwipyRefreshLayout.setRefreshing(false);
 
             FirebaseCrashlytics.getInstance().log("current url " + currentUrl);
             logger.log("Page finished for url " + url);
@@ -898,11 +914,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void showProgress() {
-            swipeRefreshLayout.setRefreshing(true);
+            mSwipyRefreshLayout.setRefreshing(true);
         }
 
         private void hideProgress() {
-            swipeRefreshLayout.setRefreshing(false);
+            mSwipyRefreshLayout.setRefreshing(false);
 
         }
     }
