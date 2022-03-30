@@ -60,8 +60,8 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
-import com.orangegangsters.github.swipyrefreshlayout.library.SwipyRefreshLayout;
-import com.orangegangsters.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
+import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayout;
+import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
