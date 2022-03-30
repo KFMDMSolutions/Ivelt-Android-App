@@ -14,6 +14,12 @@
         <item>יעדער טאג</item>
         <item>קיינמאל</item>
     </string-array>
+    <string-array name="post_settings_entries">
+        <item> יעדע 20 סעקונדעס</item>
+        <item> יעדע 40 סעקונדעס</item>
+        <item>יעדער מינוט</item>
+        <item>Never</item>
+    </string-array>
     <string name="open_notification">עפען נאטיפקאציע</string>
     <string name="when_plugged_in">ווען ס׳איז אריינגעשטעקט…</string>
     <string name="default_page_title">דיפאולט בלאט</string>
@@ -22,10 +28,12 @@
         <item>עפען הויפט בלאט</item>
         <item>מאך צו די נאטיפיקאציע</item>
     </string-array>
+    <string name="new_posts">זוך נייע תגובות אין אן אשכול</string>
     <string name="plugged_in_summary">ווי אפט זאל די עפפ קוקן פאר נאטיפקאציעס ווען די פאון איז אריינגעשטעקט?</string>
     <string name="battery_title">ווען אויף בעטערי…</string>
     <string name="battery_summary">ווי אפט זאל די עפפ קוקן פאר נאטיפיקאציעס ווען די פאון איז אויף בעטטערי?</string>
     <string name="pause_summary">שטעל אפ נאטיפיקאציעס צייטווייליג, דיינע אפדעיט צייטן וועלן ווערן אפגעהיטן.</string>
+    <string name="posts_summary">ווי אפט זאל די עפפ זוכן פאר נייע תגובות?</string>
     <string name="pause_title">שטעל אפ נאטיפיקאציעס</string>
     <string name="other_notification_title">אנדערע נאטיפיקאציע אנשטעלונגען</string>
     <string name="notification_settings_title">נאטיפיקאציע אנטשעלונגען</string>

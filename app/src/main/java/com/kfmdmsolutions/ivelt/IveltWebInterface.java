@@ -9,7 +9,6 @@ import android.text.Html;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
-import androidx.core.app.ShareCompat;
 import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -18,10 +17,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import java.util.HashSet;
 
 public class IveltWebInterface {
     Context context;
+    Logger logger;
 
     public static final String IVELT_USERNAME = "com.kfmdmsolutions.ivelt.ivelt.web.interface.ivelt.username";
     public static final String IVELT_PASSWORD = "com.kfmdmsolutions.ivelt.ivelt.web.interface.ivelt.password";
@@ -38,6 +39,19 @@ public class IveltWebInterface {
         } catch (JSONException e) {
             return null;
         }
+    }
+    private int newposts;
+    @JavascriptInterface
+    public String checkForNewPostsTimes() {
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String new_posts = preferences.getString("new_posts", "Never");
+        newposts = convertDurationStringToMilliSeconds(new_posts);
+        Logger.getInstance(context).log("interval = " +newposts);
+        if (newposts == 0){
+            return null;
+        }
+        return ""+newposts;
     }
 
     @JavascriptInterface
@@ -129,5 +143,24 @@ public class IveltWebInterface {
                 .replaceAll("(?:^|\\s)viewtopic", "www.ivelt.com/forum/viewtopic")
                 .replaceAll("\n+", "\n")
                 ;
+    }
+
+    private static final int SECOND_IN_MILLIS = 1000;
+    private static final int MINUTE_IN_MILLIS = 60 * SECOND_IN_MILLIS;
+
+    private int convertDurationStringToMilliSeconds(String duration) {
+        duration = duration == null ? "" : duration;
+        switch (duration) {
+
+            case "Every 20 seconds":
+                return 20 * SECOND_IN_MILLIS;
+            case "Every 40 seconds":
+                return 40 * SECOND_IN_MILLIS;
+            case "Every minute":
+                return MINUTE_IN_MILLIS;
+            case "Never":
+            default:
+                return 0;
+        }
     }
 }
