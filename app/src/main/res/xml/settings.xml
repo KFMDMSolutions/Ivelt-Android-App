@@ -20,6 +20,7 @@
             android:title="@string/firebase_title"
             android:summary="@string/firebase_summary"
             />
+
         <Preference
             android:key="logout"
             android:title="@string/logout_title"
@@ -28,7 +29,19 @@
             />
 
 
+        <EditTextPreference
+            android:key="password"
+            android:singleLine="true"
+            android:title="@string/app_password_title"
+            android:icon="@drawable/ic_baseline_lock_24"
+            android:summary="@string/app_password_summary"
+            />
+
+
+
+
     </PreferenceCategory>
+
     <PreferenceCategory
         android:title="@string/ivelt_settings_title">
         <ListPreference
@@ -57,7 +70,7 @@
             android:defaultValue="Never"
             android:entries="@array/post_settings_entries"
             android:entryValues="@array/post_settings"
-            android:icon="@drawable/ic_icon_post_target"
+            android:icon="@drawable/ic_baseline_post_24"
             android:key="new_posts"
             android:summary="@string/posts_summary"
             android:title="@string/new_posts" />
@@ -110,26 +123,26 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/other_notification_title">
-    <Preference
-        android:key="APP_NOTIF"
-        android:title="@string/notification_settings_title"
-        android:icon="@drawable/ic_baseline_edit_notifications_24"
-        android:summary="@string/notification_settings_summary"
-        >
-        <intent android:action="android.settings.APP_NOTIFICATION_SETTINGS"/>
-        <!--extra
-            android:name="android.provider.extra.APP_PACKAGE"
-            android:value="com.kfmdmsolutions.ivelt"/-->
-    </Preference>
-    <ListPreference
-        android:key="click"
-        android:title="@string/tap_title"
-        android:defaultValue="@string/open_notification"
-        android:entryValues="@array/click_settings_values"
-        android:entries="@array/click_settings_entries"
-        android:summary="@string/tap_summary"
-        android:icon="@drawable/ic_baseline_click_24"
-        />
+        <Preference
+            android:key="APP_NOTIF"
+            android:title="@string/notification_settings_title"
+            android:icon="@drawable/ic_baseline_edit_notifications_24"
+            android:summary="@string/notification_settings_summary"
+            >
+            <intent android:action="android.settings.APP_NOTIFICATION_SETTINGS"/>
+            <!--extra
+                android:name="android.provider.extra.APP_PACKAGE"
+                android:value="com.kfmdmsolutions.ivelt"/-->
+        </Preference>
+        <ListPreference
+            android:key="click"
+            android:title="@string/tap_title"
+            android:defaultValue="@string/open_notification"
+            android:entryValues="@array/click_settings_values"
+            android:entries="@array/click_settings_entries"
+            android:summary="@string/tap_summary"
+            android:icon="@drawable/ic_baseline_click_24"
+            />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/other_settings_title">
 

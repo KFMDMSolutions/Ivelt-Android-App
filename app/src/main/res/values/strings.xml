@@ -89,6 +89,10 @@
     <string name="one_finger_swipe_summary">Enable One Finger Swipe for Back and Forward</string>
     <string name="two_finger_swipe">Two Finger Swipe</string>
     <string name="two_finger_swipe_summary">Enable Two Finger Swipe for Navigating Pages</string>
+
+    <string name="app_password_title">App Password</string>
+    <string name="app_password_summary">Set The App Password</string>
+
     <string-array name="click_settings_values">
         <item>Open Notification</item>
         <item>Open Main Page</item>

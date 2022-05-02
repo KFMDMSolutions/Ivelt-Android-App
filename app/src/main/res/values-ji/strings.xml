@@ -79,6 +79,10 @@
     <string name="one_finger_swipe_summary">ערלויב איין פינגער סווייפ צו גיין פאראויס און צוריקוועגס</string>
     <string name="two_finger_swipe">צוויי פינגער סווייפ</string>
     <string name="two_finger_swipe_summary">ערלויב צוויי פינגער סווייפ צו מישן בלעטער</string>
+
+    <string name="app_password_title">עפפ פעסווארד</string>
+    <string name="app_password_summary">שטעל אן א עפפ פעסווארד</string>
+
     <string-array name="hidden_button_entries">
         <item>פארצייכן אומגעליינט קנעפל</item>
         <item>באריכט קנעפל</item>

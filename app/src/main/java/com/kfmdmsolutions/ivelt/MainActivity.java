@@ -14,7 +14,9 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -34,6 +36,9 @@ import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
+
+import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -54,6 +59,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 import android.widget.Toast;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -126,6 +132,23 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }
         super.onPause();
     }
+    @Override
+    protected void onResume() {
+        android.util.Log.d("SNQ", "Resuming Activity");
+        showDialog();
+        super.onResume();
+    }
+    @Override
+    protected void onStart() {
+        android.util.Log.d("SNQ", "Starting Activity");
+        //showDialog();
+        super.onStart();
+    }
+
+    protected void onActivityStarted() {
+
+    }
+
 
     private boolean shouldLogout = false;
     private void handleIntent(Intent intent) {
@@ -161,6 +184,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             }
             System.exit(2);
         });
+
+
         boolean firebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("firebase",false);
         boolean askFirebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("ask_firebase", true);
         if (askFirebase) {
@@ -193,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         }
         mywebView = findViewById(R.id.webview);
+        showDialog();
         mSwipyRefreshLayout = (SwipyRefreshLayout) findViewById(R.id.swipeContainer);
 //        SwipyRefreshLayoutDirection = findViewById(R.id.swipeContainer);
 //        SwipyRefreshLayoutDirection.setNestedScrollingEnabled(true);
@@ -1067,5 +1093,42 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }
 
 
+
+
     }
+    public void showDialog() {
+
+        String password = PreferenceManager.getDefaultSharedPreferences(this).getString("password", "");
+        if (!password.equals("")) {
+            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+            final EditText input = new EditText(this);
+            input.setSingleLine();
+            input.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            alert.setView(input);
+
+            alert.setCancelable(false)
+                    .setTitle("Login")
+                    .setMessage("Enter Your Password");
+
+
+
+
+            alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    String value = input.getText().toString();
+                    if (!value.equals(password)) {
+                        showDialog();
+                    }
+
+                }
+            });
+
+            alert.show();
+
+
+        }
+    }
+
+
 }
