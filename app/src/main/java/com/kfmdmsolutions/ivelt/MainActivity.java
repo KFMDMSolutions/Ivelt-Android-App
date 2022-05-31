@@ -16,12 +16,12 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -37,7 +37,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
 
-import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -89,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
     Logger logger;
+
     private boolean serviceNeedsStarting = true;
     public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
     private boolean zoomed = false;
@@ -101,6 +101,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     private ValueCallback<Uri[]> mFilePathCallback;
 
     private String mCameraPhotoPath;
+
+    private static CountDownTimer testTimer;
 
 //    private ActivityMainBinding mBinding;
 
@@ -121,6 +123,14 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
     }
+    @Override
+    protected void onResume(){
+        if(testTimer != null)
+        {
+            testTimer.cancel();
+        }
+        super.onResume();
+    }
 
     @Override
     protected void onPause() {
@@ -130,25 +140,18 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }catch (IllegalStateException ise){
             // can only happen on samsung when starting from android studio
         }
+        testTimer = new CountDownTimer(60000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+
+            }
+
+            public void onFinish() {
+                showDialog();
+            }
+        }.start();
         super.onPause();
     }
-    @Override
-    protected void onResume() {
-        android.util.Log.d("SNQ", "Resuming Activity");
-        showDialog();
-        super.onResume();
-    }
-    @Override
-    protected void onStart() {
-        android.util.Log.d("SNQ", "Starting Activity");
-        //showDialog();
-        super.onStart();
-    }
-
-    protected void onActivityStarted() {
-        android.util.Log.d("SNQ", "info Activity");
-    }
-
 
     private boolean shouldLogout = false;
     private void handleIntent(Intent intent) {
@@ -185,7 +188,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             System.exit(2);
         });
 
-
         boolean firebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("firebase",false);
         boolean askFirebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("ask_firebase", true);
         if (askFirebase) {
@@ -218,8 +220,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         }
         mywebView = findViewById(R.id.webview);
-        showDialog();
         mSwipyRefreshLayout = (SwipyRefreshLayout) findViewById(R.id.swipeContainer);
+
 //        SwipyRefreshLayoutDirection = findViewById(R.id.swipeContainer);
 //        SwipyRefreshLayoutDirection.setNestedScrollingEnabled(true);
         WebViewAssetLoader.AssetsPathHandler assetsHandler = new WebViewAssetLoader.AssetsPathHandler(this);
@@ -268,6 +270,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
 
         }, 0);
+
+        showDialog();
 
         Logger.getInstance(this).logWithFirebase("Preparing to start with bundle " + (webviewBundle == null));
         if (webviewBundle != null) {
@@ -1093,13 +1097,12 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }
 
 
-
-
     }
     public void showDialog() {
 
         String password = PreferenceManager.getDefaultSharedPreferences(this).getString("password", "");
         if (!password.equals("")) {
+            mywebView.setVisibility(View.INVISIBLE);
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
             final EditText input = new EditText(this);
@@ -1118,7 +1121,22 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 public void onClick(DialogInterface dialog, int whichButton) {
                     String value = input.getText().toString();
                     if (!value.equals(password)) {
-                        showDialog();
+
+                        AlertDialog.Builder alert2 = new AlertDialog.Builder(MainActivity.this);
+                        alert2.setTitle("Login")
+                                .setMessage("The password you have entered is incorrect.\n Please try again!");
+
+                        alert2.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                showDialog();
+
+                            }
+                        });
+                        alert2.show();
+                    }
+                    else {
+                        mywebView.setVisibility(View.VISIBLE);
                     }
 
                 }
@@ -1129,6 +1147,5 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         }
     }
-
 
 }

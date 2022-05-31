@@ -11,7 +11,9 @@ function checkForNewPosts(){
     // setting was unchecked by the user
 
     let interval = parseInt(android.checkForNewPostsTimes());
+    console.log("interval = " +interval);
     if(isNaN(interval)){
+        console.log("interval = NaN" +interval)
         return;
     }
     let checkNewResponse = function () {

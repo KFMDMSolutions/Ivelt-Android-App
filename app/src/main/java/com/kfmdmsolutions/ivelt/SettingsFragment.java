@@ -75,7 +75,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     android.util.Log.d("error", "can't find activity", e);
                 }
                 return true;
-                    });
+            });
         }
 
         Preference logoutPreference = findPreference("logout");
