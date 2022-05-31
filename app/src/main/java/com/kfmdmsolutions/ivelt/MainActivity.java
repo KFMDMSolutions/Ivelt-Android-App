@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     }
 
     protected void onActivityStarted() {
-
+        android.util.Log.d("SNQ", "info Activity");
     }
 
 
@@ -1114,7 +1114,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
 
 
-            alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            alert.setPositiveButton("Login", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int whichButton) {
                     String value = input.getText().toString();
                     if (!value.equals(password)) {
