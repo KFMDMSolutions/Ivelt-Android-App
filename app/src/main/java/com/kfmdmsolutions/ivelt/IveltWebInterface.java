@@ -22,7 +22,6 @@ import java.util.HashSet;
 
 public class IveltWebInterface {
     Context context;
-    Logger logger;
 
     public static final String IVELT_USERNAME = "com.kfmdmsolutions.ivelt.ivelt.web.interface.ivelt.username";
     public static final String IVELT_PASSWORD = "com.kfmdmsolutions.ivelt.ivelt.web.interface.ivelt.password";
@@ -47,7 +46,6 @@ public class IveltWebInterface {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         String new_posts = preferences.getString("new_posts", "Never");
         newposts = convertDurationStringToMilliSeconds(new_posts);
-        Logger.getInstance(context).log("interval = " +newposts);
         if (newposts == 0){
             return null;
         }
