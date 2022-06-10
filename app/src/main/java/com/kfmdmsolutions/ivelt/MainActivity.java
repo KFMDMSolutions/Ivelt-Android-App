@@ -383,6 +383,9 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                     windowWebView.setLayoutParams(new ViewGroup.LayoutParams(200, 200));
                     windowWebView.getSettings().setJavaScriptEnabled(true);
                     windowWebView.getSettings().setDomStorageEnabled(true);
+                    windowWebView.getSettings().setSupportZoom(true);
+                    windowWebView.getSettings().setBuiltInZoomControls(true);
+                    windowWebView.getSettings().setDisplayZoomControls(false);
                     CookieManager.getInstance().setAcceptThirdPartyCookies(windowWebView, true);
                     windowWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
                     windowWebView.getSettings().setSupportMultipleWindows(true);
@@ -645,6 +648,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 } else {
                     Toast.makeText(MainActivity.this, "Sorry.. Something Went Wrong.", Toast.LENGTH_LONG).show();
                 }
+            } else if (item.getTitle() == "View Image") {
+                mywebView.loadUrl("javascript:window.open('"+result.getExtra()+"');");
             }
 
             return true;
@@ -653,9 +658,10 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         if (result.getType() == WebView.HitTestResult.IMAGE_TYPE ||
                 result.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
             menu.setHeaderTitle("Image options");
-            menu.add(0, 2, 1, "Copy image link").setOnMenuItemClickListener(handler);
-            menu.add(0, 1, 0, "Save - Download Image").setOnMenuItemClickListener(handler);
-            menu.add(0, 3, 2, "Share Link").setOnMenuItemClickListener(handler);
+            menu.add(0, 1, 0, "View Image").setOnMenuItemClickListener(handler);
+            menu.add(0, 2, 1, "Save - Download Image").setOnMenuItemClickListener(handler);
+            menu.add(0, 3, 2, "Copy image link").setOnMenuItemClickListener(handler);
+            menu.add(0, 4, 3, "Share Link").setOnMenuItemClickListener(handler);
         }
     }
 
