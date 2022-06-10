@@ -3,10 +3,14 @@
 
     <item android:drawable="@color/white" />
 
-    <item>
-        <bitmap android:src="@drawable/logo"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+    <item
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <bitmap
+            android:gravity="fill"
+            android:src="@drawable/logo" />
 
     </item>
 
