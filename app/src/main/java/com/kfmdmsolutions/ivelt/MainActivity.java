@@ -919,10 +919,12 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }
 
         private void showProgress() {
+            mSwipyRefreshLayout.setDirection(SwipyRefreshLayoutDirection.TOP);
             mSwipyRefreshLayout.setRefreshing(true);
         }
 
         private void hideProgress() {
+            mSwipyRefreshLayout.setDirection(SwipyRefreshLayoutDirection.BOTH);
             mSwipyRefreshLayout.setRefreshing(false);
 
         }
