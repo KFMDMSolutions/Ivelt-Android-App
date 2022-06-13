@@ -781,37 +781,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         return isIvelt;
     }
 
-    public void like() {
-        android.util.Log.d("LIKE", "Like works");
-
-        Animator animator1 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 0f, -30f).setDuration(525);
-        Animator animator2 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, -30f, 30f).setDuration(525);
-        Animator animator3 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 30f, 0f).setDuration(525);
-//        Animator animator4 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 0f, 0f).setDuration(200);
-        Animator animator5 = ObjectAnimator.ofFloat(mywebView, View.ROTATION, 0f, 720f).setDuration(525);
-        Animator jump1 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 0, 100f ).setDuration(525);
-        Animator jump2 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 100f, -100f ).setDuration(525);
-        Animator jump3 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, -100f, 100f ).setDuration(525);
-        Animator jump4 = ObjectAnimator.ofFloat(mywebView, View.TRANSLATION_Y, 100f, 0f ).setDuration(525);
-        AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.playSequentially(
-                animator1,
-                animator2,
-                animator3,
-//                animator4,
-                animator5
-                ,
-                jump1,
-                jump2,
-                jump3,
-                jump4
-        );
-        Snackbar.make(mywebView, "איהר האט געדרוקט א אומריכטיג קנעפל", 2000).show();
-        new Handler().postDelayed(() -> {runOnUiThread(() -> {
-            Snackbar.make(mywebView, "א פרייליכען פורים", 2000).show();
-        });}, 2000);
-        animatorSet.start();
-    }
 
     @Override
     public void onRefresh(SwipyRefreshLayoutDirection direction) {
