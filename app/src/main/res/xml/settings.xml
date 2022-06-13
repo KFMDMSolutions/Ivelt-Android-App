@@ -20,6 +20,14 @@
             android:title="@string/firebase_title"
             android:summary="@string/firebase_summary"
             />
+        <EditTextPreference
+            android:key="password"
+            android:singleLine="true"
+            android:title="@string/app_password_title"
+            android:icon="@drawable/ic_baseline_lock_24"
+            android:summary="@string/app_password_summary"
+            />
+
         <Preference
             android:key="logout"
             android:title="@string/logout_title"
@@ -27,8 +35,8 @@
             android:summary="@string/logout_summary"
             />
 
-
     </PreferenceCategory>
+
     <PreferenceCategory
         android:title="@string/ivelt_settings_title">
         <ListPreference
@@ -53,6 +61,14 @@
             android:title="@string/hide_user_title"
             android:summary="@string/hide_user_avatar"
             />
+        <ListPreference
+            android:defaultValue="Never"
+            android:entries="@array/post_settings_entries"
+            android:entryValues="@array/post_settings"
+            android:icon="@drawable/ic_baseline_post_24"
+            android:key="new_posts"
+            android:summary="@string/posts_summary"
+            android:title="@string/new_posts" />
 
     </PreferenceCategory>
 

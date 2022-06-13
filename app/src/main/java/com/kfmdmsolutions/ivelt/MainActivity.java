@@ -14,12 +14,14 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -34,6 +36,8 @@ import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
+
+import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -54,6 +58,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 import android.widget.Toast;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -83,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
     Logger logger;
+
     private boolean serviceNeedsStarting = true;
     public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
     private boolean zoomed = false;
@@ -95,6 +101,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     private ValueCallback<Uri[]> mFilePathCallback;
 
     private String mCameraPhotoPath;
+
+    private static CountDownTimer testTimer;
 
 //    private ActivityMainBinding mBinding;
 
@@ -115,6 +123,14 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
     }
+    @Override
+    protected void onResume(){
+        if(testTimer != null)
+        {
+            testTimer.cancel();
+        }
+        super.onResume();
+    }
 
     @Override
     protected void onPause() {
@@ -124,6 +140,16 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }catch (IllegalStateException ise){
             // can only happen on samsung when starting from android studio
         }
+        testTimer = new CountDownTimer(60000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+
+            }
+
+            public void onFinish() {
+                showDialog();
+            }
+        }.start();
         super.onPause();
     }
 
@@ -161,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             }
             System.exit(2);
         });
+
         boolean firebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("firebase",false);
         boolean askFirebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("ask_firebase", true);
         if (askFirebase) {
@@ -194,6 +221,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }
         mywebView = findViewById(R.id.webview);
         mSwipyRefreshLayout = (SwipyRefreshLayout) findViewById(R.id.swipeContainer);
+
 //        SwipyRefreshLayoutDirection = findViewById(R.id.swipeContainer);
 //        SwipyRefreshLayoutDirection.setNestedScrollingEnabled(true);
         WebViewAssetLoader.AssetsPathHandler assetsHandler = new WebViewAssetLoader.AssetsPathHandler(this);
@@ -243,6 +271,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         }, 0);
 
+        showDialog();
+
         Logger.getInstance(this).logWithFirebase("Preparing to start with bundle " + (webviewBundle == null));
         if (webviewBundle != null) {
             mywebView.restoreState(webviewBundle);
@@ -286,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         });
 
-//        mywebView.swipe
+
         mSwipyRefreshLayout.setOnRefreshListener(this);
 
     }
@@ -1074,4 +1104,54 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
 
     }
+    public void showDialog() {
+
+        String password = PreferenceManager.getDefaultSharedPreferences(this).getString("password", "");
+        if (!password.equals("")) {
+            mywebView.setVisibility(View.INVISIBLE);
+            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+            final EditText input = new EditText(this);
+            input.setSingleLine();
+            input.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            alert.setView(input);
+
+            alert.setCancelable(false)
+                    .setTitle("Login")
+                    .setMessage("Enter Your Password");
+
+
+
+
+            alert.setPositiveButton("Login", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    String value = input.getText().toString();
+                    if (!value.equals(password)) {
+
+                        AlertDialog.Builder alert2 = new AlertDialog.Builder(MainActivity.this);
+                        alert2.setTitle("Login")
+                                .setMessage("The password you have entered is incorrect.\n Please try again!");
+
+                        alert2.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                showDialog();
+
+                            }
+                        });
+                        alert2.show();
+                    }
+                    else {
+                        mywebView.setVisibility(View.VISIBLE);
+                    }
+
+                }
+            });
+
+            alert.show();
+
+
+        }
+    }
+
 }

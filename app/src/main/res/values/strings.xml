@@ -32,6 +32,19 @@
         <item>Once a day</item>
         <item>Never</item>
     </string-array>
+    <string-array name="post_settings">
+        <item>Every 20 seconds</item>
+        <item>Every 40 seconds</item>
+        <item>Every minute</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="post_settings_entries">
+        <item>Every 20 seconds</item>
+        <item>Every 40 seconds</item>
+        <item>Every minute</item>
+        <item>Never</item>
+    </string-array>
+    <string name="new_posts">Check for new Posts</string>
     <string name="open_notification">Open Notification</string>
     <string name="when_plugged_in">When Plugged in…</string>
     <string name="default_page_title">Default Page</string>
@@ -39,6 +52,7 @@
     <string name="battery_title">When on battery…</string>
     <string name="battery_summary">How often should the app check for notifications when on battery?</string>
     <string name="pause_summary">Pause notifications. Your scheduled update times will be saved.</string>
+    <string name="posts_summary">How often should the app check for new posts?</string>
     <string name="pause_title">Pause Notifications</string>
     <string name="other_notification_title">Other Notification Settings</string>
     <string name="notification_settings_title">Notification Settings</string>
@@ -75,6 +89,10 @@
     <string name="one_finger_swipe_summary">Enable One Finger Swipe for Back and Forward</string>
     <string name="two_finger_swipe">Two Finger Swipe</string>
     <string name="two_finger_swipe_summary">Enable Two Finger Swipe for Navigating Pages</string>
+
+    <string name="app_password_title">App Password</string>
+    <string name="app_password_summary">Set The App Password</string>
+
     <string-array name="click_settings_values">
         <item>Open Notification</item>
         <item>Open Main Page</item>
@@ -94,12 +112,12 @@
         <item>Notification Page</item>
     </string-array>
     <string-array name="pages_values">
-        <item>http://www.ivelt.com/forum/index.php</item>
-        <item>http://www.ivelt.com/forum/search.php?search_id=egosearch</item>
-        <item>http://www.ivelt.com/forum/search.php?search_id=newposts</item>
-        <item>http://www.ivelt.com/forum/search.php?search_id=unreadposts</item>
-        <item>http://www.ivelt.com/forum/search.php?search_id=active_topics</item>
-        <item>http://www.ivelt.com/forum/ucp.php?i=ucp_notifications</item>
+        <item>https://www.ivelt.com/forum/index.php</item>
+        <item>https://www.ivelt.com/forum/search.php?search_id=egosearch</item>
+        <item>https://www.ivelt.com/forum/search.php?search_id=newposts</item>
+        <item>https://www.ivelt.com/forum/search.php?search_id=unreadposts</item>
+        <item>https://www.ivelt.com/forum/search.php?search_id=active_topics</item>
+        <item>https://www.ivelt.com/forum/ucp.php?i=ucp_notifications</item>
     </string-array>
     <string-array name="language_entries">
         <item>English</item>
