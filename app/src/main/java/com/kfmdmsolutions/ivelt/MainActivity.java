@@ -918,13 +918,11 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             super.onReceivedHttpError(view, request, errorResponse);
         }
 
-        private void showProgress() {
-            mSwipyRefreshLayout.setDirection(SwipyRefreshLayoutDirection.TOP);
+        private void showProgress() {           
             mSwipyRefreshLayout.setRefreshing(true);
         }
 
         private void hideProgress() {
-            mSwipyRefreshLayout.setDirection(SwipyRefreshLayoutDirection.BOTH);
             mSwipyRefreshLayout.setRefreshing(false);
 
         }
