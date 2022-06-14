@@ -69,6 +69,13 @@
             android:key="new_posts"
             android:summary="@string/posts_summary"
             android:title="@string/new_posts" />
+        <CheckBoxPreference
+            android:key="sefaria"
+            android:defaultValue="false"
+            android:icon="@drawable/ic_sefaria"
+            android:title="@string/sefaria_title"
+            android:summary="@string/sefaria_summary"
+            />
 
     </PreferenceCategory>
 
