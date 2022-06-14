@@ -51,6 +51,12 @@ public class IveltWebInterface {
         }
         return ""+newposts;
     }
+    
+    @JavascriptInterface
+    public boolean addsefaria(){
+        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean("sefaria", false);
+
+    }
 
     @JavascriptInterface
     public void copyToClipboard(String data){
