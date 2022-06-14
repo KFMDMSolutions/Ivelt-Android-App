@@ -13,4 +13,6 @@ function addSefaria(){
         document.head.appendChild(script);
     }
 }
-addSefaria();
+if (android.addsefaria()){
+    addSefaria();
+}
