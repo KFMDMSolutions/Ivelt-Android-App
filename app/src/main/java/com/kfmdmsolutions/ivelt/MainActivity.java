@@ -152,7 +152,16 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }.start();
         super.onPause();
     }
-
+    @Override
+    protected void onDestroy() {
+        if(testTimer != null)
+        {
+            testTimer.cancel();
+        }
+        
+        super.onDestroy();
+    }
+    
     private boolean shouldLogout = false;
     private void handleIntent(Intent intent) {
 
