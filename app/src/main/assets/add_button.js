@@ -252,12 +252,18 @@ function mozWrapApp(txtarea, open, close) {
 	return;
 }
 
+function addFocus(){
+    var toolsToggle = document.querySelectorAll(".topic-tools ,.tools-icon");
+    for (let i = 0; i < toolsToggle.length; i++) {
+        //x.setAttribute("style", "outline-style: inset;");
+        toolsToggle[i].setAttribute("tabindex", "0");
+        toolsToggle[i].addEventListener("focus", "hover", function () {
+          this.style.outline = "10px","dotted","yellow";
+        });
+    }
+}
+
+
 addBtn();
 hideButtons();
-
-
-
-
-
-
-
+addFocus();
