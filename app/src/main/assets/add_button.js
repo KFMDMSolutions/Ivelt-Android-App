@@ -59,7 +59,7 @@ function addBtn(){
             }
         }
         let pingOnClick = `ping_user(${strippedId})`
-        addSimpleButton(btns[i], 'baseline_alternate_email_black_24dp.png', null, 'ping-icon', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
+        addSimpleButton(btns[i], 'baseline_alternate_email_black_24dp.png', "", 'ping-icon', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
 
         if (contentElement.innerHTML.includes("blockquote")) {
             addQuoteLastButton(btns[i], isPosting);
@@ -101,10 +101,10 @@ function getQuoteURL(btn){
 function addCopyQuoteButton(btn, postID){
     let href = getPMHref(postID) || getQuoteURL(btn)
     if (!href){
-        addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
+        addSimpleButton(btn, 'ivelt_logo48.png', "", 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
         return;
     }
-    addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuote("${href}", "${postID}")`)
+    addSimpleButton(btn, 'ivelt_logo48.png', "", 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuote("${href}", "${postID}")`)
 }
 function addQuoteLastButton(btn, isPosting) {
 
