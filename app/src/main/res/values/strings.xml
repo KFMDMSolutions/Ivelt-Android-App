@@ -1,7 +1,121 @@
 <resources>
-    <string name="app_name">Ivelt</string>
-    <string name="action_settings"></string>
-    <string name="file_chooser"></string>
-    <string name="file_chooser_default"></string>
-    <string name="file_chooser_custom"></string>
+    <string name="app_name" translatable="false">Ivelt</string>
+    <string name="action_settings" translatable="false"></string>
+    <string name="file_chooser" translatable="false"></string>
+    <string name="file_chooser_default" translatable="false"></string>
+    <string name="file_chooser_custom" translatable="false"></string>
+
+    <string-array name="post_settings">
+        <item>Every 20 seconds</item>
+        <item>Every 40 seconds</item>
+        <item>Every minute</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="post_settings_entries">
+        <item>Every 20 seconds</item>
+        <item>Every 40 seconds</item>
+        <item>Every minute</item>
+        <item>Never</item>
+    </string-array>
+    <string name="new_posts">Check for new Posts</string>
+    <string name="posts_summary">How often should the app check for new posts?</string>
+    <string name="default_page_title">Default Page</string>
+    <string name="other_settings_title">Other Settings</string>
+    <string name="logs_summary">We do not collect logs. Logs will be sent only when you click on share logs.</string>
+    <string name="logs_title">Share Logs</string>
+    <string name="default_page_summary">When the app opens, go to…</string>
+    <string name="language_title">Language</string>
+    <string name="language_summary">The language for the settings page.</string>
+    <string name="app_settings">App Settings</string>
+    <string name="firebase_title">Enable Automatic Crash Reporting</string>
+    <string name="firebase_summary"><![CDATA[This will allow us to find & fix bugs faster.]]></string>
+    <string name="crash_collection_dialog_title">Crash Collection</string>
+    <string name="crash_collection_dialog_message">Turn on automatic crash collection? This will help us fix bugs quicker.</string>
+    <string name="ok">OK</string>
+    <string name="no">No</string>
+    <string name="error_sending_logs">error getting logs</string>
+    <string name="logout_title">Erase Login Details</string>
+    <string name="logout_summary">If you have saved login details, you can erase them now.</string>
+
+    <string name="hidden_title">Hidden Buttons</string>
+    <string name="hidden_summary">Choose which buttons should be hidden</string>
+    <string name="hide_user_title">Hide Username</string>
+    <string name="hide_user_avatar">Hide username and avatar</string>
+    <string name="shortcut_label">Sign Out</string>
+    <string name="ivelt_settings_title">iVelt Settings</string>
+
+    <string name="app_password_title">App Password</string>
+    <string name="app_password_summary">Set The App Password</string>
+    <string name="sefaria_title">Sefaria Linker</string>
+    <string name="sefaria_summary">Add Sefaria Linker to The App</string>
+
+    <string-array name="click_settings_values">
+        <item>Open Notification</item>
+        <item>Open Main Page</item>
+        <item>Dismiss Notification</item>
+    </string-array>
+
+    <string-array name="pages_entries">
+        <item>Main Page</item>
+        <item>Your Posts</item>
+        <item>New Posts</item>
+        <item>Unread Posts</item>
+        <item>Active Topics</item>
+        <item>Notification Page</item>
+    </string-array>
+    <string-array name="pages_values">
+        <item>https://www.ivelt.com/forum/index.php</item>
+        <item>https://www.ivelt.com/forum/search.php?search_id=egosearch</item>
+        <item>https://www.ivelt.com/forum/search.php?search_id=newposts</item>
+        <item>https://www.ivelt.com/forum/search.php?search_id=unreadposts</item>
+        <item>https://www.ivelt.com/forum/search.php?search_id=active_topics</item>
+        <item>https://www.ivelt.com/forum/ucp.php?i=ucp_notifications</item>
+    </string-array>
+    <string-array name="language_entries">
+        <item>English</item>
+        <item>אידיש</item>
+    </string-array>
+    <string-array name="language_values">
+        <item>en</item>
+        <item>yi</item>
+    </string-array>
+    <string-array name="swipe_values">
+        <item>rtl</item>
+        <item>ltr</item>
+        <item>lang</item>
+    </string-array>
+    <string-array name="swipe_entries">
+        <item>Right to Left is Forward</item>
+        <item>Left to Right is Forward</item>
+        <item>Follow language</item>
+    </string-array>
+    <string-array name="hidden_button_entries">
+        <item>Mark Unread Button</item>
+        <item>Report Button</item>
+        <item>Quote Button</item>
+        <item>Fix Button</item>
+        <item>Quote Last Button</item>
+        <item>Delete Button</item>
+        <item>Share Button</item>
+        <item>Copy to iVelt</item>
+        <item>Private Message</item>
+        <item>Mention</item>
+        <item>Contact Button</item>
+    </string-array>
+    <string-array name="hidden_button_values">
+        <item>.unread-icon</item>
+        <item>.report-icon</item>
+        <item>.quote-icon</item>
+        <item>.edit-icon</item>
+        <item>.quote-last</item>
+        <item>.delete-icon</item>
+        <item>.share-icon</item>
+        <item>.copy-quote</item>
+        <item>.app-pm-icon</item>
+        <item>.ping-icon</item>
+        <item>.profile-contact</item>
+    </string-array>
+    <string-array name="hidden_default">
+        <item>.app-pm-icon</item>
+    </string-array>
 </resources>

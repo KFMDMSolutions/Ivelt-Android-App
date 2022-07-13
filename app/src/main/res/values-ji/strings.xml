@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="post_settings_entries">
+        <item> יעדע 20 סעקונדעס</item>
+        <item> יעדע 40 סעקונדעס</item>
+        <item>יעדער מינוט</item>
+        <item>Never</item>
+    </string-array>
+    <string name="default_page_title">דיפאולט בלאט</string>
+    <string name="new_posts">זוך נייע תגובות אין אן אשכול</string>
+    <string name="posts_summary">ווי אפט זאל די עפפ זוכן פאר נייע תגובות?</string>
+    <string name="other_settings_title">אנדערע אנשטעלונגען</string>
+    <string name="logs_summary">מיר זאמלען נישט קיין לאגס. לאגס וועלן געשיקט ווערן בלויז ווען די דרוקסט שיק לאגס</string>
+    <string name="logs_title">שיק לאגס</string>
+    <string name="default_page_summary">ווען די עפפ עפענט זיך, גיי צו…</string>
+    <string name="language_title">שפראך</string>
+    <string name="language_summary">טויש די שפראך פון די אנשטעלונגען בלאט</string>
+    <string name="app_settings">עפפ אנשטעלונגען</string>
+    <string-array name="pages_entries">
+        <item>הויפט בלאט</item>
+        <item>דיינע תגובות</item>
+        <item>נייע תגובות</item>
+        <item>אומגעליינטע תגובות</item>
+        <item>אקטיווע אשכולות</item>
+        <item>נאטיפיקאציע בלאט</item>
+    </string-array>
+    <string name="firebase_title">ערלויב אטאמאישע קראך ריפארטס</string>
+    <string name="firebase_summary"> דאס וועט פארגרינגערען און פארשנעלערן אונזער מעגליכקייט צו פאררעכטן באגס</string>
+    <string name="crash_collection_dialog_title">קרעש זאמלונג</string>
+    <string name="crash_collection_dialog_message">אנצינדען אוטאמאטישע קרעש ריפארטס? דאס וועט אונז העלפן שנעלער פאררעכטען באגס.</string>
+    <string name="ok">יא</string>
+    <string name="no">ניין</string>
+    <string name="error_sending_logs">פעלער שיקן לאגס</string>
+    <string name="logout_title">פערמעק לאג אין דעטאלען</string>
+    <string name="logout_summary">אויב האסטו אפגעהיטן דיינע לאגאין דעטאלען קענסטו עס דא פארמעקן</string>
+    <string name="hidden_title">באהאלטענע קנעפלעך</string>
+    <string name="hidden_summary">וועל אויס וועלעכע קנעפלעך די ווילסט באהאלטען</string>
+    <string name="hide_user_title">באהאלט ניק</string>
+    <string name="hide_user_avatar">בהאלט ניק און אוועטער</string>
+    <string name="shortcut_label">לאג ארויס</string>
+    <string name="ivelt_settings_title">אייוועלט אנטשעלונגען</string>
+    <string name="app_password_title">עפפ פעסווארד</string>
+    <string name="app_password_summary">שטעל אן א עפפ פעסווארד</string>
+    <string name="sefaria_title">ספריה לינקר </string>
+    <string name="sefaria_summary">לייג צו ספריה לינקר צו די עפפ</string>
+
+    <string-array name="hidden_button_entries">
+        <item>פארצייכן אומגעליינט קנעפל</item>
+        <item>באריכט קנעפל</item>
+        <item>ציטור קנעפל</item>
+        <item>פארריכט קנעפל</item>
+        <item>ציטור לעצטע קנעפל</item>
+        <item>פארמעק קנעפל</item>
+        <item>טייל מיט קנעפל</item>
+        <item>ציטיר אין אנדערע אשכול קנעפל</item>
+        <item>פריוואטע מעסעדזש קנעפל</item>
+        <item>דערמאן קנעפל</item>
+        <item>פארבינד זיך קנעפל</item>
+    </string-array>
+</resources>

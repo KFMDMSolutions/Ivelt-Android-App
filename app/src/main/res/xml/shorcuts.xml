@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="sign_out"
+        android:enabled="true"
+        android:shortcutShortLabel="@string/shortcut_label"
+        >
+        <intent android:action="com.kfmdm.ivelt.shortcut.logout"
+            android:targetPackage="com.android.cts.kfmdmsolutions.ivelt"
+            android:targetClass="com.android.cts.kfmdmsolutions.ivelt.MainActivity">
+            <!--extra
+                android:name="com.kdmfs.mainactivity.url"
+                android:value="http://www.ivelt.com/forum/ucp.php?mode=logout&amp;sid=57320329307503afc3"/-->
+        </intent>
+    </shortcut>
+</shortcuts>

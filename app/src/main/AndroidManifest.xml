@@ -1,54 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.android.cts.ivelt">
-    <uses-permission  android:name="android.permission.INTERNET"></uses-permission>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"></uses-permission>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
-    <uses-permission android:name="android.permission.CAMERA"></uses-permission>
+    package="com.android.cts.kfmdmsolutions.ivelt">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.CAMERA2" />
 
 
-
     <application
-        android:hardwareAccelerated="true"
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.Ivelt">
-        <activity android:name=".SplashActivity" android:theme="@style/SplashTheme">
+        android:theme="@style/Theme.Ivelt"
+        android:usesCleartextTraffic="true">
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
+
+        <activity android:name=".SettingsActivity" />
+
+        <activity android:name=".SplashActivity" android:theme="@style/SplashTheme"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-
             </intent-filter>
-
-
-
+            <meta-data android:name="android.app.shortcuts"
+                android:resource="@xml/shorcuts"/>
         </activity>
-
-        <activity android:name=".MainActivity">
-
+        <activity android:name=".MainActivity"
+            android:launchMode="standard"
+            android:exported="true">
             <intent-filter>
-                <data android:scheme="https" />
                 <data android:scheme="https" android:host="www.ivelt.com"/>
-                <action android:name="android.intent.action.SEND" />
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-            <intent-filter>
-                <data android:scheme="http" />
                 <data android:scheme="http" android:host="www.ivelt.com"/>
+                <data android:scheme="http" android:host="ivelt.com"/>
+                <data android:scheme="https" android:host="ivelt.com"/>
+                <data android:scheme="http" android:host="ivelt.com"/>
+                <data android:scheme="http" android:host="www.yiddishworld.com"/>
+                <data android:scheme="https" android:host="www.yiddishworld.com"/>
+                <data android:scheme="http" android:host="yiddishworld.com"/>
+                <data android:scheme="https" android:host="yiddishworld.com"/>
                 <action android:name="android.intent.action.SEND" />
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
             </intent-filter>
         </activity>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.android.cts.kfmdmsolutions.ivelt.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

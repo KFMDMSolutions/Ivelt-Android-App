@@ -1,19 +1,21 @@
 plugins {
     id 'com.android.application'
 }
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 31
+    buildToolsVersion "31.0.0"
 
     defaultConfig {
-        applicationId "com.android.cts.ivelt"
-        minSdkVersion 16
-        targetSdkVersion 30
-        versionCode 1
-        versionName "2.2"
+        applicationId "com.android.cts.kfmdmsolutions.ivelt"
+        minSdkVersion 21
+        targetSdkVersion 31
+        versionCode 12
+        versionName "3.2"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
     }
 
@@ -33,13 +35,28 @@ android {
 
     dependencies {
 
+        implementation "androidx.appcompat:appcompat:1.4.1"
 
-        implementation 'com.android.support:appcompat-v7:28.0.0'
-        implementation 'com.android.support.constraint:constraint-layout:2.0.4'
-        implementation 'com.android.support:swiperefreshlayout:28.0.0'
+        // For loading and tinting drawables on older versions of the platform
+        implementation "androidx.appcompat:appcompat-resources:1.4.1"
+        implementation "androidx.constraintlayout:constraintlayout:2.1.3"
+        implementation "androidx.work:work-runtime:2.7.1"
+        implementation 'androidx.webkit:webkit:1.4.0'
+        implementation "androidx.preference:preference:1.2.0"
+        implementation "androidx.core:core:1.7.0"
+        implementation 'org.jsoup:jsoup:1.14.1'
         testImplementation 'junit:junit:4.+'
-        androidTestImplementation 'com.android.support.test:runner:1.0.2'
-        androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
+        androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+        androidTestImplementation 'androidx.test:runner:1.4.0'
+        androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+        implementation platform('com.google.firebase:firebase-bom:29.0.3')
+        implementation 'com.google.firebase:firebase-crashlytics'
+        implementation 'com.google.firebase:firebase-analytics'
+        implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
     }
+}
+
+dependencies {
+    implementation 'com.google.android.material:material:1.4.0'
+
 }

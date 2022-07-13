@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: C./Users/ADMIN/Documents/GitHub/Ivelt-Android-App/app/libs/swipy.aar">
+    <ANNOTATIONS>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/196b7c2100c8273e4dbbffeab911e20a/transformed/jetified-swipy/annotations.zip!/" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/196b7c2100c8273e4dbbffeab911e20a/transformed/jetified-swipy/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/196b7c2100c8273e4dbbffeab911e20a/transformed/jetified-swipy/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/196b7c2100c8273e4dbbffeab911e20a/transformed/jetified-swipy/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

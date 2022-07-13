@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Gradle: org.jsoup:jsoup:1.14.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.14.1/9cbd867771876e35f0f3088525381d183c7f2aa9/jsoup-1.14.1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.14.1/977e151c5700ac571fe5abbed2ae80159de15be1/jsoup-1.14.1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jsoup/jsoup/1.14.1/86c5d25ee741a78da84a56a61b88d832c35f3438/jsoup-1.14.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
