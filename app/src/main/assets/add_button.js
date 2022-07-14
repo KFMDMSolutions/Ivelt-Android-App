@@ -253,13 +253,28 @@ function mozWrapApp(txtarea, open, close) {
 }
 
 function addFocus(){
-    var toolsToggle = document.querySelectorAll(".topic-tools ,.tools-icon");
-    for (let i = 0; i < toolsToggle.length; i++) {
+    var element = document.querySelectorAll(".topic-tools ,.tools-icon");
+    for (let i = 0; i < element.length; i++) {
         //x.setAttribute("style", "outline-style: inset;");
-        toolsToggle[i].setAttribute("tabindex", "0");
-        toolsToggle[i].addEventListener("focus", "hover", function () {
+        element[i].setAttribute("tabindex", "0");
+        element[i].addEventListener("focus", "hover", function () {
           this.style.outline = "10px","dotted","yellow";
         });
+    }
+    var imageElement = document.querySelectorAll(".postimage");
+    for (let i = 0; i < imageElement.length; i++) {
+        var parent = imageElement[i].parentNode;
+        var wrapper = document.createElement('a');
+        wrapper.setAttribute("href","");
+        wrapper.setAttribute("onclick","console.log('image clicked')");
+        wrapper.setAttribute("target","blank");
+        wrapper.setAttribute("rel","nofollow");
+        wrapper.setAttribute("title","Opens in new window");
+       // wrapper.setAttribute("class","elonw");
+        parent.replaceChild(wrapper, imageElement[i]);
+        wrapper.appendChild(imageElement[i]);
+
+
     }
 }
 
