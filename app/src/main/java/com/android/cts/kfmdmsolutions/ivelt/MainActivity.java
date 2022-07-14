@@ -864,6 +864,16 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             mSwipyRefreshLayout.setRefreshing(false);
 
         }
+        @Override
+        public void onUnhandledKeyEvent(WebView view, KeyEvent event) {
+            boolean longclick = false;
+            if(event.getKeyCode() == 1) {
+                if(event.getAction() == KeyEvent.ACTION_UP){
+                    mywebView.performLongClick();
+                }
+            }
+            return;
+        }
     }
 
     private boolean shouldOverrideUrlLoading(WebView view, Uri request) {
