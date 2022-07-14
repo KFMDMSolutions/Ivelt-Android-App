@@ -269,8 +269,6 @@ function addFocus(){
         wrapper.setAttribute("onclick","console.log('image clicked')");
         wrapper.setAttribute("target","blank");
         wrapper.setAttribute("rel","nofollow");
-        wrapper.setAttribute("title","Opens in new window");
-       // wrapper.setAttribute("class","elonw");
         parent.replaceChild(wrapper, imageElement[i]);
         wrapper.appendChild(imageElement[i]);
 
