@@ -866,10 +866,20 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }
         @Override
         public void onUnhandledKeyEvent(WebView view, KeyEvent event) {
-            boolean longclick = false;
             if(event.getKeyCode() == 1) {
                 if(event.getAction() == KeyEvent.ACTION_UP){
                     mywebView.performLongClick();
+
+                }
+            }
+            if(event.getKeyCode() == 67) {
+                if(event.getAction() == KeyEvent.ACTION_UP){
+                    if (mywebView.canGoBack()) {
+                        mywebView.goBack();
+                    } else {
+                        finish();
+                    }
+
                 }
             }
             return;
