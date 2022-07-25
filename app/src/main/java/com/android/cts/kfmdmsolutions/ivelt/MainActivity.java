@@ -874,11 +874,15 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             }
             if(event.getKeyCode() == 67) {
                 if(event.getAction() == KeyEvent.ACTION_UP){
-                    if (mywebView.canGoBack()) {
-                        mywebView.goBack();
-                    } else {
-                        finish();
+                    if (!mywebView.onCheckIsTextEditor()) {
+                        if (mywebView.canGoBack()) {
+                            mywebView.goBack();
+                        } else {
+                            finish();
+                        }
+
                     }
+
 
                 }
             }
