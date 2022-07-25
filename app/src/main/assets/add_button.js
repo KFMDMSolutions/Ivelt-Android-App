@@ -253,7 +253,7 @@ function mozWrapApp(txtarea, open, close) {
 }
 
 function addFocus(){
-    var element = document.querySelectorAll(".topic-tools ,.tools-icon");
+    var element = document.querySelectorAll(".topic-tools ,.tools-icon, .spoilbtn");
     for (let i = 0; i < element.length; i++) {
         //x.setAttribute("style", "outline-style: inset;");
         element[i].setAttribute("tabindex", "0");
