@@ -7,7 +7,7 @@ Official Releases can be seen here:
 
 https://play.google.com/store/apps/details?id=com.kfmdmsolutions.ivelt
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/KFMDMSolutions/Ivelt?label=Latest%20Release&style=for-the-badge)](https://github.com/KFMDMSolutions/Ivelt/releases)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/KFMDMSolutions/Ivelt-Android-App?label=Latest%20Release&style=for-the-badge)](https://github.com/KFMDMSolutions/Ivelt-Android-App/releases)
 
 
 
