@@ -1,22 +1,27 @@
-function createButton(icon, reference, customClass, title, text, onclick) {
+function createButton(reference, customClass, title, text, onclick, itext="") {
     let li = document.createElement('li');
     let a = document.createElement('a');
     let span = document.createElement('span');
-    let img = document.createElement('img');
-    img.setAttribute('src', `https://www.ivelt.com/kfmdm/resources/drawable/${icon}`)
+    let i = document.createElement('i');
+    //let img = document.createElement('img');
+    //img.setAttribute('src', `https://www.ivelt.com/kfmdm/resources/drawable/${icon}`)
     if (reference){
         a.setAttribute('href', reference);
     }
     if (onclick){
         a.setAttribute('onClick', onclick)
     }
-    a.setAttribute('class', `button custom-button ${customClass}`);
+    a.setAttribute('class', 'button button-icon-only custom-btn ');
     a.setAttribute('title',title );
+    i.setAttribute('class', `icon ${customClass} fa-fw`);
+    i.setAttribute('aria-hidden', 'true');
+    i.innerText = itext;
     span.innerText = text;
+    a.appendChild(i);
     a.appendChild(span);
-    a.appendChild(img);
     li.appendChild(a);
-    return {li, a, span, img}
+
+    return {li, a, span, i}
 }
 
 function getPMHref(id) {
@@ -33,7 +38,7 @@ function addBtn(){
     var needUpdating = false;
     btns.forEach(btn => {
         // Check if custom buttons have been added already, if yes ignore.
-        if(btn.getElementsByClassName('custom-button').length > 0){
+        if(btn.getElementsByClassName('custom-btn').length > 0){
             return;
         }
         needUpdating = true
@@ -48,18 +53,19 @@ function addBtn(){
         let strippedId = id.replace("post_content", "")
         strippedId = strippedId.replace("pr", "")
         if (!isPosting){
-            addSimpleButton(btn, 'share.png', null, 'share-icon', 'טייל מיט די תגובה','טייל מיט', `sharePost(${id})`)
+            addSimpleButton(btn, null, 'fa-share-alt', 'טייל מיט די תגובה','טייל מיט', `sharePost(${id})`)
             addCopyQuoteButton(btn, id.replace("post_content", ""))
             let pm_href = getPMHref(id);
             if (pm_href){
-                addSimpleButton(btn, 'pm_icon.png', pm_href, "app-pm-icon", 'שיק א פריוואטע מעסעדזש', 'שיק א פריוואטע מעסעדזש')
+                addSimpleButton(btn, pm_href, "fa-commenting", 'שיק א פריוואטע מעסעדזש', 'שיק א פריוואטע מעסעדזש')
             }
         }
         let pingOnClick = `ping_user(${strippedId})`
-        addSimpleButton(btn, 'baseline_alternate_email_black_24dp.png', null, 'ping-icon', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
+        addSimpleButton(btn, null, 'fa-at', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
         if (contentElement.innerHTML.includes("blockquote")) {
             addQuoteLastButton(btn, isPosting);
         }
+
         let responsiveMenu = btn.getElementsByClassName('responsive-menu').item(0);
         try {
             btn.removeChild(btn.getElementsByClassName('responsive-menu').item(0))
@@ -78,39 +84,41 @@ function addBtn(){
     }
 }
 
-function addSimpleButton(btn, icon, href, customClass, title, text, onclick){
-    let button = createButton(icon, href, customClass, title, text, onclick);
+function addSimpleButton(btn, href, customClass, title, text, onclick){
+    let button = createButton(href, customClass, title, text, onclick);
     btn.appendChild(button.li);
 }
 
 function getQuoteURL(btn){
-    let quoteButton = btn.querySelector('a.button.icon-button.quote-icon');
-    if (!quoteButton){
+    let quoteButton = btn.querySelector('i.icon.fa-quote-left.fa-fw');
+    let quoteUrl = quoteButton.parentElement;
+    if (!quoteUrl){
         return null;
     }
-    let href = quoteButton.getAttribute('href');
+    let href = quoteUrl.getAttribute('href');
     return href;
 }
 function addCopyQuoteButton(btn, postID){
     let href = getPMHref(postID) || getQuoteURL(btn)
     if (!href){
-        addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
+        addSimpleButton(btn, null, 'fa-copy', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
         return;
     }
-    addSimpleButton(btn, 'ivelt_logo48.png', null, 'copy-quote', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuote("${href}", "${postID}")`)
+    addSimpleButton(btn, null, 'fa-copy', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuote("${href}", "${postID}")`)
 }
 function addQuoteLastButton(btn, isPosting) {
 
     let href = getQuoteURL(btn)
     if (!href){
+
         return;
     }
     var onclick = null;
     if (isPosting){
-       onclick = "last" + btn.querySelector('a.button.icon-button.quote-icon').getAttribute('onclick');
+       onclick = "last" + btn.querySelector('i.icon.fa-quote-left.fa-fw').parentElement.getAttribute('onclick');
 //       button.a.setAttribute("onclick", "last" + onclick);
     }
-    let button = createButton('quote_last.png', href + '&last=true', 'quote-last', 'ציטיר בלויז די לעצטע תגובה', 'ציטיר לעצטע', onclick);
+    let button = createButton(href + '&last=true', 'fa-quote-left last', 'ציטיר בלויז די לעצטע תגובה', 'ציטיר לעצטע', onclick, '1');
 
     btn.appendChild(button.li);
 }
@@ -126,9 +134,15 @@ function hideButtons(){
 function hideButton(selector){
     let buttons = document.querySelectorAll(selector);
     buttons.forEach(button => {
-        button.classList.add('app-hidden');
-        if(button.parentElement.classList.contains('clone-first')){
-            button.parentElement.classList.add('app-hidden')
+        if(selector == '.profile-contact'){
+            button.classList.add('app-hidden');
+        }else{
+            if(button.parentElement.parentElement.classList.contains('clone-first')){
+                button.parentElement.parentElement.parentElement.classList.add('app-hidden')
+            }
+            else{
+                button.parentElement.classList.add('app-hidden');
+            }
         }
     })
 }
@@ -174,7 +188,7 @@ function sharePost(id){
 }
 
 function getPostLink(postID){
-    return `https://www.ivelt.com/forum/viewtopic.php?p=${postID}#p${postID}`;
+    return `https://www.IVELT.com/forum/viewtopic.php?p=${postID}#p${postID}`;
 }
 
 function copyQuoteParse(post_id){
@@ -186,7 +200,8 @@ function copyQuoteParse(post_id){
 //    android.copyToClipboard(`[quote="${username}"]${bbcodeParser.htmlToBBCode(html).replaceAll('<br>', '')} [/quote] [url=${post_url}]מקור[/url]`)
     android.copyToClipboard(`[quote="${username}"]${converter.feed(html)} [/quote] [url=${post_url}]מקור[/url]`)
 }
-function getUsername(post_id, prefix = 'p'){
+
+function getPostDetails(post_id, prefix = 'p'){
     var usernameE = document.querySelector(`#${prefix}${post_id} .username`)
     if (!usernameE){
        var usernameE = document.querySelector(`#p${prefix}${post_id} .username-coloured`)
@@ -195,26 +210,54 @@ function getUsername(post_id, prefix = 'p'){
     if(usernameE){
        username = usernameE.innerText
     }
-    return username
+
+    var idE = document.querySelector(`#${prefix}${post_id} .username`);
+    if (!idE){
+       var usernameE = document.querySelector(`#p${prefix}${post_id} .username-coloured`)
+    }
+    var usernameLink = ""
+    let id =""
+    if(idE){
+       usernameLink = idE.href;
+       id = usernameLink.split("u=")[1];
+    }
+    var tsE = document.querySelector(`#${prefix}${post_id} time`)
+    if (!tsE){
+        var tsE = document.querySelector(`#${prefix}${post_id} [href='#postingbox']`).getAttribute('onclick')
+        if(tsE)
+            var time = tsE.match('(?<=time:)(.*)(?=,user)')[0];
+    }else{
+        var ts = Date.parse(tsE.dateTime)
+        var time = ts / 1000
+    }
+
+
+
+    return {
+        "username":username,
+        "id":id,
+        "time":time
+    };
 }
 
 function ping_user(post_id){
-    let link = getPostLink(post_id)
+
     if (window.location.href.includes("posting.php")){
-        let username = getUsername(post_id,"pr")
-        let text = `[url=${link}][quote="${username}"]\n[/quote][/url]`
+        let PostDetails = getPostDetails(post_id,"pr")
+        let text = `[quote="${PostDetails.username}" user_id=${PostDetails.id} time=${PostDetails.time} post_id=${post_id}]\n[/quote]`
         insert_text(text)
     }else{
-        let username = getUsername(post_id)
-        let text = `[url=${link}][quote="${username}"]\n[/quote][/url]`
-	try {
-             addText(text)
-        }
-        catch (exception_var) {
+        let PostDetails = getPostDetails(post_id)
+        let text = `[quote="${PostDetails.username}" user_id=${PostDetails.id} time=${PostDetails.time} post_id=${post_id}]\n[/quote]`
+
+        try {
+            addText(text)
+        }catch (exception_var) {
              android.copyToClipboard(text)
         }
     }
 }
+
 function addText(text){
     var textarea = document.querySelector("#message-box textarea");
 

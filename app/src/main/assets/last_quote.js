@@ -71,11 +71,24 @@
         )
     }
 
-    function lastaddquote(post_id, username) {
+   function lastaddquote(post_id, username, l_wrote, attributes ) {
     	let theSelection = getSelection2(post_id)
     	if (theSelection) {
-    		let text = '[quote="' + username + '"]' + theSelection + '[/quote]'
+    		let text = '[quote="' + username + '" post_id='+attributes.post_id+' time='+attributes.time+' user_id='+attributes.user_id+']' + theSelection + '[/quote]'
     		insert_text(removeNestedQuotes(text));
     	}
     	return;
     }
+//            function lastaddquote(post_id, username, l_wrote, attributes ) {
+//
+//            	let theSelection = getSelection2(post_id)
+//            	if (theSelection) {
+//            	    let text = removeNestedQuotes(theSelection)
+//            	    attributes.author = username;
+//
+//                    insert_text(generateQuote(text, attributes))
+//
+//            		insert_text();
+//            	}
+//            	return;
+//            }

@@ -80,8 +80,6 @@
     <string name="mark_read">Mark as read</string>
     <string name="hidden_title">Hidden Buttons</string>
     <string name="hidden_summary">Choose which buttons should be hidden</string>
-    <string name="hide_user_title">Hide Username</string>
-    <string name="hide_user_avatar">Hide username and avatar</string>
     <string name="shortcut_label">Sign Out</string>
     <string name="ivelt_settings_title">iVelt Settings</string>
     <string name="swipe_settings">Swipe Settings</string>
@@ -153,19 +151,19 @@
         <item>Contact Button</item>
     </string-array>
     <string-array name="hidden_button_values">
-        <item>.unread-icon</item>
-        <item>.report-icon</item>
-        <item>.quote-icon</item>
-        <item>.edit-icon</item>
-        <item>.quote-last</item>
-        <item>.delete-icon</item>
-        <item>.share-icon</item>
-        <item>.copy-quote</item>
-        <item>.app-pm-icon</item>
-        <item>.ping-icon</item>
+        <item>i.icon.fa-file.fa-fw</item>
+        <item>i.icon.fa-exclamation.fa-fw</item>
+        <item>i.icon.fa-quote-left.fa-fw</item>
+        <item>i.icon.fa-pencil.fa-fw</item>
+        <item>i.icon.fa-quote-left.last.fa-fw</item>
+        <item>i.icon.fa-times.fa-fw</item>
+        <item>i.icon.fa-share-alt.fa-fw</item>
+        <item>i.icon.fa-copy.fa-fw</item>
+        <item>i.icon.fa-commenting.fa-fw</item>
+        <item>i.icon.fa-at.fa-fw</item>
         <item>.profile-contact</item>
     </string-array>
     <string-array name="hidden_default">
-        <item>.app-pm-icon</item>
+        <item>i.icon.fa-commenting.fa-fw</item>
     </string-array>
 </resources>

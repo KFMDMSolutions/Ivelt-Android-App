@@ -80,7 +80,11 @@ public class NotificationService extends Service {
     public static final String DIRECT_MESSAGES_NOTIFICATION_CHANNEL = "DM";
     public static final String QUOTES_NOTIFICATION_CHANNEL = "Quotes";
     public static final String BOOKMARK_NOTIFICATION_CHANNEL = "BM";
+
+    public static final String THANKS_NOTIFICATION_CHANNEL = "thanks";
     public static final String OTHER_NOTIFICATION_CHANNEL = "other";
+
+
     public static final String SERVICE_NOTIFICATION_CHANNEL = "service";
     public static final String SENT_NOTIFICATION_LIST = "SentNotificationList";
     public static NotificationService instance;
@@ -117,6 +121,7 @@ public class NotificationService extends Service {
         createNotificationChannel(context, "Direct Messages", "Show a notification when you get a direct message", DIRECT_MESSAGES_NOTIFICATION_CHANNEL);
         createNotificationChannel(context, "Quotes", "Show a notification when someone quotes you", QUOTES_NOTIFICATION_CHANNEL);
         createNotificationChannel(context, "Bookmarks", "Show a notification when there is a new post in a thread you bookmarked", BOOKMARK_NOTIFICATION_CHANNEL);
+        createNotificationChannel(context, "Thanks", "Show a notification when someone thanks your post", THANKS_NOTIFICATION_CHANNEL);
         createNotificationChannel(context, "Other Notifications", "Show other notifications, e. g. Report closed, Notification Accepted etc.", OTHER_NOTIFICATION_CHANNEL);
         createNotificationChannel(context, "Service Notifications", "Show app service notifications - needed for updating the notification", SERVICE_NOTIFICATION_CHANNEL);
     }
@@ -278,7 +283,7 @@ public class NotificationService extends Service {
 
 
     enum NotificationType {
-        PRIVATE_MESSAGE(DIRECT_MESSAGES_NOTIFICATION_CHANNEL), QUOTE(QUOTES_NOTIFICATION_CHANNEL), BOOKMARK(BOOKMARK_NOTIFICATION_CHANNEL), OTHER(OTHER_NOTIFICATION_CHANNEL);
+        PRIVATE_MESSAGE(DIRECT_MESSAGES_NOTIFICATION_CHANNEL), QUOTE(QUOTES_NOTIFICATION_CHANNEL), BOOKMARK(BOOKMARK_NOTIFICATION_CHANNEL), THANKS(THANKS_NOTIFICATION_CHANNEL), OTHER(OTHER_NOTIFICATION_CHANNEL);
 
         String channelID;
 
@@ -298,6 +303,8 @@ public class NotificationService extends Service {
                 case "תגובה":
                 case "נייע אשכול":
                     return BOOKMARK;
+                case "באדאנקט געווארן":
+                    return THANKS;
                 default:
                     return OTHER;
             }

@@ -55,12 +55,6 @@
             android:key="hidden_buttons"
             android:summary="@string/hidden_summary"
             android:title="@string/hidden_title" />
-        <CheckBoxPreference
-            android:key="hide_profile"
-            android:icon="@drawable/ic_baseline_person_off_24"
-            android:title="@string/hide_user_title"
-            android:summary="@string/hide_user_avatar"
-            />
         <ListPreference
             android:defaultValue="Never"
             android:entries="@array/post_settings_entries"

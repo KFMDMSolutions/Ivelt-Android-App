@@ -71,10 +71,6 @@ public class IveltWebInterface {
         preferences.edit().putString("default_page", defaultPage).apply();
         Toast.makeText(context,"Default Page Updated", Toast.LENGTH_SHORT).show();
     }
-    @JavascriptInterface
-    public boolean shouldHideUsername(){
-        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean("hide_profile", false);
-    }
 
     @JavascriptInterface
     public void saveCredentials(String username, String password){
