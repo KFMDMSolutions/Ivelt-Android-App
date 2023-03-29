@@ -1,9 +1,6 @@
-package com.kfmdmsolutions.ivelt;
+package com.android.cts.kfmdmsolutions.ivelt;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
@@ -23,17 +20,17 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.Message;
 import android.os.Parcel;
 import android.provider.MediaStore;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.webkit.WebViewAssetLoader;
 
@@ -41,11 +38,13 @@ import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.BaseInputConnection;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.MimeTypeMap;
@@ -60,11 +59,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.google.android.material.snackbar.Snackbar;
+
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
-import com.kfmdmsolutions.ivelt.Utilities.Logger;
-import com.kfmdmsolutions.ivelt.Utilities.Utils;
-import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
+import com.android.cts.kfmdmsolutions.ivelt.BuildConfig;
+import com.android.cts.kfmdmsolutions.ivelt.R;
+import com.android.cts.kfmdmsolutions.ivelt.Utilities.Logger;
+import com.android.cts.kfmdmsolutions.ivelt.Utilities.Utils;
+import com.android.cts.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
 import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayout;
 import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 
@@ -78,6 +79,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE;
+import static java.security.AccessController.getContext;
 
 
 public class MainActivity extends AppCompatActivity implements SwipyRefreshLayout.OnRefreshListener {
@@ -272,13 +274,17 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }
         mywebView.setPadding(0, 0, 0, 0);
         registerForContextMenu(mywebView);
-        ActivityCompat.requestPermissions(this, new String[]{
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.CAMERA,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
 
-        }, 0);
+            }, 0);
+        }else {
+            requestPermissions();
+        }
 
         showDialog();
 
@@ -328,6 +334,22 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         mSwipyRefreshLayout.setOnRefreshListener(this);
 
+    }
+    private void requestPermissions(){
+        String[]  permissions = {
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        };
+        for (String permission: permissions) {
+            //Do your stuff here
+            if (ContextCompat.checkSelfPermission(this, String.valueOf(permission))  != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, new String[]{
+                        permission
+                }, 0);
+
+            }
+        }
     }
 
 
@@ -827,6 +849,11 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             }
         }
 
+        @SuppressWarnings("deprecation")
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            return MainActivity.this.shouldOverrideUrlLoading(view, Uri.parse(url));
+        }
+        @RequiresApi(api = Build.VERSION_CODES.N)
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             return MainActivity.this.shouldOverrideUrlLoading(view, request.getUrl());
         }
@@ -857,6 +884,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         @Override
         public void onPageFinished(WebView view, String url) {
+            Log.d("test",iveltWebInterface.getUsername());
             mSwipyRefreshLayout.setRefreshing(false);
 
             FirebaseCrashlytics.getInstance().log("current url " + currentUrl);
@@ -934,6 +962,28 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         private void hideProgress() {
             mSwipyRefreshLayout.setRefreshing(false);
 
+        }
+
+        @Override
+        public void onUnhandledKeyEvent(WebView view, KeyEvent event) {
+            if(event.getKeyCode() == 1) {
+                if(event.getAction() == KeyEvent.ACTION_UP){
+                    mywebView.performLongClick();
+                }
+            }
+            if(event.getKeyCode() == 67) {
+                if(event.getAction() == KeyEvent.ACTION_UP){
+                    if (!mywebView.onCheckIsTextEditor()) {
+                        if (mywebView.canGoBack()) {
+                            mywebView.goBack();
+                        } else {
+                            finish();
+                        }
+
+                    }
+                }
+            }
+            return;
         }
     }
 
@@ -1093,43 +1143,26 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             input.setSingleLine();
             input.setTransformationMethod(PasswordTransformationMethod.getInstance());
             alert.setView(input);
-
             alert.setCancelable(false)
                     .setTitle("Login")
                     .setMessage("Enter Your Password");
-
-
-
-
-            alert.setPositiveButton("Login", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    String value = input.getText().toString();
-                    if (!value.equals(password)) {
-
-                        AlertDialog.Builder alert2 = new AlertDialog.Builder(MainActivity.this);
-                        alert2.setTitle("Login")
-                                .setMessage("The password you have entered is incorrect.\n Please try again!");
-
-                        alert2.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                showDialog();
-
-                            }
-                        });
-                        alert2.show();
-                    }
-                    else {
-                        mywebView.setVisibility(View.VISIBLE);
-                    }
-
+            alert.setPositiveButton("Login", (dialog,  whichButton)-> {
+                String value = input.getText().toString();
+                if (!value.equals(password)) {
+                    AlertDialog.Builder alert2 = new AlertDialog.Builder(MainActivity.this);
+                    alert2.setTitle("Login")
+                            .setMessage("The password you have entered is incorrect.\n Please try again!");
+                    alert2.setPositiveButton("Retry", (dialog1, id) -> {
+                            showDialog();
+                    });
+                    alert2.show();
                 }
+                else {
+                    mywebView.setVisibility(View.VISIBLE);
+                }
+
             });
-
             alert.show();
-
-
         }
     }
-
 }

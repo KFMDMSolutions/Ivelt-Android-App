@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="@string/app_settings">
+
+        <ListPreference
+            android:entries="@array/language_entries"
+            android:entryValues="@array/language_values"
+            android:defaultValue="en"
+            android:key="language"
+            android:title="@string/language_title"
+            android:icon="@drawable/ic_baseline_language_24"
+            android:summary="@string/language_summary"/>
+
+        <!--ListPreference/-->
+        <CheckBoxPreference
+            android:key="firebase"
+            android:icon="@drawable/ic_baseline_bug_report_24"
+            android:title="@string/firebase_title"
+            android:summary="@string/firebase_summary"
+            />
+        <EditTextPreference
+            android:key="password"
+            android:singleLine="true"
+            android:title="@string/app_password_title"
+            android:icon="@drawable/ic_baseline_lock_24"
+            android:summary="@string/app_password_summary"
+            />
+
+        <Preference
+            android:key="logout"
+            android:title="@string/logout_title"
+            android:icon="@drawable/ic_baseline_logout_24"
+            android:summary="@string/logout_summary"
+            />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/ivelt_settings_title">
+        <ListPreference
+            android:defaultValue="http://www.ivelt.com/forum/index.php"
+            android:entries="@array/pages_entries"
+            android:entryValues="@array/pages_values"
+            android:icon="@drawable/ic_baseline_app_shortcut_24"
+            android:key="default_page"
+            android:summary="@string/default_page_summary"
+            android:title="@string/default_page_title" />
+        <MultiSelectListPreference
+            android:defaultValue="@array/hidden_default"
+            android:entries="@array/hidden_button_entries_flip"
+            android:entryValues="@array/hidden_button_values_flip"
+            android:icon="@drawable/ic_baseline_disabled_visible_24"
+            android:key="hidden_buttons"
+            android:summary="@string/hidden_summary"
+            android:title="@string/hidden_title" />
+        <ListPreference
+            android:defaultValue="Never"
+            android:entries="@array/post_settings_entries"
+            android:entryValues="@array/post_settings"
+            android:icon="@drawable/ic_baseline_post_24"
+            android:key="new_posts"
+            android:summary="@string/posts_summary"
+            android:title="@string/new_posts" />
+        <CheckBoxPreference
+            android:key="sefaria"
+            android:defaultValue="false"
+            android:icon="@drawable/ic_sefaria"
+            android:title="@string/sefaria_title"
+            android:summary="@string/sefaria_summary"
+            />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/other_settings_title">
+
+        <Preference
+            android:icon="@drawable/ic_baseline_file_copy_24"
+            android:key="Logs"
+            android:summary="@string/logs_summary"
+            android:title="@string/logs_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

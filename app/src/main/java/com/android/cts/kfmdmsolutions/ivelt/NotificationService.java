@@ -1,4 +1,4 @@
-package com.kfmdmsolutions.ivelt;
+package com.android.cts.kfmdmsolutions.ivelt;
 
 import android.app.IntentService;
 import android.app.Notification;
@@ -38,6 +38,7 @@ import android.text.Html;
 import android.text.format.DateUtils;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.TaskStackBuilder;
@@ -48,9 +49,9 @@ import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
-import com.kfmdmsolutions.ivelt.Utilities.Logger;
-import com.kfmdmsolutions.ivelt.Utilities.Utils;
-import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
+import com.android.cts.kfmdmsolutions.ivelt.Utilities.Logger;
+import com.android.cts.kfmdmsolutions.ivelt.R;
+import com.android.cts.kfmdmsolutions.ivelt.Utilities.Utils;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -63,8 +64,6 @@ import java.util.stream.Collectors;
 
 import static android.content.Intent.ACTION_BATTERY_CHANGED;
 import static android.os.BatteryManager.EXTRA_PLUGGED;
-import static com.kfmdmsolutions.ivelt.MainActivity.EXTRA_URL;
-import static com.kfmdmsolutions.ivelt.MainActivity.coreCookieManager;
 import static java.text.DateFormat.MEDIUM;
 
 /**
@@ -159,6 +158,7 @@ public class NotificationService extends Service {
         context.startService(intent);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public static void checkForNotifications(Context context) {
 
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
@@ -192,6 +192,7 @@ public class NotificationService extends Service {
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private static void loginAndRetry(Context context) throws  IOException{
         IveltWebInterface iveltWebInterface = new IveltWebInterface(context);
         Document doc = Utils.getConnection("https://www.ivelt.com/forum/ucp.php?mode=login", null, context)
@@ -203,11 +204,14 @@ public class NotificationService extends Service {
                 .followRedirects(true)
                 .post();
         Elements notificationList = doc.select(".notification_list");
+
         if (!notificationList.isEmpty()) {
+            Logger.getInstance(context).log("test login "+ doc.title());
            parseNotificationPage(context, notificationList);
        }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private static void parseNotificationPage(Context context, Elements notificationList) {
         Elements newNotifications = notificationList.select(".row.bg3");
         Elements notifications = newNotifications.select(".notifications");
@@ -273,7 +277,7 @@ public class NotificationService extends Service {
         Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
         int id = 10001;
         if (info != null) {
-                intent.putExtra(EXTRA_URL, info.url);
+                intent.putExtra(MainActivity.EXTRA_URL, info.url);
             id = (int) info.id;
         }
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context.getApplicationContext());
@@ -353,6 +357,7 @@ public class NotificationService extends Service {
         String url;
         long id;
 
+        @RequiresApi(api = Build.VERSION_CODES.N)
         NotificationInfo(Element notificationElement) {
 
             Elements link = notificationElement.getElementsByTag("a");
@@ -517,6 +522,7 @@ public class NotificationService extends Service {
         }
         if (period > 0) {
             runnable = new Runnable() {
+                @RequiresApi(api = Build.VERSION_CODES.N)
                 @Override
                 public void run() {
                     Logger.getInstance(NotificationService.this).log("Checking for notifications");
@@ -632,7 +638,7 @@ public class NotificationService extends Service {
         intent.setAction(ACTION_MARK_NOTIFICATION_READ);
         android.util.Log.d("MNRID", "Putting id mri " + info.id);
         intent.putExtra(EXTRA_NOTIFICATION_ID, info.id);
-        intent.putExtra(EXTRA_URL, info.url);
+        intent.putExtra(MainActivity.EXTRA_URL, info.url);
         return PendingIntent.getService(context.getApplicationContext(), (int) info.id, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
@@ -654,9 +660,10 @@ public class NotificationService extends Service {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        java.net.CookieHandler.setDefault(coreCookieManager);
+        java.net.CookieHandler.setDefault(MainActivity.coreCookieManager);
         if (intent != null && intent.getAction() != null) {
             switch (intent.getAction()) {
                 case ACTION_UPDATE_NOTIFICATIONS:
@@ -673,7 +680,7 @@ public class NotificationService extends Service {
                     saveNotificationList();
                     break;
                 case ACTION_MARK_NOTIFICATION_READ:
-                    String url = intent.getStringExtra(EXTRA_URL);
+                    String url = intent.getStringExtra(MainActivity.EXTRA_URL);
                     long mnrid = intent.getLongExtra(EXTRA_NOTIFICATION_ID, -1);
                     android.util.Log.d("MNRID", mnrid + "");
                     if (url != null) {
@@ -704,6 +711,7 @@ public class NotificationService extends Service {
         return START_STICKY;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private void updateCheckTimes() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean paused = preferences.getBoolean("pause_notifications", false);
