@@ -166,30 +166,4 @@
     <string-array name="hidden_default">
         <item>i.icon.fa-commenting.fa-fw</item>
     </string-array>
-
-    <string-array name="hidden_button_entries_flip">
-        <item>Mark Unread Button</item>
-        <item>Report Button</item>
-        <item>Quote Button</item>
-        <item>Fix Button</item>
-        <item>Quote Last Button</item>
-        <item>Delete Button</item>
-        <item>Copy to iVelt</item>
-        <item>Private Message</item>
-        <item>Mention</item>
-        <item>Contact Button</item>
-    </string-array>
-
-    <string-array name="hidden_button_values_flip">
-        <item>i.icon.fa-file.fa-fw</item>
-        <item>i.icon.fa-exclamation.fa-fw</item>
-        <item>i.icon.fa-quote-left.fa-fw</item>
-        <item>i.icon.fa-pencil.fa-fw</item>
-        <item>i.icon.fa-quote-left.last.fa-fw</item>
-        <item>i.icon.fa-times.fa-fw</item>
-        <item>i.icon.fa-copy.fa-fw</item>
-        <item>i.icon.fa-commenting.fa-fw</item>
-        <item>i.icon.fa-at.fa-fw</item>
-        <item>.profile-contact</item>
-    </string-array>
 </resources>

@@ -1,4 +1,4 @@
-package com.android.cts.kfmdmsolutions.ivelt;
+package com.kfmdmsolutions.ivelt;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
@@ -8,8 +8,6 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-
-import com.android.cts.kfmdmsolutions.ivelt.R;
 
 import java.util.Locale;
 

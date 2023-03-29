@@ -1,4 +1,4 @@
-'use strict';
+
 function addSettings(){
     let quickLinks = document.querySelector('#quick-links') ;
     if (!quickLinks){
@@ -16,23 +16,17 @@ function addSettings(){
     settings.setAttribute('role', 'menuitem') ;
     let settingsIcon = document.createElement('i') ;
     settingsIcon.setAttribute('class', 'icon fa-gear fa-fw') ;
-    let settingsTitle = document.createElement('span') ;
+    settingsTitle = document.createElement('span') ;
     settingsTitle.innerHTML = 'עפפ סעטטינגס' ;
     settings.appendChild(settingsIcon) ;
     settings.appendChild(settingsTitle) ;
     settingsListItem.appendChild(settings) ;
-    try {
-        list.append(settingsListItem);
-    } catch (e) {
-        list.appendChild(settingsListItem);
-    }
+    list.append(settingsListItem);
 }
 
 function addCopyright(){
-    console.log(android.getVersionString())
     let span = document.createElement("span")
-    span.dir = 'ltr';
-    span.innerText = 'App by KF MDM v '+android.getVersionString();
+    span.innerText = "App by KF MDM v" + android.getVersionString();
     let copyright = document.querySelectorAll('.copyright').item(0);
     if (copyright){
         copyright.appendChild(span);

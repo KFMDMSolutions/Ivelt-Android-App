@@ -1,4 +1,4 @@
-package com.android.cts.kfmdmsolutions.ivelt;
+package com.kfmdmsolutions.ivelt;
 
 import android.content.Intent;
 import android.os.Bundle;

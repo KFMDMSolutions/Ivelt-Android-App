@@ -1,4 +1,4 @@
-package com.android.cts.kfmdmsolutions.ivelt.javascript;
+package com.kfmdmsolutions.ivelt.javascript;
 
 public class AddSettingsElement {
     public static final String JS_ADD_ELEMENT_TO_LIST =

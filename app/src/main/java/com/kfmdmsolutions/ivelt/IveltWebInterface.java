@@ -1,16 +1,14 @@
-package com.android.cts.kfmdmsolutions.ivelt;
+package com.kfmdmsolutions.ivelt;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.text.Html;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
 import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -19,8 +17,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import com.android.cts.kfmdmsolutions.ivelt.BuildConfig;
-
+import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import java.util.HashSet;
 
 public class IveltWebInterface {
@@ -97,12 +94,7 @@ public class IveltWebInterface {
     public String getVersionString(){
         return BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")";
     }
-    @JavascriptInterface
-    public boolean isSharePostAvailable(){
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
-    }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @JavascriptInterface
     public void sharePost(String html){
         String parsedHtml = parsePostHtml(html);
@@ -116,7 +108,6 @@ public class IveltWebInterface {
         context.startActivity(Intent.createChooser(shareIntent, "null"));
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     private String parsePostHtml(String html){
         Document doc = Jsoup.parse(html);
         Element body = doc.body();

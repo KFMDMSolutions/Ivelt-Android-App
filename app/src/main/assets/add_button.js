@@ -1,8 +1,4 @@
-'use strict';
-function createButton(reference, customClass, title, text, onclick, itext) {
-    if (itext === undefined) {
-        itext = '';
-    }
+function createButton(reference, customClass, title, text, onclick, itext="") {
     let li = document.createElement('li');
     let a = document.createElement('a');
     let span = document.createElement('span');
@@ -28,7 +24,6 @@ function createButton(reference, customClass, title, text, onclick, itext) {
     return {li, a, span, i}
 }
 
-
 function getPMHref(id) {
     let pm_button = document.querySelector(`#profile${id.replace("post_content", "")} .pm-icon`)
     if (pm_button){
@@ -41,14 +36,13 @@ function addBtn(){
     let btns = document.querySelectorAll('.post-buttons');
     let isPosting = (window.location.href.includes("posting.php"));
     var needUpdating = false;
-
-    Array.prototype.forEach.call(btns,function(btn) {
+    btns.forEach(btn => {
         // Check if custom buttons have been added already, if yes ignore.
         if(btn.getElementsByClassName('custom-btn').length > 0){
             return;
         }
         needUpdating = true
-        Array.prototype.forEach.call(btn.querySelectorAll('li.hidden:not(.responsive-menu)'),function(b) {
+        btn.querySelectorAll('li.hidden:not(.responsive-menu)').forEach(b => {
             if (b.getAttribute('class') == "hidden"){
                 b.removeAttribute('class')
             }
@@ -59,9 +53,7 @@ function addBtn(){
         let strippedId = id.replace("post_content", "")
         strippedId = strippedId.replace("pr", "")
         if (!isPosting){
-            if (android.isSharePostAvailable()){
-                addSimpleButton(btn, '#', 'fa-share-alt', 'טייל מיט די תגובה','טייל מיט', `sharePost(${id})`)
-            }
+            addSimpleButton(btn, null, 'fa-share-alt', 'טייל מיט די תגובה','טייל מיט', `sharePost(${id})`)
             addCopyQuoteButton(btn, id.replace("post_content", ""))
             let pm_href = getPMHref(id);
             if (pm_href){
@@ -69,7 +61,7 @@ function addBtn(){
             }
         }
         let pingOnClick = `ping_user(${strippedId})`
-        addSimpleButton(btn, '#', 'fa-at', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
+        addSimpleButton(btn, null, 'fa-at', 'דערמאן תגובה', 'דערמאן תגובה', pingOnClick)
         if (contentElement.innerHTML.includes("blockquote")) {
             addQuoteLastButton(btn, isPosting);
         }
@@ -84,7 +76,7 @@ function addBtn(){
     let navUpdate = addDefaultPage();
     if (needUpdating || navUpdate){
         let navBar = document.querySelector('#nav-footer');
-        Array.prototype.forEach.call(navBar.querySelectorAll('li.hidden:not(.responsive-menu)'),function(si) {
+        navBar.querySelectorAll('li.hidden:not(.responsive-menu)').forEach(si => {
             si.setAttribute('class', si.getAttribute('class').replace('hidden', ''))
         })
         navBar.removeChild(navBar.getElementsByClassName('responsive-menu').item(0))
@@ -98,27 +90,21 @@ function addSimpleButton(btn, href, customClass, title, text, onclick){
 }
 
 function getQuoteURL(btn){
-
-    try{
-        let quoteButton = btn.querySelector('i.icon.fa-quote-left.fa-fw');
-        let quoteUrl = quoteButton.parentElement;
-            if (!quoteUrl){
-                return null;
-            }
-            let href = quoteUrl.getAttribute('href');
-            return href;
-    }catch (e){
-
+    let quoteButton = btn.querySelector('i.icon.fa-quote-left.fa-fw');
+    let quoteUrl = quoteButton.parentElement;
+    if (!quoteUrl){
+        return null;
     }
-
+    let href = quoteUrl.getAttribute('href');
+    return href;
 }
 function addCopyQuoteButton(btn, postID){
     let href = getPMHref(postID) || getQuoteURL(btn)
     if (!href){
-        addSimpleButton(btn, '#', 'fa-copy', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
+        addSimpleButton(btn, null, 'fa-copy', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuoteParse("${postID}")`)
         return;
     }
-    addSimpleButton(btn, '#', 'fa-copy', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuote("${href}", "${postID}")`)
+    addSimpleButton(btn, null, 'fa-copy', 'ציטיר אין אנדערע אשכול', 'ציטיר אין אנדערע אשכול', `copyQuote("${href}", "${postID}")`)
 }
 function addQuoteLastButton(btn, isPosting) {
 
@@ -140,19 +126,19 @@ function addQuoteLastButton(btn, isPosting) {
 function hideButtons(){
     let hidden = android.getHiddenElements()
     let parsed = JSON.parse(hidden);
-    for (let button of parsed){
+    for (button of parsed){
         hideButton(button)
     }
 }
 
 function hideButton(selector){
     let buttons = document.querySelectorAll(selector);
-    Array.prototype.forEach.call(buttons,function(button) {
+    buttons.forEach(button => {
         if(selector == '.profile-contact'){
             button.classList.add('app-hidden');
         }else{
             if(button.parentElement.parentElement.classList.contains('clone-first')){
-                button.parentElement.parentElement.classList.add('app-hidden')
+                button.parentElement.parentElement.parentElement.classList.add('app-hidden')
             }
             else{
                 button.parentElement.classList.add('app-hidden');
@@ -215,10 +201,7 @@ function copyQuoteParse(post_id){
     android.copyToClipboard(`[quote="${username}"]${converter.feed(html)} [/quote] [url=${post_url}]מקור[/url]`)
 }
 
-function getPostDetails(post_id, prefix){
-    if (prefix === undefined) {
-        prefix = 'p';
-    }
+function getPostDetails(post_id, prefix = 'p'){
     var usernameE = document.querySelector(`#${prefix}${post_id} .username`)
     if (!usernameE){
        var usernameE = document.querySelector(`#p${prefix}${post_id} .username-coloured`)
@@ -315,33 +298,8 @@ function mozWrapApp(txtarea, open, close) {
 	return;
 }
 
-function addFocus(){
-    var element = document.querySelectorAll(".topic-tools ,.tools-icon, .spoilbtn");
-    for (let i = 0; i < element.length; i++) {
-        //x.setAttribute("style", "outline-style: inset;");
-        element[i].setAttribute("tabindex", "0");
-        element[i].addEventListener("focus", "hover", function () {
-          this.style.outline = "10px","dotted","yellow";
-        });
-    }
-    var imageElement = document.querySelectorAll(".postimage");
-    for (let i = 0; i < imageElement.length; i++) {
-        var parent = imageElement[i].parentNode;
-        var wrapper = document.createElement('a');
-        wrapper.setAttribute("href","");
-        wrapper.setAttribute("onclick","console.log('image clicked')");
-        wrapper.setAttribute("target","blank");
-        wrapper.setAttribute("rel","nofollow");
-        parent.replaceChild(wrapper, imageElement[i]);
-        wrapper.appendChild(imageElement[i]);
-
-
-    }
-}
-
 addBtn();
 hideButtons();
-addFocus();
 
 
 

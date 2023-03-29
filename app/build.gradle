@@ -9,12 +9,12 @@ android {
     buildToolsVersion "31.0.0"
 
     defaultConfig {
-        applicationId "com.android.cts.kfmdmsolutions.ivelt"
-        minSdkVersion 23
+        applicationId "com.kfmdmsolutions.ivelt"
+        minSdkVersion 24
         //noinspection OldTargetApi
         targetSdkVersion 31
-        versionCode 14
-        versionName "3.3.1-plip"
+        versionCode 13
+        versionName "3.3"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.android.cts.kfmdmsolutions.ivelt">
+    package="com.kfmdmsolutions.ivelt">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -24,13 +24,13 @@
             android:name="firebase_crashlytics_collection_enabled"
             android:value="false" />
         <service
-            android:name="com.android.cts.kfmdmsolutions.ivelt.NotificationService"
+            android:name=".NotificationService"
             android:exported="false"/>
 
-        <activity android:name="com.android.cts.kfmdmsolutions.ivelt.SettingsActivity" />
+        <activity android:name=".SettingsActivity" />
         <activity
 
-            android:name="com.android.cts.kfmdmsolutions.ivelt.SplashActivity"
+            android:name=".SplashActivity"
             android:theme="@style/SplashTheme"
             android:exported="true">
             <intent-filter>
@@ -40,7 +40,7 @@
             <meta-data android:name="android.app.shortcuts"
                 android:resource="@xml/shorcuts"/>
         </activity>
-        <activity android:name="com.android.cts.kfmdmsolutions.ivelt.MainActivity"
+        <activity android:name=".MainActivity"
             android:launchMode="standard"
             android:exported="true">
             <intent-filter>
@@ -63,7 +63,7 @@
         </activity>
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.android.cts.kfmdmsolutions.ivelt.fileprovider"
+            android:authorities="com.kfmdmsolutions.ivelt.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

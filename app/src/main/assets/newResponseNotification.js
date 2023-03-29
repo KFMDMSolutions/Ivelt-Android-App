@@ -1,4 +1,3 @@
-'use strict';
 function checkForNewPosts(){
     let currentCount = document.getElementsByClassName("post has-profile").length;
     let lastPost = document.getElementsByClassName("post has-profile")[currentCount -1]

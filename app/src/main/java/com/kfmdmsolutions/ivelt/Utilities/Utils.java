@@ -1,6 +1,9 @@
-package com.android.cts.kfmdmsolutions.ivelt.Utilities;
+package com.kfmdmsolutions.ivelt.Utilities;
+
+import static android.os.Build.VERSION_CODES.R;
 
 import android.content.Context;
+import android.provider.Settings;
 
 import androidx.annotation.NonNull;
 

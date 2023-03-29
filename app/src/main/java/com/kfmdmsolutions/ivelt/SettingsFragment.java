@@ -1,13 +1,12 @@
-package com.android.cts.kfmdmsolutions.ivelt;
+package com.kfmdmsolutions.ivelt;
 
-import static com.android.cts.kfmdmsolutions.ivelt.R.string.error_sending_logs;
+import static com.kfmdmsolutions.ivelt.R.string.error_sending_logs;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -28,8 +27,7 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
-import com.android.cts.kfmdmsolutions.ivelt.R;
-import com.android.cts.kfmdmsolutions.ivelt.Utilities.Logger;
+import com.kfmdmsolutions.ivelt.Utilities.Logger;
 
 import java.util.Locale;
 
@@ -38,12 +36,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             "androidx.preference.PreferenceFragment.DIALOG";
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            setPreferencesFromResource(R.xml.settings, rootKey);
-        }else {
-            setPreferencesFromResource(R.xml.flip_settings, rootKey);
-        }
-
+        setPreferencesFromResource(R.xml.settings, rootKey);
         delayPreferenceChanged("plugged_in");
         delayPreferenceChanged("pause_notifications");
         delayPreferenceChanged("battery");

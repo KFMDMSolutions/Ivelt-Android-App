@@ -1,4 +1,3 @@
-'use strict';
 function addAutoLoginOption(){
     let autoLogin = document.querySelectorAll('label[for="autologin"]').item(0);
     if (!autoLogin){

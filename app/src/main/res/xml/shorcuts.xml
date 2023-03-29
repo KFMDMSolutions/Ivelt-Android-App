@@ -7,7 +7,7 @@
         >
         <intent android:action="com.kfmdm.ivelt.shortcut.logout"
             android:targetPackage="com.kfmdmsolutions.ivelt"
-            android:targetClass="com.android.cts.kfmdmsolutions.ivelt.MainActivity">
+            android:targetClass="com.kfmdmsolutions.ivelt.MainActivity">
             <!--extra
                 android:name="com.kdmfs.mainactivity.url"
                 android:value="http://www.ivelt.com/forum/ucp.php?mode=logout&amp;sid=57320329307503afc3"/-->
