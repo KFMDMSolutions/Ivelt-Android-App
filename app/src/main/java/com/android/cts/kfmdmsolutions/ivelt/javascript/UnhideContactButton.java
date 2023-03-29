@@ -1,4 +1,4 @@
-package com.kfmdmsolutions.ivelt.javascript;
+package com.android.cts.kfmdmsolutions.ivelt.javascript;
 
 public class UnhideContactButton {
     public static String JS_UNHIDE_CONTACT_BUTTON = " " +

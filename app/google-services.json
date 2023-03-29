@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "85491187352",
-    "project_id": "ivelt-forums",
-    "storage_bucket": "ivelt-forums.appspot.com"
+    "project_number": "938346073653",
+    "project_id": "ivelt-furoms-a6",
+    "storage_bucket": "ivelt-furoms-a6.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:85491187352:android:2ef1a64709e2a3dafc5aed",
+        "mobilesdk_app_id": "1:938346073653:android:709f7b24c0a74974e1ab7c",
         "android_client_info": {
-          "package_name": "com.kfmdmsolutions.ivelt"
+          "package_name": "com.android.cts.kfmdmsolutions.ivelt"
         }
       },
       "oauth_client": [
         {
-          "client_id": "85491187352-0buvu4ulo6v6htnh5lp2hovv6fsnt76u.apps.googleusercontent.com",
+          "client_id": "938346073653-2i0dt15m4sblkln65a38oi73o95r3g3q.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyC-C3QEc_4P-m3oLz3L71BkuvQezJxgaV4"
+          "current_key": "AIzaSyAw9dCyuvCu2Izt8CY4bDl1ix47uHZFCPs"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "85491187352-0buvu4ulo6v6htnh5lp2hovv6fsnt76u.apps.googleusercontent.com",
+              "client_id": "938346073653-2i0dt15m4sblkln65a38oi73o95r3g3q.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

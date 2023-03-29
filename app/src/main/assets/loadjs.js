@@ -1,4 +1,3 @@
-
 addJS('last_quote.js');
 if (!document.documentURI.includes("ucp.php")) {
     addJS('add_button.js');

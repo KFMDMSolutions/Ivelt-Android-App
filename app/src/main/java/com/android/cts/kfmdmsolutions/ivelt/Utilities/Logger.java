@@ -1,4 +1,4 @@
-package com.kfmdmsolutions.ivelt.Utilities;
+package com.android.cts.kfmdmsolutions.ivelt.Utilities;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -9,7 +9,7 @@ import android.net.Uri;
 import androidx.core.content.FileProvider;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
-import com.kfmdmsolutions.ivelt.BuildConfig;
+import com.android.cts.kfmdmsolutions.ivelt.BuildConfig;
 
 import java.io.File;
 import java.io.FileWriter;

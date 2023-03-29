@@ -1,4 +1,4 @@
-package com.kfmdmsolutions.ivelt;
+package com.android.cts.kfmdmsolutions.ivelt;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
