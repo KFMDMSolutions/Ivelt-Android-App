@@ -1,9 +1,8 @@
 package com.kfmdmsolutions.ivelt;
 
+import static android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE;
+
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
@@ -23,20 +22,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.Message;
 import android.os.Parcel;
 import android.provider.MediaStore;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.preference.PreferenceManager;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.webkit.WebViewAssetLoader;
-
 import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -60,24 +48,36 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.google.android.material.snackbar.Snackbar;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.preference.PreferenceManager;
+import androidx.webkit.WebViewAssetLoader;
+
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayout;
+import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
-import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayout;
-import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import static android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE;
+import java.util.HashMap;
 
 
 public class MainActivity extends AppCompatActivity implements SwipyRefreshLayout.OnRefreshListener {
@@ -88,6 +88,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     String currentUrl = "https://www.ivelt.com/";
     String url = null;
     Logger logger;
+    String DownloadImageURL = null;
+    HashMap<String, String> fileinfo = new HashMap<String, String>();
 
     private boolean serviceNeedsStarting = true;
     public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
@@ -250,7 +252,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         mywebView.getSettings().setSupportZoom(true);
         mywebView.getSettings().setBuiltInZoomControls(true);
         mywebView.getSettings().setDisplayZoomControls(false);
-        mywebView.getSettings().setAppCacheEnabled(true);
+        //mywebView.getSettings().setAppCacheEnabled(true);
         mywebView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
         mywebView.getSettings().setMixedContentMode(MIXED_CONTENT_COMPATIBILITY_MODE);
         mywebView.getSettings().setAllowFileAccess(true);
@@ -294,6 +296,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             url = url.replace("://ivelt.com", "://www.ivelt.com");
             mywebView.loadUrl(url);
 
+
+
         }
         if (getIntent() != null){
             handleIntent(getIntent());
@@ -317,8 +321,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         });
 
         mywebView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
-
-
 //            tryDownload(url, userAgent, contentDisposition, mimetype, contentLength);
             handleDownload(url, userAgent, mimetype, contentDisposition);
 
@@ -642,6 +644,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     }
 
 
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -665,28 +668,35 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 startActivity(Intent.createChooser(shareIntent, "Share..."));
             } else if (item.getTitle() == "Save - Download Image") {
 
-                String DownloadImageURL = result.getExtra();
-
+                DownloadImageURL = result.getExtra();
 
                 if (URLUtil.isValidUrl(DownloadImageURL)) {
 
-                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
-                    String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
-                    request.allowScanningByMediaScanner();
-                    request.addRequestHeader("cookie", cookie);
-                    request.setMimeType(getFileType(DownloadImageURL));
-                    request.setAllowedOverMetered(true);
-                    request.setAllowedOverRoaming(true);
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "ivelt image.jpg");
+                    new BackgroundTask() {
+                        @Override
+                        public void doInBackground(){
 
-                    DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                    downloadManager.enqueue(request);
+                            URL url = null;
+                            HttpURLConnection urlConnection = null;
+                            try {
+                                url = new URL(DownloadImageURL);
+                                urlConnection = (HttpURLConnection) url.openConnection();
+                                String filename = urlConnection.getHeaderField("Content-Disposition");
+                                fileinfo.put("filename", filename);
 
-                    Toast.makeText(MainActivity.this, "Image Downloaded Successfully.", Toast.LENGTH_LONG).show();
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            } finally {
+                                urlConnection.disconnect();
+                            }
+                        }
+
+                    }.execute(()->MainActivity.this.runOnUiThread(this::onPostExecute));
+
                 } else {
                     Toast.makeText(MainActivity.this, "Sorry.. Something Went Wrong.", Toast.LENGTH_LONG).show();
                 }
+
             } else if (item.getTitle() == "View Image") {
                 mywebView.loadUrl("javascript:window.open('"+result.getExtra()+"');");
             }
@@ -702,6 +712,34 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             menu.add(0, 3, 2, "Copy image link").setOnMenuItemClickListener(handler);
             menu.add(0, 4, 3, "Share Link").setOnMenuItemClickListener(handler);
         }
+    }
+
+    private void onPostExecute() {
+        String filename;
+        try {
+            filename = fileinfo.get("filename") != null ? parseContentDisposition(fileinfo.get("filename")) : new File(new URL(DownloadImageURL).getPath()).getName();
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        };
+        String mimeType = getMimeType(filename);
+        if (!filename.contains(".")){
+            filename = filename + "." + getExtension(mimeType);
+        }
+
+        DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
+        String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
+        request.allowScanningByMediaScanner();
+        request.setTitle(filename)
+                .addRequestHeader("cookie", cookie)
+                .setMimeType(mimeType)
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(true)
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename);
+        downloadManager.enqueue(request);
+
+        Toast.makeText(MainActivity.this, "Image Downloaded Successfully.", Toast.LENGTH_LONG).show();
     }
 
     private boolean handleIvelt(String url, WebView view){
@@ -816,7 +854,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             try{
-
                 WebResourceResponse resourceResponse = loader.shouldInterceptRequest(request.getUrl());
                 if (resourceResponse == null || resourceResponse.getData() == null || resourceResponse.getStatusCode() > 299){
                     return super.shouldInterceptRequest(view, request);
@@ -858,9 +895,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         @Override
         public void onPageFinished(WebView view, String url) {
             mSwipyRefreshLayout.setRefreshing(false);
-
             FirebaseCrashlytics.getInstance().log("current url " + currentUrl);
-            logger.log("Page finished for url " + url);
             if (url == null){
                 FirebaseCrashlytics.getInstance().recordException(new Exception("Null URL"));
             }else if (url.equals("about:blank")){
@@ -1130,6 +1165,22 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
 
         }
+    }
+
+
+
+    public abstract class BackgroundTask {
+        private void startBackground(Runnable onPostExecute) {
+            new Thread(()-> {
+                doInBackground();
+                onPostExecute.run();
+
+            }).start();
+        }
+        public void execute(Runnable onPostExecute){
+            startBackground(onPostExecute);
+        }
+        public abstract void doInBackground();
     }
 
 }
