@@ -90,13 +90,19 @@ function addSimpleButton(btn, href, customClass, title, text, onclick){
 }
 
 function getQuoteURL(btn){
-    let quoteButton = btn.querySelector('i.icon.fa-quote-left.fa-fw');
-    let quoteUrl = quoteButton.parentElement;
-    if (!quoteUrl){
-        return null;
+
+    try{
+        let quoteButton = btn.querySelector('i.icon.fa-quote-left.fa-fw');
+        let quoteUrl = quoteButton.parentElement;
+            if (!quoteUrl){
+                return null;
+            }
+            let href = quoteUrl.getAttribute('href');
+            return href;
+    }catch (e){
+
     }
-    let href = quoteUrl.getAttribute('href');
-    return href;
+
 }
 function addCopyQuoteButton(btn, postID){
     let href = getPMHref(postID) || getQuoteURL(btn)
@@ -138,7 +144,7 @@ function hideButton(selector){
             button.classList.add('app-hidden');
         }else{
             if(button.parentElement.parentElement.classList.contains('clone-first')){
-                button.parentElement.parentElement.parentElement.classList.add('app-hidden')
+                button.parentElement.parentElement.classList.add('app-hidden')
             }
             else{
                 button.parentElement.classList.add('app-hidden');

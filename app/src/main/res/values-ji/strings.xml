@@ -80,8 +80,6 @@
 
     <string name="app_password_title">עפפ פעסווארד</string>
     <string name="app_password_summary">שטעל אן א עפפ פעסווארד</string>
-    <string name="sefaria_title">ספריה לינקר </string>
-    <string name="sefaria_summary">לייג צו ספריה לינקר צו די עפפ</string>    
 
     <string-array name="hidden_button_entries">
         <item>פארצייכן אומגעליינט קנעפל</item>

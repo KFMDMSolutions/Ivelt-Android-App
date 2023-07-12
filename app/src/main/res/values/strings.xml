@@ -90,8 +90,6 @@
 
     <string name="app_password_title">App Password</string>
     <string name="app_password_summary">Set The App Password</string>
-    <string name="sefaria_title">Sefaria Linker</string>
-    <string name="sefaria_summary">Add Sefaria Linker to The App</string>    
 
     <string-array name="click_settings_values">
         <item>Open Notification</item>

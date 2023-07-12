@@ -6,5 +6,4 @@ if (!document.documentURI.includes("ucp.php")) {
 addJS('add_settings_element.js');
 addJS('login.js');
 addJS('bbparser2.js');
-addJS('sefaria.js');
 addJS('newResponseNotification.js')

@@ -51,13 +51,6 @@ public class IveltWebInterface {
         }
         return ""+newposts;
     }
-    
-    @JavascriptInterface
-    public boolean addsefaria(){
-        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean("sefaria", false);
-
-    }
-
     @JavascriptInterface
     public void copyToClipboard(String data){
         ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);

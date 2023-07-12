@@ -203,6 +203,7 @@ public class NotificationService extends Service {
                 .followRedirects(true)
                 .post();
         Elements notificationList = doc.select(".notification_list");
+
         if (!notificationList.isEmpty()) {
            parseNotificationPage(context, notificationList);
        }

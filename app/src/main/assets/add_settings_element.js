@@ -33,6 +33,5 @@ function addCopyright(){
     }
 }
 
-
 addSettings();
 addCopyright();
