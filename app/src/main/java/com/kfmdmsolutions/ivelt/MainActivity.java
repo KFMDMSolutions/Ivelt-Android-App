@@ -1010,6 +1010,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 url.startsWith("https://www.sefaria.org/") ||
                 url.startsWith("https://accounts.google.com/") ||
                 url.startsWith("https://www.yiddish24.com/") ||
+                url.startsWith("https://ivelt2.github.io")||
                 url.contains("https://docs.google.com/") ||
                 url.startsWith("https://www.dropbox.com/");
     }
