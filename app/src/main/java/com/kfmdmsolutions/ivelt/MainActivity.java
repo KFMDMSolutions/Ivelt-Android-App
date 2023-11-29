@@ -336,7 +336,11 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
     private void handleDownload(String url, String userAgent, String mimeType, String contentDisposition) {
 
-        String filename = parseContentDisposition(contentDisposition);
+        String filename = parseContentDisposition(contentDisposition, url);
+        if (filename == null){
+            String[] paths = url.split("/");
+            filename = paths[paths.length -1];
+        }
         if (!filename.contains(".")){
             filename = filename + "." + getExtension(mimeType);
         }
@@ -718,7 +722,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     private void onPostExecute() {
         String filename;
         try {
-            filename = fileinfo.get("filename") != null ? parseContentDisposition(fileinfo.get("filename")) : new File(new URL(DownloadImageURL).getPath()).getName();
+            filename = fileinfo.get("filename") != null ? parseContentDisposition(fileinfo.get("filename"), DownloadImageURL) : new File(new URL(DownloadImageURL).getPath()).getName();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         };
@@ -1013,7 +1017,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 url.contains("https://docs.google.com/") ||
                 url.startsWith("https://www.dropbox.com/");
     }
-    private String parseContentDisposition(String contentDisposition){
+    private String parseContentDisposition(String contentDisposition, String url){
         String[] headers = contentDisposition.split(";");
         String filename = null;
         String utf8Filename = null;
@@ -1026,6 +1030,10 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             }
         }
         utf8Filename = utf8Filename == null ? filename : utf8Filename;
+        if (utf8Filename == null){
+            String[] paths = url.split("/");
+            return paths[paths.length -1];
+        }
         utf8Filename = utf8Filename.substring(utf8Filename.lastIndexOf("=") + 1).trim().replace("UTF-8''", "");
 
         return URLDecoder.decode(utf8Filename);
