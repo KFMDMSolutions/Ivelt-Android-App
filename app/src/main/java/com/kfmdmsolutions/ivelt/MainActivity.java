@@ -337,10 +337,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     private void handleDownload(String url, String userAgent, String mimeType, String contentDisposition) {
 
         String filename = parseContentDisposition(contentDisposition, url);
-        if (filename == null){
-            String[] paths = url.split("/");
-            filename = paths[paths.length -1];
-        }
         if (!filename.contains(".")){
             filename = filename + "." + getExtension(mimeType);
         }
@@ -411,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 android.util.Log.d("OCW", "href " + href + " data " + href.getData());
                 android.util.Log.d("OCW", "is dialog " + isDialog);
                 view.getOriginalUrl();
-                url = view.getHitTestResult().getExtra();
+                url = url != null ? url : view.getHitTestResult().getExtra();
 
 
                 android.util.Log.d("OCW", "url " + view.getOriginalUrl());
