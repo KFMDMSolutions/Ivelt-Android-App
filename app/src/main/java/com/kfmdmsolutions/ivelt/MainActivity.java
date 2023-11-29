@@ -77,8 +77,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements SwipyRefreshLayout.OnRefreshListener {
@@ -489,7 +492,32 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 return false;
             }
 
-            @SuppressLint("QueryPermissionsNeeded")
+            private List<String> extractValidMimeTypes(String[] mimeTypes) {
+                List<String> results = new ArrayList<String>();
+                List<String> mimes;
+                if (mimeTypes.length == 1 && mimeTypes[0].contains(",")) {
+                    mimes = Arrays.asList(mimeTypes[0].split(","));
+                } else {
+                    mimes = Arrays.asList(mimeTypes);
+                }
+                MimeTypeMap mtm = MimeTypeMap.getSingleton();
+                for (String mime : mimes) {
+                    if (mime != null && mime.trim().startsWith(".")) {
+                        String extensionWithoutDot = mime.trim().substring(1, mime.trim().length());
+                        String derivedMime = mtm.getMimeTypeFromExtension(extensionWithoutDot);
+                        if (derivedMime != null && !results.contains(derivedMime)) {
+                            // adds valid mime type derived from the file extension
+                            results.add(derivedMime);
+                        }
+                    } else if (mtm.getExtensionFromMimeType(mime) != null && !results.contains(mime)) {
+                        // adds valid mime type checked agains file extensions mappings
+                        results.add(mime);
+                    }
+                }
+                return results;
+            }
+
+            @SuppressLint({"QueryPermissionsNeeded", "RestrictedApi"})
             public boolean onShowFileChooser(
                     WebView webView, ValueCallback<Uri[]> filePathCallback,
                     WebChromeClient.FileChooserParams fileChooserParams) {
@@ -520,9 +548,16 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                     }
                 }
 
-                Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                Intent contentSelectionIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
-                contentSelectionIntent.setType("image/*");
+                List<String> validMimeTypes = extractValidMimeTypes(fileChooserParams.getAcceptTypes());
+                if (validMimeTypes.isEmpty()) {
+                    contentSelectionIntent.setType("image/*");
+                } else {
+                    String[] mimetypes = validMimeTypes.toArray(new String[validMimeTypes.size()]);
+                    contentSelectionIntent.setType("*/*");
+                    contentSelectionIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
+                }
 
                 Intent[] intentArray;
                 if (takePictureIntent != null) {
