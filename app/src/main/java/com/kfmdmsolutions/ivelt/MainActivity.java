@@ -1044,6 +1044,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 url.contains("dropboxusercontent.com") ||
                 url.startsWith("https://www.sefaria.org/") ||
                 url.startsWith("https://accounts.google.com/") ||
+                url.startsWith("https://drive-data-export.usercontent.google.com/") ||
                 url.startsWith("https://www.yiddish24.com/") ||
                 url.contains("https://docs.google.com/") ||
                 url.startsWith("https://www.dropbox.com/");
