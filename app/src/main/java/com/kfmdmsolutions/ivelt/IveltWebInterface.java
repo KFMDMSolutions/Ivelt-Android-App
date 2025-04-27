@@ -5,10 +5,15 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.text.Html;
+import android.util.Base64;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
+import androidx.exifinterface.media.ExifInterface;
 import androidx.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -18,20 +23,29 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.HashSet;
+import kotlin.math.roundToInt;
 
 public class IveltWebInterface {
     Context context;
 
     public static final String IVELT_USERNAME = "com.kfmdmsolutions.ivelt.ivelt.web.interface.ivelt.username";
     public static final String IVELT_PASSWORD = "com.kfmdmsolutions.ivelt.ivelt.web.interface.ivelt.password";
-    IveltWebInterface(Context context){
+    public static final int MAX_SIZE_KB = 400;
+    public static final int INITIAL_QUALITY = 90;
+    public static final int MIN_QUALITY = 30;
+    public static final int QUALITY_DECREMENT = 5;
+
+    IveltWebInterface(Context context) {
         this.context = context;
     }
 
     @JavascriptInterface
     public String getHiddenElements() {
-
         String[] hiddenArray = PreferenceManager.getDefaultSharedPreferences(context).getStringSet("hidden_buttons", new HashSet<>()).toArray(new String[]{});
         try {
             return new JSONArray(hiddenArray).toString();
@@ -39,57 +53,58 @@ public class IveltWebInterface {
             return null;
         }
     }
+
     private int newposts;
+
     @JavascriptInterface
     public String checkForNewPostsTimes() {
-
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         String new_posts = preferences.getString("new_posts", "Never");
         newposts = convertDurationStringToMilliSeconds(new_posts);
-        if (newposts == 0){
+        if (newposts == 0) {
             return null;
         }
-        return ""+newposts;
+        return "" + newposts;
     }
+
     @JavascriptInterface
-    public void copyToClipboard(String data){
+    public void copyToClipboard(String data) {
         ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("אייוועלט", data);
         clipboard.setPrimaryClip(clip);
         Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show();
     }
+
     @JavascriptInterface
-    public void saveDefaultPage(String defaultPage){
+    public void saveDefaultPage(String defaultPage) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.edit().putString("default_page", defaultPage).apply();
-        Toast.makeText(context,"Default Page Updated", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "Default Page Updated", Toast.LENGTH_SHORT).show();
     }
 
     @JavascriptInterface
-    public void saveCredentials(String username, String password){
+    public void saveCredentials(String username, String password) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.edit().putString(IVELT_USERNAME, username).putString(IVELT_PASSWORD, password).apply();
     }
 
     @JavascriptInterface
-    public String getUsername(){
+    public String getUsername() {
         return PreferenceManager.getDefaultSharedPreferences(context).getString(IVELT_USERNAME, "");
-//        return "בבקשה";
     }
 
     @JavascriptInterface
-    public String getPassword(){
+    public String getPassword() {
         return PreferenceManager.getDefaultSharedPreferences(context).getString(IVELT_PASSWORD, "");
-        // TODO REMOVE BEFORE COMMIT
     }
 
     @JavascriptInterface
-    public String getVersionString(){
+    public String getVersionString() {
         return BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")";
     }
 
     @JavascriptInterface
-    public void sharePost(String html){
+    public void sharePost(String html) {
         String parsedHtml = parsePostHtml(html);
         Intent shareIntent = new Intent(android.content.Intent.ACTION_SEND);
         CharSequence text = Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT);
@@ -97,16 +112,161 @@ public class IveltWebInterface {
         shareIntent.putExtra(Intent.EXTRA_TEXT, parsedHtml);
         shareIntent.putExtra(Intent.EXTRA_TITLE, "Share");
         shareIntent.setType("text/*");
-//        context.startActivity(shareIntent);
         context.startActivity(Intent.createChooser(shareIntent, "null"));
     }
 
-    private String parsePostHtml(String html){
+    // NEW METHODS FOR IMAGE COMPRESSION
+
+    /**
+     * JavaScript interface method to compress an image from a Base64 string
+     * @param base64Image The Base64 encoded image
+     * @return The compressed Base64 encoded image if needed, otherwise the original
+     */
+    @JavascriptInterface
+    public String compressImage(String base64Image) {
+        try {
+            // Remove data URL prefix if present
+            String base64Data = base64Image;
+            if (base64Image.contains(",")) {
+                base64Data = base64Image.split(",")[1];
+            }
+            
+            // Decode Base64 to byte array
+            byte[] imageBytes = Base64.decode(base64Data, Base64.DEFAULT);
+            
+            // Check if compression is needed
+            if (imageBytes.length / 1024 <= MAX_SIZE_KB) {
+                return base64Image; // Already under the limit
+            }
+            
+            // Get the image prefix (if any)
+            String prefix = "";
+            if (base64Image.contains(",")) {
+                prefix = base64Image.split(",")[0] + ",";
+            }
+            
+            // Compress the image
+            byte[] compressedBytes = compressImageBytes(imageBytes);
+            
+            // Convert back to Base64
+            String compressedBase64 = Base64.encodeToString(compressedBytes, Base64.NO_WRAP);
+            return prefix + compressedBase64;
+            
+        } catch (Exception e) {
+            Logger.e("Failed to compress image: " + e.getMessage());
+            return base64Image; // Return original if compression fails
+        }
+    }
+    
+    /**
+     * Compress image bytes to ensure they're under the size limit
+     */
+    private byte[] compressImageBytes(byte[] imageBytes) {
+        try {
+            // Decode the image
+            Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size());
+            if (bitmap == null) {
+                return imageBytes; // Unable to decode, return original
+            }
+            
+            int quality = INITIAL_QUALITY;
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            
+            // Calculate initial dimensions for scaling if image is very large
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            double scaleFactor = 1.0;
+            int originalSizeKB = imageBytes.length / 1024;
+            
+            // If image is very large, do an initial resize
+            if (originalSizeKB > MAX_SIZE_KB * 5) {
+                // Target scale based on size reduction needed
+                scaleFactor = Math.sqrt((double) MAX_SIZE_KB / originalSizeKB);
+                // Ensure we don't scale too aggressively initially
+                scaleFactor = Math.max(0.5, scaleFactor);
+                
+                width = (int) (bitmap.getWidth() * scaleFactor);
+                height = (int) (bitmap.getHeight() * scaleFactor);
+                Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+                
+                // If the scaled bitmap solves our problem
+                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+                byte[] compressedBytes = outputStream.toByteArray();
+                int scaledSizeKB = compressedBytes.length / 1024;
+                
+                if (scaledSizeKB <= MAX_SIZE_KB) {
+                    return compressedBytes;
+                }
+                
+                // Continue with the scaled bitmap
+                bitmap.recycle();
+                bitmap = scaledBitmap;
+                outputStream.reset();
+            }
+            
+            // Try compression with decreasing quality
+            byte[] compressedBytes;
+            do {
+                outputStream.reset();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+                compressedBytes = outputStream.toByteArray();
+                int compressedSizeKB = compressedBytes.length / 1024;
+                
+                if (compressedSizeKB <= MAX_SIZE_KB) {
+                    break;
+                }
+                
+                quality -= QUALITY_DECREMENT;
+                
+                // If quality is at minimum, scale down dimensions
+                if (quality <= MIN_QUALITY) {
+                    // Scale down by 10%
+                    width = (int) (width * 0.9);
+                    height = (int) (height * 0.9);
+                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+                    bitmap.recycle();
+                    bitmap = scaledBitmap;
+                    quality = INITIAL_QUALITY; // Reset quality
+                }
+            } while (quality >= MIN_QUALITY);
+            
+            return compressedBytes;
+            
+        } catch (Exception e) {
+            Logger.e("Error compressing image bytes: " + e.getMessage());
+            return imageBytes; // Return original if compression fails
+        }
+    }
+    
+    /**
+     * JavaScript interface method to get the auto-compression status
+     * @return true if auto-compression is enabled (default), false otherwise
+     */
+    @JavascriptInterface
+    public boolean isAutoCompressionEnabled() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getBoolean("auto_compress_images", true);
+    }
+    
+    /**
+     * JavaScript interface method to set the auto-compression status
+     */
+    @JavascriptInterface
+    public void setAutoCompressionEnabled(boolean enabled) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        preferences.edit().putBoolean("auto_compress_images", enabled).apply();
+        String message = enabled ? "Auto-compression enabled" : "Auto-compression disabled";
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+    }
+
+    // EXISTING METHODS
+
+    private String parsePostHtml(String html) {
         Document doc = Jsoup.parse(html);
         Element body = doc.body();
         body.select("img").forEach(element -> {
             String src = element.attr("src");
-            if (src.startsWith("./")){
+            if (src.startsWith("./")) {
                 src = src.replace("./", "www.ivelt.com/forum/");
             }
             element.text("<br>" + src + "<br>");
@@ -118,7 +278,7 @@ public class IveltWebInterface {
         });
         body.select(".file dd").forEach(element -> element.text(""));
         body.select("cite").forEach(element -> element.text(""));
-        body.select("blockquote").forEach( element -> {
+        body.select("blockquote").forEach(element -> {
             String text = element.text();
             element.text("[quote]<br> " + text + " <br>[end quote]<br>");
         });
@@ -127,8 +287,7 @@ public class IveltWebInterface {
                 .toString()
                 .replaceAll("<br>", "\n")
                 .replaceAll("(?:^|\\s)viewtopic", "www.ivelt.com/forum/viewtopic")
-                .replaceAll("\n+", "\n")
-                ;
+                .replaceAll("\n+", "\n");
     }
 
     private static final int SECOND_IN_MILLIS = 1000;
@@ -137,7 +296,6 @@ public class IveltWebInterface {
     private int convertDurationStringToMilliSeconds(String duration) {
         duration = duration == null ? "" : duration;
         switch (duration) {
-
             case "Every 20 seconds":
                 return 20 * SECOND_IN_MILLIS;
             case "Every 40 seconds":
