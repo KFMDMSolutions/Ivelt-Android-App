@@ -1,48 +1,151 @@
 package com.kfmdmsolutions.ivelt;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.text.Html;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
-import android.widget.Toast;
 
-import androidx.exifinterface.media.ExifInterface;
-import androidx.preference.PreferenceManager;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-
-import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
-import kotlin.math.roundToInt;
 
 public class IveltWebInterface {
-    Context context;
+    private static final int MAX_SIZE_KB = 400;
+    private static final int INITIAL_QUALITY = 90;
+    private static final int MIN_QUALITY = 30;
+    private static final int QUALITY_DECREMENT = 5;
+    private Context context;
 
-    public static final String IVELT_USERNAME = "com.kfmdmsolutions.ivelt.ivelt.web.interface.ivelt.username";
-    public static final String IVELT_PASSWORD = "com.kfmdmsolutions.ivelt.ivelt.web.interface.ivelt.password";
-    public static final int MAX_SIZE_KB = 400;
-    public static final int INITIAL_QUALITY = 90;
-    public static final int MIN_QUALITY = 30;
-    public static final int QUALITY_DECREMENT = 5;
-
-    IveltWebInterface(Context context) {
+    public IveltWebInterface(Context context) {
         this.context = context;
     }
+
+    /**
+     * Compress an image from a Uri if it exceeds MAX_SIZE_KB
+     * @param originalUri The Uri of the original image
+     * @return Uri of the compressed image or original if no compression needed
+     */
+    public Uri compressImageUri(Uri originalUri) {
+        try {
+            // Get the file size
+            InputStream inputStream = context.getContentResolver().openInputStream(originalUri);
+            byte[] imageBytes = readBytesFromInputStream(inputStream);
+            int sizeKB = imageBytes.length / 1024;
+            
+            if (sizeKB <= MAX_SIZE_KB) {
+                return originalUri;
+            }
+            
+            // Compress the image
+            byte[] compressedBytes = compressImageBytes(imageBytes);
+            
+            // Save to a temporary file
+            File tempFile = new File(context.getCacheDir(), "compressed_image.jpg");
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            fos.write(compressedBytes);
+            fos.close();
+            
+            // Return Uri for the temporary file
+            return Uri.fromFile(tempFile);
+        } catch (Exception e) {
+            Logger.e("Failed to compress image: " + e.getMessage());
+            return originalUri; // Return original if compression fails
+        }
+    }
+
+    /**
+     * Read bytes from an InputStream
+     */
+    private byte[] readBytesFromInputStream(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+        int len;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+        return byteBuffer.toByteArray();
+    }
+
+    /**
+     * Compress image bytes to ensure they're under the size limit
+     */
+    private byte[] compressImageBytes(byte[] imageBytes) {
+        try {
+            // Decode the image
+            Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size());
+            if (bitmap == null) {
+                return imageBytes; // Unable to decode, return original
+            }
+            
+            int quality = INITIAL_QUALITY;
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            
+            // Calculate initial dimensions for scaling if image is very large
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            double scaleFactor = 1.0;
+            int originalSizeKB = imageBytes.length / 1024;
+            
+            // If image is very large, do an initial resize
+            if (originalSizeKB > MAX_SIZE_KB * 5) {
+                scaleFactor = Math.sqrt((double) MAX_SIZE_KB / originalSizeKB);
+                scaleFactor = Math.max(0.5, scaleFactor);
+                
+                width = (int) (bitmap.getWidth() * scaleFactor);
+                height = (int) (bitmap.getHeight() * scaleFactor);
+                Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+                
+                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+                byte[] compressedBytes = outputStream.toByteArray();
+                int scaledSizeKB = compressedBytes.length / 1024;
+                
+                if (scaledSizeKB <= MAX_SIZE_KB) {
+                    return compressedBytes;
+                }
+                
+                bitmap.recycle();
+                bitmap = scaledBitmap;
+                outputStream.reset();
+            }
+            
+            // Try compression with decreasing quality
+            byte[] compressedBytes;
+            do {
+                outputStream.reset();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+                compressedBytes = outputStream.toByteArray();
+                int compressedSizeKB = compressedBytes.length / 1024;
+                
+                if (compressedSizeKB <= MAX_SIZE_KB) {
+                    break;
+                }
+                
+                quality -= QUALITY_DECREMENT;
+                
+                if (quality <= MIN_QUALITY) {
+                    width = (int) (width * 0.9);
+                    height = (int) (height * 0.9);
+                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+                    bitmap.recycle();
+                    bitmap = scaledBitmap;
+                    quality = INITIAL_QUALITY;
+                }
+            } while (quality >= MIN_QUALITY);
+            
+            return compressedBytes;
+            
+        } catch (Exception e) {
+            Logger.e("Error compressing image bytes: " + e.getMessage());
+            return imageBytes;
+        }
+    }
+
+}
 
     @JavascriptInterface
     public String getHiddenElements() {
