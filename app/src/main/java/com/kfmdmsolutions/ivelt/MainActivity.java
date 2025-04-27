@@ -60,7 +60,7 @@ import androidx.preference.PreferenceManager;
 import androidx.webkit.WebViewAssetLoader;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
-import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayout;
+import com.kfmdms.github.swipyrefreshlayout.library.SwipyRefreshLayout;
 import com.kfmdmsolutions.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
@@ -82,7 +82,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
 
 public class MainActivity extends AppCompatActivity implements SwipyRefreshLayout.OnRefreshListener {
     private static Bundle webviewBundle;
@@ -110,15 +109,14 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
     private static CountDownTimer testTimer;
 
-//    private ActivityMainBinding mBinding;
-
-    public int  getBundleSizeInBytes(Bundle bundle  ) {
+    public int getBundleSizeInBytes(Bundle bundle) {
         Parcel parcel = Parcel.obtain();
         parcel.writeValue(bundle);
         byte[] bytes = parcel.marshall();
         parcel.recycle();
         return bytes.length;
     }
+
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -129,10 +127,10 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         android.util.Log.d("SaveState", getBundleSizeInBytes(webviewBundle) + " bytes");
     }
+
     @Override
-    protected void onResume(){
-        if(testTimer != null)
-        {
+    protected void onResume() {
+        if (testTimer != null) {
             testTimer.cancel();
         }
         super.onResume();
@@ -143,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         android.util.Log.d("SNQ", "Stopping Activity");
         try {
             NotificationService.startNotificationService(this, NotificationService.ACTION_SAVE_NOTIFICATION_LIST);
-        }catch (IllegalStateException ise){
+        } catch (IllegalStateException ise) {
             // can only happen on samsung when starting from android studio
         }
         testTimer = new CountDownTimer(60000, 1000) {
@@ -158,22 +156,23 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }.start();
         super.onPause();
     }
+
     @Override
     protected void onDestroy() {
-        if(testTimer != null)
-        {
+        if (testTimer != null) {
             testTimer.cancel();
         }
-        
+
         super.onDestroy();
     }
-    
+
     private boolean shouldLogout = false;
+
     private void handleIntent(Intent intent) {
 
         Logger.getInstance(this).logWithFirebase("Handling Intent");
         if (intent == null || (intent.getStringExtra(EXTRA_URL) == null && intent.getDataString() == null)) {
-            if (intent.getAction() != null && intent.getAction().equals("com.kfmdm.ivelt.shortcut.logout")){
+            if (intent.getAction() != null && intent.getAction().equals("com.kfmdm.ivelt.shortcut.logout")) {
                 mywebView.setVisibility(View.INVISIBLE);
                 shouldLogout = true;
             }
@@ -190,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }
         logger.log("URL Intent Url is " + url);
     }
+
     @SuppressLint({"ClickableViewAccessibility", "SetJavaScriptEnabled"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,13 +197,13 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
             Logger.getInstance(this).log("Fatal Error", exception);
-            if (defaultUncaughtExceptionHandler != null){
+            if (defaultUncaughtExceptionHandler != null) {
                 defaultUncaughtExceptionHandler.uncaughtException(thread, exception);
             }
             System.exit(2);
         });
 
-        boolean firebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("firebase",false);
+        boolean firebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("firebase", false);
         boolean askFirebase = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("ask_firebase", true);
         if (askFirebase) {
             new AlertDialog.Builder(this)
@@ -212,11 +212,13 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                     .setPositiveButton(R.string.ok, (dialog, which) -> {
                         PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("firebase", true).apply();
                         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true);
-                        dialog.dismiss(); })
+                        dialog.dismiss();
+                    })
                     .setNegativeButton(R.string.no, (dialog, which) -> {
                         PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("firebase", false).apply();
                         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
-                        dialog.dismiss(); })
+                        dialog.dismiss();
+                    })
                     .show();
             PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("ask_firebase", false).apply();
         }
@@ -229,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         serviceNeedsStarting = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            for (NotificationChannel channel : manager.getNotificationChannels()){
+            for (NotificationChannel channel : manager.getNotificationChannels()) {
                 logger.log(channel.toString());
             }
 
@@ -237,8 +239,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         mywebView = findViewById(R.id.webview);
         mSwipyRefreshLayout = (SwipyRefreshLayout) findViewById(R.id.swipeContainer);
 
-//        SwipyRefreshLayoutDirection = findViewById(R.id.swipeContainer);
-//        SwipyRefreshLayoutDirection.setNestedScrollingEnabled(true);
         WebViewAssetLoader.AssetsPathHandler assetsHandler = new WebViewAssetLoader.AssetsPathHandler(this);
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
                 .setDomain("www.ivelt.com")
@@ -256,23 +256,17 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         mywebView.getSettings().setSupportZoom(true);
         mywebView.getSettings().setBuiltInZoomControls(true);
         mywebView.getSettings().setDisplayZoomControls(false);
-        //mywebView.getSettings().setAppCacheEnabled(true);
         mywebView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
         mywebView.getSettings().setMixedContentMode(MIXED_CONTENT_COMPATIBILITY_MODE);
         mywebView.getSettings().setAllowFileAccess(true);
         mywebView.getSettings().setDomStorageEnabled(true);
         CookieManager.getInstance().setAcceptCookie(true);
-        CookieManager.getInstance().setAcceptThirdPartyCookies(mywebView,true);
-//        String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36";
-//        mywebView.getSettings().setUserAgentString(desktopuseragent);
-//        mywebView.getSettings().setLoadWithOverviewMode(true);
-//        mywebView.getSettings().setUseWideViewPort(true);
+        CookieManager.getInstance().setAcceptThirdPartyCookies(mywebView, true);
         mywebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mywebView.setLongClickable(true);
         mywebView.setOnTouchListener(new SwipeDetector());
         iveltWebInterface = new IveltWebInterface(this);
         mywebView.addJavascriptInterface(iveltWebInterface, "android");
-        // Run only in debug mode. BuildConfig should be generated by gradle.
         if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
@@ -292,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         if (webviewBundle != null) {
             mywebView.restoreState(webviewBundle);
             webviewBundle = null;
-        }else if (currentUrl != null) {
+        } else if (currentUrl != null) {
             Logger.getInstance(this).logWithFirebase("Preparing to start with currentURL " + currentUrl);
             String url = PreferenceManager.getDefaultSharedPreferences(this).getString("default_page", currentUrl);
 
@@ -300,10 +294,8 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             url = url.replace("://ivelt.com", "://www.ivelt.com");
             mywebView.loadUrl(url);
 
-
-
         }
-        if (getIntent() != null){
+        if (getIntent() != null) {
             handleIntent(getIntent());
             getIntent().setData(null);
         }
@@ -325,35 +317,28 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         });
 
         mywebView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
-//            tryDownload(url, userAgent, contentDisposition, mimetype, contentLength);
             handleDownload(url, userAgent, mimetype, contentDisposition);
-
-
         });
-
 
         mSwipyRefreshLayout.setOnRefreshListener(this);
 
     }
 
-
     private void handleDownload(String url, String userAgent, String mimeType, String contentDisposition) {
-
         String filename = parseContentDisposition(contentDisposition, url);
-        if (!filename.contains(".")){
+        if (!filename.contains(".")) {
             filename = filename + "." + getExtension(mimeType);
         }
         sFileName = filename;
         sURL = url;
         sUserAgent = userAgent;
         downloadFile(filename, url, userAgent);
-
     }
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         Bundle webViewBundle = savedInstanceState.getBundle(WEBVIEW_BUNDLE);
-        if (webViewBundle != null){
+        if (webViewBundle != null) {
             mywebView.restoreState(webViewBundle);
         }
         super.onRestoreInstanceState(savedInstanceState);
@@ -374,13 +359,13 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 String logMessage = "Console " + consoleMessage.messageLevel().toString().toLowerCase() + ": " + consoleMessage.message() +
                         ". source: " + consoleMessage.sourceId() + " (" + consoleMessage.lineNumber() + ")";
                 Logger.getInstance(getApplicationContext()).log(logMessage);
-                if(consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR){
+                if (consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
                     RuntimeException exception = new RuntimeException(logMessage);
                     String sourceID = consoleMessage.sourceId();
-                    if (sourceID.contains("/kfmdm/")){
+                    if (sourceID.contains("/kfmdm/")) {
                         sourceID = sourceID;
                         exception.setStackTrace(new StackTraceElement[]{new StackTraceElement(consoleMessage.sourceId(), "javascript", consoleMessage.sourceId(), consoleMessage.lineNumber())});
-                    }else{
+                    } else {
                         sourceID = "Webpage";
                         exception.setStackTrace(
                                 new StackTraceElement[]{
@@ -399,10 +384,9 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
 
                 android.util.Log.d("OCW", "Resultmsg = " + resultMsg);
-                if (resultMsg == null){
+                if (resultMsg == null) {
                     return false;
                 }
-
 
                 Message href = view.getHandler().obtainMessage();
                 view.requestFocusNodeHref(href);
@@ -412,17 +396,16 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 view.getOriginalUrl();
                 url = url != null ? url : view.getHitTestResult().getExtra();
 
-
                 android.util.Log.d("OCW", "url " + view.getOriginalUrl());
-                if(url != null && href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(url))){
+                if (url != null && href.getData() != null && shouldOverrideUrlLoading(mywebView, Uri.parse(url))) {
                     return false;
                 }
-                if (url != null && !(url.contains("ivelt.com") || url.contains("sefaria.com"))){
+                if (url != null && !(url.contains("ivelt.com") || url.contains("sefaria.com"))) {
                     mywebView.loadUrl(url);
                     return false;
                 }
 
-                if (resultMsg.obj !=null && resultMsg.obj instanceof WebView.WebViewTransport) {
+                if (resultMsg.obj != null && resultMsg.obj instanceof WebView.WebViewTransport) {
                     WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
                     WebView windowWebView = new WebView(MainActivity.this);
                     windowWebView.setLayoutParams(new ViewGroup.LayoutParams(200, 200));
@@ -434,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                     CookieManager.getInstance().setAcceptThirdPartyCookies(windowWebView, true);
                     windowWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
                     windowWebView.getSettings().setSupportMultipleWindows(true);
-                    windowWebView.setWebViewClient(new WebViewClient(){
+                    windowWebView.setWebViewClient(new WebViewClient() {
                         @Override
                         public void onPageStarted(WebView view, String url, Bitmap favicon) {
                             super.onPageStarted(view, url, favicon);
@@ -443,13 +426,13 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                         @Override
                         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                             android.util.Log.d("OCW", "override " + request.getUrl());
-                            if (request.getUrl().toString().startsWith("https://drive.google.com") || request.getUrl().toString().startsWith("https://www.drive.google.com")){
+                            if (request.getUrl().toString().startsWith("https://drive.google.com") || request.getUrl().toString().startsWith("https://www.drive.google.com")) {
                                 mywebView.loadUrl(request.getUrl().toString());
                                 windowWebView.loadUrl("javascript:window.close()");
                                 return true;
                             }
                             boolean override = MainActivity.this.shouldOverrideUrlLoading(view, request.getUrl());
-                            if (override){
+                            if (override) {
                                 windowWebView.loadUrl("javascript:window.close()");
                             }
                             return override;
@@ -464,7 +447,9 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                     transport.setWebView(windowWebView);
 
                     AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this)
-                            .setNegativeButton(android.R.string.cancel, (dialog, which) -> {windowWebView.loadUrl("javascript:window.close()");})
+                            .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
+                                windowWebView.loadUrl("javascript:window.close()");
+                            })
                             .setView(windowWebView).create();
 
                     windowWebView.setWebChromeClient(new WebChromeClient() {
@@ -475,13 +460,10 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
                         @Override
                         public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-                            android.util.Log.d("WindowWV", "ConsoleMEssage " + consoleMessage );
+                            android.util.Log.d("WindowWV", "ConsoleMEssage " + consoleMessage);
                             return super.onConsoleMessage(consoleMessage);
                         }
                     });
-//                    windowWebView.setDownloadListener((url2, userAgent, contentDisposition, mimetype, contentLength) -> {
-//                        handleDownload(url2, userAgent, mimetype,contentDisposition);
-//                    });
 
                     resultMsg.sendToTarget();
 
@@ -506,11 +488,9 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                         String extensionWithoutDot = mime.trim().substring(1, mime.trim().length());
                         String derivedMime = mtm.getMimeTypeFromExtension(extensionWithoutDot);
                         if (derivedMime != null && !results.contains(derivedMime)) {
-                            // adds valid mime type derived from the file extension
                             results.add(derivedMime);
                         }
                     } else if (mtm.getExtensionFromMimeType(mime) != null && !results.contains(mime)) {
-                        // adds valid mime type checked agains file extensions mappings
                         results.add(mime);
                     }
                 }
@@ -577,6 +557,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             }
         });
     }
+
     private File createImageFile() throws IOException {
         // Create an image file name
         @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -589,35 +570,37 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 storageDir      /* directory */
         );
     }
-    public void onActivityResult (int requestCode, int resultCode, Intent data) {
-        if(requestCode != INPUT_FILE_REQUEST_CODE || mFilePathCallback == null) {
-            super.onActivityResult(requestCode, resultCode, data);
-            return;
-        }
 
-        Uri[] results = null;
-
-        // Check that the response is a good one
-        if(resultCode == Activity.RESULT_OK) {
-            if(data == null) {
-                // If there is not data, then we may have taken a photo
-                if(mCameraPhotoPath != null) {
-                    results = new Uri[]{Uri.parse(mCameraPhotoPath)};
-                }
-            } else {
-                String dataString = data.getDataString();
-                if (dataString != null) {
-                    results = new Uri[]{Uri.parse(dataString)};
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == INPUT_FILE_REQUEST_CODE && mFilePathCallback != null) {
+            Uri[] results = null;
+            if (resultCode == Activity.RESULT_OK) {
+                if (data == null) {
+                    // If there is no data, then we may have taken a photo
+                    if (mCameraPhotoPath != null) {
+                        Uri photoUri = Uri.parse(mCameraPhotoPath);
+                        Uri compressedUri = iveltWebInterface.compressImageUri(photoUri);
+                        results = new Uri[]{compressedUri};
+                    }
+                } else {
+                    String dataString = data.getDataString();
+                    if (dataString != null) {
+                        Uri selectedUri = Uri.parse(dataString);
+                        Uri compressedUri = iveltWebInterface.compressImageUri(selectedUri);
+                        results = new Uri[]{compressedUri};
+                    }
                 }
             }
+            mFilePathCallback.onReceiveValue(results);
+            mFilePathCallback = null;
         }
-
-        mFilePathCallback.onReceiveValue(results);
-        mFilePathCallback = null;
     }
+
     private void downloadFile(String fileName, String url, String userAgent) {
         try {
-            logger.log("mimatype = " +getMimeType(fileName));
+            logger.log("mimatype = " + getMimeType(fileName));
             String mimeType = getMimeType(fileName);
             DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -641,7 +624,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         } catch (Exception error) {
             Toast.makeText(this, "error" + error, Toast.LENGTH_SHORT).show();
 
-
         }
     }
 
@@ -651,13 +633,15 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(Uri.parse(url)));
     }
 
-    private String getExtension(String mimeType){
-        return  MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+    private String getExtension(String mimeType) {
+        return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
     }
-    public String getMimeType(String filename){
+
+    public String getMimeType(String filename) {
         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
         return mimeTypeMap.getMimeTypeFromExtension(filename.substring(filename.lastIndexOf(".") + 1));
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -679,8 +663,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         }
     }
 
-
-
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -688,30 +670,25 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         WebView.HitTestResult result = webView.getHitTestResult();
 
         MenuItem.OnMenuItemClickListener handler = item -> {
-            if (item.getTitle() == "Copy image link") {
+            if (item.getTitle().equals("Copy image link")) {
                 String linkToCopy = result.getExtra();
                 ClipboardManager clipboard = (ClipboardManager)
                         getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clip = ClipData.newPlainText("simple text", linkToCopy);
                 clipboard.setPrimaryClip(clip);
-                Toast.makeText(getApplicationContext(), "Link Copied!",
-                        Toast.LENGTH_SHORT).show();
-            } else if (item.getTitle() == "Share Link") {
+                Toast.makeText(getApplicationContext(), "Link Copied!", Toast.LENGTH_SHORT).show();
+            } else if (item.getTitle().equals("Share Link")) {
                 String linkToShare = result.getExtra();
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType("text/plain");
-                shareIntent.putExtra(Intent.EXTRA_TEXT,linkToShare); // your above url
+                shareIntent.putExtra(Intent.EXTRA_TEXT, linkToShare);
                 startActivity(Intent.createChooser(shareIntent, "Share..."));
-            } else if (item.getTitle() == "Save - Download Image") {
-
+            } else if (item.getTitle().equals("Save - Download Image")) {
                 DownloadImageURL = result.getExtra();
-
                 if (URLUtil.isValidUrl(DownloadImageURL)) {
-
                     new BackgroundTask() {
                         @Override
-                        public void doInBackground(){
-
+                        public void doInBackground() {
                             URL url = null;
                             HttpURLConnection urlConnection = null;
                             try {
@@ -719,24 +696,21 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                                 urlConnection = (HttpURLConnection) url.openConnection();
                                 String filename = urlConnection.getHeaderField("Content-Disposition");
                                 fileinfo.put("filename", filename);
-
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             } finally {
-                                urlConnection.disconnect();
+                                if (urlConnection != null) {
+                                    urlConnection.disconnect();
+                                }
                             }
                         }
-
-                    }.execute(()->MainActivity.this.runOnUiThread(this::onPostExecute));
-
+                    }.execute(() -> MainActivity.this.runOnUiThread(this::onPostExecute));
                 } else {
                     Toast.makeText(MainActivity.this, "Sorry.. Something Went Wrong.", Toast.LENGTH_LONG).show();
                 }
-
-            } else if (item.getTitle() == "View Image") {
-                mywebView.loadUrl("javascript:window.open('"+result.getExtra()+"');");
+            } else if (item.getTitle().equals("View Image")) {
+                mywebView.loadUrl("javascript:window.open('" + result.getExtra() + "');");
             }
-
             return true;
         };
 
@@ -756,9 +730,9 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             filename = fileinfo.get("filename") != null ? parseContentDisposition(fileinfo.get("filename"), DownloadImageURL) : new File(new URL(DownloadImageURL).getPath()).getName();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
-        };
+        }
         String mimeType = getMimeType(filename);
-        if (!filename.contains(".")){
+        if (!filename.contains(".")) {
             filename = filename + "." + getExtension(mimeType);
         }
 
@@ -778,28 +752,26 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         Toast.makeText(MainActivity.this, "Image Downloaded Successfully.", Toast.LENGTH_LONG).show();
     }
 
-    private boolean handleIvelt(String url, WebView view){
-
-        if (url.contains("://ivelt")){
-            android.util.Log.d("URL","Redirecting to www");
+    private boolean handleIvelt(String url, WebView view) {
+        if (url.contains("://ivelt")) {
+            android.util.Log.d("URL", "Redirecting to www");
             mywebView.loadUrl(url.replace("://ivelt.com", "://www.ivelt.com"));
             return true;
         }
-        if (url.contains("download")){
+        if (url.contains("download")) {
             return false;
         }
-        if (url.contains("mark_notification")){
+        if (url.contains("mark_notification")) {
             int id = (int) NotificationService.NotificationInfo.extractIDFromURL(url);
             NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getApplicationContext());
             notificationManagerCompat.cancel(id);
             return false;
         }
-        if (url.endsWith("settings")){
+        if (url.endsWith("settings")) {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;
         }
-//        swipeRefreshLayout.setRefreshing(true);
         return false;
     }
 
@@ -809,10 +781,9 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     }
 
     private void addSettingsToQuickLinks(Document doc) {
-
         Elements quickLinks = doc.select("#quick-links");
         Elements quickLinksList = quickLinks.select(".dropdown-contents");
-        if (quickLinksList.size() > 0 && (quickLinksList.first().childrenSize() > 1)){
+        if (quickLinksList.size() > 0 && (quickLinksList.first().childrenSize() > 1)) {
             Element settingListElement = new Element("li");
             settingListElement.addClass("small-icon");
             Element settingsElement = new Element("a");
@@ -821,7 +792,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             settingsElement.attr("role", "menuitem");
             settingListElement.appendChild(settingsElement);
             settingListElement.attr("style", "background-image: url(./styles/prosilver_yidddish/theme/images/icon_topic_poll.gif)");
-//                    quickLinksList.first().appendChild(settingListElement);
             Element first = quickLinksList.first();
             if (first != null) {
                 first.insertChildren(first.childrenSize(), settingListElement);
@@ -844,13 +814,12 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 appSettingLink.html("עפפ סעטטינגס");
                 appSettingElement.appendChild(appSettingLink);
                 tabList.appendChild(appSettingElement);
-//                tabList.insertChildren(2, appSettingElement);
             }
         }
     }
 
-    private static boolean isIvelt(String url){
-        boolean isIvelt =  (url != null && (
+    private static boolean isIvelt(String url) {
+        boolean isIvelt = (url != null && (
                 url.startsWith("https://www.ivelt.com/") ||
                         url.startsWith("www.ivelt.com/") ||
                         url.startsWith("ivelt.com") ||
@@ -864,38 +833,35 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         return isIvelt;
     }
 
-
     @Override
     public void onRefresh(SwipyRefreshLayoutDirection direction) {
         mywebView.reload();
-
     }
-
 
     public class CustomWebViewClient extends WebViewClient {
 
         private final WebViewAssetLoader loader;
 
-        CustomWebViewClient(WebViewAssetLoader loader){
+        CustomWebViewClient(WebViewAssetLoader loader) {
             this.loader = loader;
         }
+
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
             this.showProgress();
-
         }
 
         @Nullable
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-            try{
+            try {
                 WebResourceResponse resourceResponse = loader.shouldInterceptRequest(request.getUrl());
-                if (resourceResponse == null || resourceResponse.getData() == null || resourceResponse.getStatusCode() > 299){
+                if (resourceResponse == null || resourceResponse.getData() == null || resourceResponse.getStatusCode() > 299) {
                     return super.shouldInterceptRequest(view, request);
                 }
-                return  resourceResponse;
-            }catch (Exception e){
+                return resourceResponse;
+            } catch (Exception e) {
                 return super.shouldInterceptRequest(view, request);
             }
         }
@@ -903,6 +869,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             return MainActivity.this.shouldOverrideUrlLoading(view, request.getUrl());
         }
+
         private boolean firstRun = true;
         private float initScale = 0.0f;
 
@@ -913,12 +880,10 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 initScale = oldScale;
                 firstRun = false;
                 zoomed = false;
-            }
-            else {
-                if (newScale>oldScale) {
+            } else {
+                if (newScale > oldScale) {
                     zoomed = true;
-                }
-                else {
+                } else {
                     if ((newScale * 0.95f) < initScale) {
                         zoomed = false;
                     }
@@ -932,11 +897,11 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         public void onPageFinished(WebView view, String url) {
             mSwipyRefreshLayout.setRefreshing(false);
             FirebaseCrashlytics.getInstance().log("current url " + currentUrl);
-            if (url == null){
+            if (url == null) {
                 FirebaseCrashlytics.getInstance().recordException(new Exception("Null URL"));
-            }else if (url.equals("about:blank")){
+            } else if (url.equals("about:blank")) {
                 FirebaseCrashlytics.getInstance().recordException(new Exception("Blank URL returned."));
-            }else{
+            } else {
                 currentUrl = url;
             }
             super.onPageFinished(view, url);
@@ -947,13 +912,13 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
             mywebView.loadUrl("javascript:var scale = " + metrics.widthPixels + " / document.body.scrollWidth; document.body.style.zoom = scale;");
 
-            if (!shouldLogout){
+            if (!shouldLogout) {
                 mywebView.setVisibility(View.VISIBLE);
             }
             try {
 
                 mywebView.loadUrl("javascript:" + Utils.readTextFile(MainActivity.this, R.raw.add_style));
-                if (shouldLogout){
+                if (shouldLogout) {
                     shouldLogout = false;
                     mywebView.loadUrl("javascript:" +
                             " let logoutElement = document.querySelector(\".icon-logout a\");\n" +
@@ -967,7 +932,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (serviceNeedsStarting){
+            if (serviceNeedsStarting) {
                 NotificationService.startNotificationService(MainActivity.this, NotificationService.ACTION_UPDATE_DELAY_TIME);
                 serviceNeedsStarting = false;
             }
@@ -975,7 +940,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 mywebView.zoomBy(1.1f);
                 String desktopuseragent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/605.1.15";
                 mywebView.getSettings().setUserAgentString(desktopuseragent);
-            }else if (url.contains("https://accounts.google.com/")) {
+            } else if (url.contains("https://accounts.google.com/")) {
                 String androidua = "Linux; Android 11; Android SDK built for x86 Build/RSR1.210210.001.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.106 Safari/537.36";
                 mywebView.getSettings().setUserAgentString(androidua);
             }
@@ -984,54 +949,49 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-//            FirebaseCrashlytics.getInstance().recordException(new Exception("Received error " + error.getErrorCode() + ": "+ error.getDescription() + " while loading URL " + request.getUrl()));
             super.onReceivedError(view, request, error);
         }
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-            if (errorResponse.getStatusCode() == 404){
+            if (errorResponse.getStatusCode() == 404) {
                 Toast.makeText(MainActivity.this, request.getUrl().toString() + " not found", Toast.LENGTH_LONG).show();
-            }else {
+            } else {
                 FirebaseCrashlytics.getInstance().recordException(new Exception("Received HTTP error " + errorResponse.getStatusCode() + ": " + errorResponse.getReasonPhrase() + " while loading URL " + request.getUrl()));
             }
             super.onReceivedHttpError(view, request, errorResponse);
         }
 
-        private void showProgress() {           
+        private void showProgress() {
             mSwipyRefreshLayout.setRefreshing(true);
         }
 
         private void hideProgress() {
             mSwipyRefreshLayout.setRefreshing(false);
-
         }
     }
 
     private boolean shouldOverrideUrlLoading(WebView view, Uri request) {
         logger.log("Should override url? " + request);
         String url = request.toString();
-        if (url.startsWith("http://www.ivelt.com/forum/ucp.php?mode=logout") || url.startsWith("https://www.ivelt.com/forum/ucp.php?mode=logout")){
-            iveltWebInterface.saveCredentials("","");
+        if (url.startsWith("http://www.ivelt.com/forum/ucp.php?mode=logout") || url.startsWith("https://www.ivelt.com/forum/ucp.php?mode=logout")) {
+            iveltWebInterface.saveCredentials("", "");
         }
-        if (isIvelt(url)){
-//                return  false;
+        if (isIvelt(url)) {
             return handleIvelt(url, view);
         }
-
 
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setData(request);
         try {
-//            return !isAllowedWebsite(url);
             startActivity(i);
-        }catch (ActivityNotFoundException activityNotFoundException){
+        } catch (ActivityNotFoundException activityNotFoundException) {
             logger.log("No browser found, trying to open URL = " + request);
             if (isAllowedWebsite(url)) {
                 return false;
             } else {
                 logger.log("Url blocked. URL = " + request);
-                Toast.makeText(MainActivity.this,"לינק געבלאקט, אשריכם ישראל" ,Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "לינק געבלאקט, אשריכם ישראל", Toast.LENGTH_LONG).show();
             }
         }
         return true;
@@ -1039,38 +999,39 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
     private boolean isAllowedWebsite(String url) {
         return url.startsWith("https://drive.google.com/") ||
-                // Should change this to regex
                 url.contains("docs.googleusercontent.com") ||
                 url.contains("dropboxusercontent.com") ||
                 url.startsWith("https://www.sefaria.org/") ||
                 url.startsWith("https://accounts.google.com/") ||
                 url.startsWith("https://drive-data-export.usercontent.google.com/") ||
                 url.startsWith("https://www.yiddish24.com/") ||
-                url.startsWith("https://ivelt2.github.io")||
+                url.startsWith("https://ivelt2.github.io") ||
                 url.contains("https://docs.google.com/") ||
                 url.startsWith("https://www.dropbox.com/");
     }
-    private String parseContentDisposition(String contentDisposition, String url){
+
+    private String parseContentDisposition(String contentDisposition, String url) {
         String[] headers = contentDisposition.split(";");
         String filename = null;
         String utf8Filename = null;
-        for (String header : headers){
-            if (header.trim().startsWith("filename=")){
+        for (String header : headers) {
+            if (header.trim().startsWith("filename=")) {
                 filename = header;
             }
-            if (header.trim().startsWith("filename*=UTF-8")){
+            if (header.trim().startsWith("filename*=UTF-8")) {
                 utf8Filename = header;
             }
         }
         utf8Filename = utf8Filename == null ? filename : utf8Filename;
-        if (utf8Filename == null){
+        if (utf8Filename == null) {
             String[] paths = url.split("/");
-            return paths[paths.length -1];
+            return paths[paths.length - 1];
         }
         utf8Filename = utf8Filename.substring(utf8Filename.lastIndexOf("=") + 1).trim().replace("UTF-8''", "");
 
         return URLDecoder.decode(utf8Filename);
     }
+
     @NonNull
     private DisplayMetrics getDisplayMetrics() {
         WindowManager manager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
@@ -1084,16 +1045,17 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         private float startY = 0.0f;
         private float startX2 = 0.0f;
         private boolean swiping = false;
+
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             int action = event.getAction() & MotionEvent.ACTION_MASK;
-            switch (action){
+            switch (action) {
                 case MotionEvent.ACTION_POINTER_DOWN:
                 case MotionEvent.ACTION_DOWN:
                     swiping = true;
                     startX = event.getX(0);
                     startY = event.getY(0);
-                    if (event.getPointerCount() > 1){
+                    if (event.getPointerCount() > 1) {
                         startX2 = event.getX(1);
                     }
                     break;
@@ -1106,19 +1068,17 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                     boolean twoFingerSwipe = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("two_finger_swipe", true);
                     boolean isHorizontalSwipe = isHorizontalSwipe(startX, startY, endX, endY);
                     boolean isForward = startX < endX;
-                    android.util.Log.d("SWIPE", "oneFinger " + oneFingerSwipe + " two finger " +  twoFingerSwipe);
-                    if (!zoomed && isHorizontalSwipe && oneFingerSwipe && swiping && event.getPointerCount() == 1){
+                    android.util.Log.d("SWIPE", "oneFinger " + oneFingerSwipe + " two finger " + twoFingerSwipe);
+                    if (!zoomed && isHorizontalSwipe && oneFingerSwipe && swiping && event.getPointerCount() == 1) {
                         singleFingerSwipe(isForward);
                     }
-                    if (isHorizontalSwipe && twoFingerSwipe && swiping && event.getPointerCount() > 1){
+                    if (isHorizontalSwipe && twoFingerSwipe && swiping && event.getPointerCount() > 1) {
                         boolean isSecondForward = startX2 < event.getX(1);
                         if (isSecondForward == isForward) {
                             multiFingerSwipe(isForward);
                         }
                     }
                     swiping = false;
-//                    Log.d("ONTOUCH", "action: " + action + " count: " + event.getPointerCount() + " start x: " + startX + " end x: "
-//                            + endX + " is horizontal " + isHorizontalSwipe + " is forward " + isForward);
                     break;
                 case MotionEvent.ACTION_MOVE:
                     break;
@@ -1129,14 +1089,14 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             return v.onTouchEvent(event);
         }
 
-        private void multiFingerSwipe(boolean forward){
-            if (forward){
+        private void multiFingerSwipe(boolean forward) {
+            if (forward) {
                 String javaScript =
                         "let next = document.getElementsByClassName('next'); " +
                                 "let a = next[0].getElementsByTagName('a') ;" +
                                 "a[0].click()";
                 mywebView.loadUrl("javascript:" + javaScript);
-            }else{
+            } else {
                 String javaScript =
                         "let next = document.getElementsByClassName('previous'); " +
                                 "let a = next[0].getElementsByTagName('a');" +
@@ -1145,22 +1105,21 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             }
         }
 
-        private void singleFingerSwipe(boolean forward){
-            if (forward && mywebView.canGoForward()){
+        private void singleFingerSwipe(boolean forward) {
+            if (forward && mywebView.canGoForward()) {
                 mywebView.goForward();
             }
-            if (!forward && mywebView.canGoBack()){
+            if (!forward && mywebView.canGoBack()) {
                 mywebView.goBack();
             }
         }
-        private boolean isHorizontalSwipe(float startX, float startY, float endX, float endY){
+
+        private boolean isHorizontalSwipe(float startX, float startY, float endX, float endY) {
             return (Math.abs(startX - endX) - Math.abs(startY - endY)) > (100 * getDisplayMetrics().density);
         }
-
-
     }
-    public void showDialog() {
 
+    public void showDialog() {
         String password = PreferenceManager.getDefaultSharedPreferences(this).getString("password", "");
         if (!password.equals("")) {
             mywebView.setVisibility(View.INVISIBLE);
@@ -1175,54 +1134,35 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                     .setTitle("Login")
                     .setMessage("Enter Your Password");
 
-
-
-
-            alert.setPositiveButton("Login", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    String value = input.getText().toString();
-                    if (!value.equals(password)) {
-
-                        AlertDialog.Builder alert2 = new AlertDialog.Builder(MainActivity.this);
-                        alert2.setTitle("Login")
-                                .setMessage("The password you have entered is incorrect.\n Please try again!");
-
-                        alert2.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                showDialog();
-
-                            }
-                        });
-                        alert2.show();
-                    }
-                    else {
-                        mywebView.setVisibility(View.VISIBLE);
-                    }
-
+            alert.setPositiveButton("Login", (dialog, whichButton) -> {
+                String value = input.getText().toString();
+                if (!value.equals(password)) {
+                    AlertDialog.Builder alert2 = new AlertDialog.Builder(MainActivity.this);
+                    alert2.setTitle("Login")
+                            .setMessage("The password you have entered is incorrect.\n Please try again!");
+                    alert2.setPositiveButton("Retry", (dialog2, id) -> showDialog());
+                    alert2.show();
+                } else {
+                    mywebView.setVisibility(View.VISIBLE);
                 }
             });
 
             alert.show();
-
-
         }
     }
-
-
 
     public abstract class BackgroundTask {
         private void startBackground(Runnable onPostExecute) {
-            new Thread(()-> {
+            new Thread(() -> {
                 doInBackground();
                 onPostExecute.run();
-
             }).start();
         }
-        public void execute(Runnable onPostExecute){
+
+        public void execute(Runnable onPostExecute) {
             startBackground(onPostExecute);
         }
+
         public abstract void doInBackground();
     }
-
 }
