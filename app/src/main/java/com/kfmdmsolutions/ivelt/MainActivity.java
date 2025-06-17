@@ -93,8 +93,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     String url = null;
     Logger logger;
     String DownloadImageURL = null;
-    HashMap<String, String> fileinfo = new HashMap<String, String>();
-
     private boolean serviceNeedsStarting = true;
     public static final WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
     private boolean zoomed = false;
@@ -707,27 +705,15 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 DownloadImageURL = result.getExtra();
 
                 if (URLUtil.isValidUrl(DownloadImageURL)) {
-
-                    new BackgroundTask() {
-                        @Override
-                        public void doInBackground(){
-
-                            URL url = null;
-                            HttpURLConnection urlConnection = null;
-                            try {
-                                url = new URL(DownloadImageURL);
-                                urlConnection = (HttpURLConnection) url.openConnection();
-                                String filename = urlConnection.getHeaderField("Content-Disposition");
-                                fileinfo.put("filename", filename);
-
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            } finally {
-                                urlConnection.disconnect();
-                            }
-                        }
-
-                    }.execute(()->MainActivity.this.runOnUiThread(this::onPostExecute));
+                    String javascript = "javascript:" +
+                            " var link = document.createElement(\"a\");\n" +
+                            " link.setAttribute('download', \"\");\n" +
+                            " link.href = \""+DownloadImageURL+"\";\n" +
+                            " document.body.appendChild(link);\n" +
+                            " link.click();\n" +
+                            " link.remove();";
+                    Log.d("test",javascript);
+                    mywebView.loadUrl(javascript);
 
                 } else {
                     Toast.makeText(MainActivity.this, "Sorry.. Something Went Wrong.", Toast.LENGTH_LONG).show();
@@ -748,34 +734,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             menu.add(0, 3, 2, "Copy image link").setOnMenuItemClickListener(handler);
             menu.add(0, 4, 3, "Share Link").setOnMenuItemClickListener(handler);
         }
-    }
-
-    private void onPostExecute() {
-        String filename;
-        try {
-            filename = fileinfo.get("filename") != null ? parseContentDisposition(fileinfo.get("filename"), DownloadImageURL) : new File(new URL(DownloadImageURL).getPath()).getName();
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        };
-        String mimeType = getMimeType(filename);
-        if (!filename.contains(".")){
-            filename = filename + "." + getExtension(mimeType);
-        }
-
-        DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(DownloadImageURL));
-        String cookie = CookieManager.getInstance().getCookie(DownloadImageURL);
-        request.allowScanningByMediaScanner();
-        request.setTitle(filename)
-                .addRequestHeader("cookie", cookie)
-                .setMimeType(mimeType)
-                .setAllowedOverMetered(true)
-                .setAllowedOverRoaming(true)
-                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename);
-        downloadManager.enqueue(request);
-
-        Toast.makeText(MainActivity.this, "Image Downloaded Successfully.", Toast.LENGTH_LONG).show();
     }
 
     private boolean handleIvelt(String url, WebView view){
