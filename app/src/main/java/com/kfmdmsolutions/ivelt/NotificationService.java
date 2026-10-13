@@ -25,6 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
@@ -36,6 +37,7 @@ import android.os.PowerManager;
 import android.service.notification.StatusBarNotification;
 import android.text.Html;
 import android.text.format.DateUtils;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -150,7 +152,12 @@ public class NotificationService extends Service {
     public static void startNotificationService(Context context, String action) {
         Intent intent = new Intent(context, NotificationService.class);
         intent.setAction(action);
-        context.startService(intent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
     }
 
     public static void checkNotifications(Context context) {
@@ -202,6 +209,7 @@ public class NotificationService extends Service {
                 .data("autologin", "on")
                 .followRedirects(true)
                 .post();
+        Logger.getInstance(context).log(doc.body().text());
         Elements notificationList = doc.select(".notification_list");
 
         if (!notificationList.isEmpty()) {
@@ -492,7 +500,13 @@ public class NotificationService extends Service {
         }
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
         Notification notification = updateServiceNotification();
-        startForeground(SERVICE_NOTIFICATION_ID, notification);
+        //startForeground(SERVICE_NOTIFICATION_ID, notification);
+        // 2. Call startForeground immediately with the required type
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(SERVICE_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        } else {
+            startForeground(SERVICE_NOTIFICATION_ID, notification);
+        }
         registerReceiver(powerBroadcastReceiver, new IntentFilter(ACTION_BATTERY_CHANGED));
         isCharging = batteryManager.isCharging();
 

@@ -53,6 +53,7 @@ import android.window.OnBackInvokedDispatcher;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -246,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 ContextCompat.getColor(this, R.color.purple_700));
         ViewCompat.setOnApplyWindowInsetsListener(mSwipyRefreshLayout, (view, windowInsets) -> {
             Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
             return windowInsets;
         });
         ViewCompat.requestApplyInsets(mSwipyRefreshLayout);
@@ -282,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         WebSettings webSettings = mywebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setSupportMultipleWindows(true);
-        webSettings.setJavaScriptCanOpenWindowsAutomatically(false);
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         mywebView.getSettings().setSupportZoom(true);
         mywebView.getSettings().setBuiltInZoomControls(true);
         mywebView.getSettings().setDisplayZoomControls(false);
@@ -294,7 +295,9 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         mywebView.getSettings().setDatabaseEnabled(true);
         mywebView.setLayerType(View.LAYER_TYPE_NONE, null);
 
-
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
+            WebSettingsCompat.setRequestedWithHeaderOriginAllowList(webSettings, new java.util.HashSet<>());
+        }
         if (WebViewFeature.isFeatureSupported(WebViewFeature.BACK_FORWARD_CACHE_SETTINGS_EXPERIMENTAL_V3)) {
             BackForwardCacheSettings settings =
                     WebSettingsCompat.getBackForwardCacheSettings(mywebView.getSettings());
@@ -483,6 +486,9 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                     CookieManager.getInstance().setAcceptThirdPartyCookies(windowWebView, true);
                     windowWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
                     windowWebView.getSettings().setSupportMultipleWindows(true);
+                    windowWebView.getSettings().setUserAgentString(mywebView.getSettings().getUserAgentString());
+
+                    CookieManager.getInstance().setAcceptThirdPartyCookies(windowWebView, true);
                     windowWebView.setWebViewClient(new WebViewClient(){
                         @Override
                         public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -912,7 +918,6 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     @Override
     public void onRefresh(SwipyRefreshLayoutDirection direction) {
         mywebView.reload();
-
     }
 
 
@@ -933,10 +938,12 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             try{
+
                 WebResourceResponse resourceResponse = loader.shouldInterceptRequest(request.getUrl());
                 if (resourceResponse == null || resourceResponse.getData() == null || resourceResponse.getStatusCode() > 299){
                     return super.shouldInterceptRequest(view, request);
                 }
+
                 return  resourceResponse;
             }catch (Exception e){
                 return super.shouldInterceptRequest(view, request);
