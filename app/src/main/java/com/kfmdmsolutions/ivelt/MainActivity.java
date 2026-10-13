@@ -251,8 +251,7 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
                 ContextCompat.getColor(this, R.color.purple_700));
         ViewCompat.setOnApplyWindowInsetsListener(mSwipyRefreshLayout, (view, windowInsets) -> {
             Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return windowInsets;
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);            return windowInsets;
         });
         ViewCompat.requestApplyInsets(mSwipyRefreshLayout);
         WindowInsetsControllerCompat insetsController =
