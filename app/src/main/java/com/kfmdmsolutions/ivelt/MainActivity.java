@@ -12,6 +12,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -75,12 +76,14 @@ import com.kfmdmsolutions.ivelt.Utilities.Logger;
 import com.kfmdmsolutions.ivelt.Utilities.Utils;
 import com.kfmdmsolutions.ivelt.Utilities.WebkitCookieManagerProxy;
 
+import org.json.JSONObject;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -88,7 +91,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity implements SwipyRefreshLayout.OnRefreshListener {
@@ -395,9 +400,105 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
         sFileName = filename;
         sURL = url;
         sUserAgent = userAgent;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && url != null && url.contains("ivelt.com")) {
+            // ivelt files sit behind Cloudflare; the system DownloadManager can't pass its check
+            downloadViaWebView(url, filename);
+            return;
+        }
         downloadFile(filename, url, userAgent);
 
     }
+
+    // ---- Downloads through the WebView ------------------------------------------------------
+    private void downloadViaWebView(String url, String fallbackName) {
+        logger.log("Downloading via WebView: " + url);
+        Toast.makeText(this, "Downloading…", Toast.LENGTH_SHORT).show();
+        mywebView.evaluateJavascript("window.__appDownload ? window.__appDownload("
+                + JSONObject.quote(url) + "," + JSONObject.quote(fallbackName) + ") : 'missing'", value -> {
+            if ("\"missing\"".equals(value)) {                       // page without cf_hook.js loaded
+                downloadFile(fallbackName, url, mywebView.getSettings().getUserAgentString());
+            }
+        });
+    }
+
+    private static final String DOWNLOADS_CHANNEL = "downloads";
+    private static final int REQUEST_POST_NOTIFICATIONS = 1002;
+    private android.app.Notification pendingDownloadNotification;
+    private int pendingDownloadNotificationId;
+
+    // "Download complete" notification; tapping it opens the file
+    private void showDownloadNotification(String fileName, String mimeType, Uri uri) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationManager nm = getSystemService(NotificationManager.class);
+                if (nm.getNotificationChannel(DOWNLOADS_CHANNEL) == null) {
+                    NotificationChannel ch = new NotificationChannel(DOWNLOADS_CHANNEL, "Downloads",
+                            NotificationManager.IMPORTANCE_DEFAULT);
+                    ch.setDescription("Show a notification when a download is complete");
+                    nm.createNotificationChannel(ch);
+                }
+            }
+            Intent open = new Intent(Intent.ACTION_VIEW)
+                    .setDataAndType(uri, mimeType)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            android.app.PendingIntent pi = android.app.PendingIntent.getActivity(this, uri.hashCode(), open,
+                    android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT);
+            androidx.core.app.NotificationCompat.Builder b =
+                    new androidx.core.app.NotificationCompat.Builder(this, DOWNLOADS_CHANNEL)
+                            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                            .setContentTitle(fileName)
+                            .setContentText("Download complete")
+                            .setContentIntent(pi)
+                            .setAutoCancel(true);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                    || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                NotificationManagerCompat.from(this).notify(uri.hashCode(), b.build());
+                Log.d(TAG, "Download notification posted for " + fileName);
+            } else {
+                // Android 13+: ask for the notification permission, then post it
+                Log.d(TAG, "Download notification waiting for POST_NOTIFICATIONS permission");
+                logger.log("Download notification: requesting POST_NOTIFICATIONS");
+                pendingDownloadNotification = b.build();
+                pendingDownloadNotificationId = uri.hashCode();
+                runOnUiThread(() -> ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_POST_NOTIFICATIONS));
+            }
+        } catch (Exception e) {
+            logger.log("Download notification failed: " + e);
+        }
+    }
+
+    // Called from IveltWebInterface.saveDownload (JavaBridge thread) with the file as base64
+    void saveDownload(String fileName, String mimeType, String base64) {
+        String safe = (fileName == null || fileName.isEmpty() ? "download" : fileName)
+                .replaceAll("[\\\\/:*?\"<>|]", "_");
+        try {
+            byte[] data = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) throw new IllegalStateException("API < 29");
+            ContentResolver cr = getContentResolver();
+            ContentValues v = new ContentValues();
+            v.put(MediaStore.Downloads.DISPLAY_NAME, safe);
+            v.put(MediaStore.Downloads.MIME_TYPE, mimeType);
+            v.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+            v.put(MediaStore.Downloads.IS_PENDING, 1);
+            Uri uri = cr.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+            if (uri == null) throw new IOException("MediaStore insert failed");
+            try (OutputStream os = cr.openOutputStream(uri)) {
+                if (os == null) throw new IOException("openOutputStream returned null");
+                os.write(data);
+            }
+            v.clear();
+            v.put(MediaStore.Downloads.IS_PENDING, 0);
+            cr.update(uri, v, null, null);
+            logger.log("Saved download " + safe + " (" + data.length + " bytes)");
+            showDownloadNotification(safe, mimeType, uri);
+            runOnUiThread(() -> Toast.makeText(this, "Saved to Downloads: " + safe, Toast.LENGTH_LONG).show());
+        } catch (Exception e) {
+            logger.log("saveDownload failed: " + e);
+            runOnUiThread(() -> Toast.makeText(this, "Download failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+        }
+    }
+
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
@@ -714,6 +815,13 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
             if (cookie != null) {
                 request.addRequestHeader("cookie", cookie);
             }
+            // Same identity as the WebView (Cloudflare ties cf_clearance to the user agent)
+            if (userAgent != null && !userAgent.isEmpty()) {
+                request.addRequestHeader("User-Agent", userAgent);
+            }
+            if (refererUrl != null) {
+                request.addRequestHeader("Referer", refererUrl);
+            }
 
             downloadManager.enqueue(request);
             Toast.makeText(this, "Download Started Successfully.", Toast.LENGTH_LONG).show();
@@ -747,6 +855,14 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_POST_NOTIFICATIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && pendingDownloadNotification != null) {
+                NotificationManagerCompat.from(this).notify(pendingDownloadNotificationId, pendingDownloadNotification);
+            }
+            pendingDownloadNotification = null;
+            return;
+        }
         if (requestCode == 1001) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (!sURL.equals("") && !sFileName.equals("") && !sUserAgent.equals("")) {
@@ -790,7 +906,11 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
                 DownloadImageURL = result.getExtra();
 
-                if (URLUtil.isValidUrl(DownloadImageURL)) {
+                if (URLUtil.isValidUrl(DownloadImageURL) && DownloadImageURL.contains("ivelt.com")
+                        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Download through the WebView (passes Cloudflare), then save via MediaStore
+                    downloadViaWebView(DownloadImageURL, URLUtil.guessFileName(DownloadImageURL, null, null));
+                } else if (URLUtil.isValidUrl(DownloadImageURL)) {
                     String javascript = "javascript:" +
                             " var link = document.createElement(\"a\");\n" +
                             " link.setAttribute('download', \"\");\n" +
@@ -1056,6 +1176,24 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+            if (errorResponse.getStatusCode() == 403 && isCloudflareChallenge(errorResponse)) {
+                // A page resource (image, avatar, ...) was blocked by Cloudflare. Re-request it from
+                // the page so cf_hook.js gets the challenge page and shows the pop-up; once solved,
+                // onCloudflareSolved() reloads the broken images.
+                logger.log("Cloudflare blocked resource: " + request.getUrl());
+                long now = System.currentTimeMillis();
+                if (!request.isForMainFrame() && now - lastCfProbe > 10_000
+                        && (cfDialog == null || !cfDialog.isShowing())) {
+                    // cf_hook.js may not be injected yet (that happens in onPageFinished); in that case
+                    // it scans for broken images itself once it loads.
+                    view.evaluateJavascript("window.__cfProbe ? (window.__cfProbe("
+                            + JSONObject.quote(request.getUrl().toString()) + "), true) : false", value -> {
+                        if ("true".equals(value)) lastCfProbe = System.currentTimeMillis();
+                    });
+                }
+                super.onReceivedHttpError(view, request, errorResponse);
+                return;
+            }
             if (errorResponse.getStatusCode() == 404){
                 Toast.makeText(MainActivity.this, request.getUrl().toString() + " not found", Toast.LENGTH_LONG).show();
             }else {
@@ -1272,6 +1410,86 @@ public class MainActivity extends AppCompatActivity implements SwipyRefreshLayou
     }
 
 
+
+    // ---- Cloudflare challenge pop-up -------------------------------------------------------
+    // Called from cf_hook.js (via IveltWebInterface.solveCloudflare) when a background request
+    // gets a 403 with "cf-mitigated: challenge". Shows the check in a dialog so the current page
+    // (e.g. a half-written reply) is not lost. WebViews share one CookieManager, so the
+    // cf_clearance cookie issued here also applies to the main WebView.
+    private AlertDialog cfDialog;
+
+    void showCloudflareDialog(String url, String html) {
+        if (cfDialog != null && cfDialog.isShowing()) return;   // one at a time
+        logger.log("Cloudflare challenge for " + url);
+
+        final CookieManager cm = CookieManager.getInstance();
+        final String before = extractCookie(cm.getCookie("https://www.ivelt.com"), "cf_clearance");
+
+        final WebView cf = new WebView(this);
+        cf.setMinimumHeight((int) (getResources().getDisplayMetrics().heightPixels * 0.6)); // don't collapse inside the dialog
+        WebSettings s = cf.getSettings();
+        s.setJavaScriptEnabled(true);
+        s.setDomStorageEnabled(true);
+        s.setUserAgentString(mywebView.getSettings().getUserAgentString()); // clearance is tied to the UA
+        cm.setAcceptThirdPartyCookies(cf, true);
+
+        cf.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView v, String u) {
+                String now = extractCookie(cm.getCookie("https://www.ivelt.com"), "cf_clearance");
+                logger.log("CF dialog page finished: " + u + " clearance=" + (now != null));
+                if (now != null && !now.equals(before)) {           // a new clearance was issued
+                    cm.flush();
+                    if (cfDialog != null) cfDialog.dismiss();
+                    mywebView.evaluateJavascript("window.onCloudflareSolved && window.onCloudflareSolved()", null);
+                    Toast.makeText(MainActivity.this, "Verified", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
+                String h = r.getUrl().getHost();                     // keep the pop-up on ivelt / Cloudflare only
+                return h == null || !(h.endsWith("ivelt.com") || h.endsWith("cloudflare.com"));
+            }
+        });
+
+        if (html != null && html.contains("_cf_chl_opt")) {
+            // Show the exact challenge page Cloudflare returned to the background request
+            cf.loadDataWithBaseURL(url, html, "text/html", "UTF-8", url);
+        } else {
+            // Fallback: load the page with the header background requests send
+            Map<String, String> h = new HashMap<>();
+            h.put("X-Requested-With", "XMLHttpRequest");
+            cf.loadUrl(url, h);
+        }
+
+        cfDialog = new AlertDialog.Builder(this)
+                .setView(cf)
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+        cfDialog.setOnDismissListener(d -> cf.destroy());
+        cfDialog.show();
+    }
+
+    private long lastCfProbe = 0;
+
+    private static boolean isCloudflareChallenge(WebResourceResponse response) {
+        Map<String, String> headers = response.getResponseHeaders();
+        if (headers == null) return false;
+        for (Map.Entry<String, String> e : headers.entrySet()) {
+            if ("cf-mitigated".equalsIgnoreCase(e.getKey()) && "challenge".equalsIgnoreCase(e.getValue())) return true;
+        }
+        return false;
+    }
+
+    private static String extractCookie(String all, String name) {
+        if (all == null) return null;
+        for (String p : all.split(";")) {
+            p = p.trim();
+            if (p.startsWith(name + "=")) return p.substring(name.length() + 1);
+        }
+        return null;
+    }
 
     public abstract class BackgroundTask {
         private void startBackground(Runnable onPostExecute) {

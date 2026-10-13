@@ -58,17 +58,26 @@ function getSelection2(post_id){
 function copyQuote(url, post_id){
     let post_url = getPostLink(post_id)
     console.log(`url ${post_url}`)
-    $.get(
-        url,
-        response => {
-            var res = $("#message-box #message", response)[0].innerText
-            console.log(url)
-            if (url.toString().includes("posting.php")){
-                res = `${res} [url=${post_url}]מקור[/url]`
-            }
-            android.copyToClipboard(res)
-        }
-    )
+    $.get(url)
+     .done(response => {
+         let el = $("#message-box #message", response)[0]
+         if (!el) { copyQuoteParse(post_id); return; }
+         let res = el.innerText
+         console.log(url)
+         if (url.toString().includes("posting.php")){
+             res = `${res} [url=${post_url}]מקור[/url]`
+         }
+         android.copyToClipboard(res)
+     })
+     .fail(xhr => {
+         console.error(`copyQuote failed: ${xhr.status} ${url}`)
+         if (xhr.status === 403 && (xhr.getResponseHeader('cf-mitigated') || '').toLowerCase() === 'challenge') {
+             // cf_hook.js opens the Cloudflare pop-up; retry once it's solved
+             window.__cfRetry = () => copyQuote(url, post_id)
+             return
+         }
+         copyQuoteParse(post_id)
+     })
 }
 
 function lastaddquote(post_id, username, l_wrote, attributes ) {
