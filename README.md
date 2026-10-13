@@ -1,43 +1,57 @@
-# IVELT App for Android Devices (maybe soon windows 11 😉) (For flip phones as well)
+# Ivelt Forums App for Android (including flip phones)
 
-Ivelt app that can not access any nonkosher websites. 
-please let me know in the issues tab (any support is also graciously accepted).
+An Ivelt app that cannot access any non-kosher websites.
+If you run into a problem, please let us know in the [Issues](https://github.com/KFMDMSolutions/Ivelt-Android-App/issues) tab (any support is also graciously accepted).
 
-Official Releases can be seen here:
+## Download
 
-https://play.google.com/store/apps/details?id=com.kfmdmsolutions.ivelt
+Official releases are available on Google Play and here on GitHub:
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/KFMDMSolutions/Ivelt-Android-App?label=Latest%20Release&style=for-the-badge)](https://github.com/KFMDMSolutions/Ivelt-Android-App/releases)
+[![Google Play](https://img.shields.io/endpoint?style=for-the-badge&logo=google-play&color=blue&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dcom.kfmdmsolutions.ivelt%26gl%3DUS%26hl%3Den%26l%3DPlay%2520Store%26m%3D%24version)](https://play.google.com/store/apps/details?id=com.kfmdmsolutions.ivelt)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/KFMDMSolutions/Ivelt-Android-App?label=Latest%20Release&style=for-the-badge&logo=github)](https://github.com/KFMDMSolutions/Ivelt-Android-App/releases)
 
+## What does this app do?
 
+The Ivelt app is intended for users running Android smartphones or flip phones (Android 7.0 / SDK 24 and up).
 
-**So what does this app do?**  
-Ivelt app is intended for users running Android Smart/Flipphone (Min SDK 24)
+### Extra features on top of the Ivelt forums
+- **Notifications** for private messages, quotes, thanks, new posts in bookmarked topics, and more, with separate settings for when the phone is plugged in or on battery, and an option to pause them
+- **New-post alerts** while reading a topic, with a button to reload
+- **Extra post buttons:** share a post, send a private message, mention (@) the poster, quote only the last reply, and copy a quote to use in another topic
+- **Swipe gestures** to move between pages and go back or forward
+- **Default start page** of your choice and the option to **hide buttons** you don't use
+- **Auto-login** and an optional **app password** to lock the app
+- **Image options** on long-press: view, save (with a download notification), copy the link, or share
+- English and Yiddish interface
 
-## Frequently Asked Questions (and Answers)
-#### Question: So, how does it work?
-**Answer:** You have the exact code in front of you, feel free to read it { It's not that bad ;) }. In a nutshell, this app uses Web app features provided by Android.
+## Frequently Asked Questions
 
-#### Q: I think there's something that can be improved. How to contribute?
-**A:** We welcome all kinds of contributions. Documentation, Code tests, Actual Hardware Testing, etc etc. Please feel free to create a Pull request and remind me in a couple of weeks if I forget about it 😃
+#### Q: How does it work?
+**A:** You have the exact code in front of you, so feel free to read it (it's not that bad 😉). In a nutshell, the app uses the web app features provided by Android.
 
-#### Q: Is there a version for Flip Phones too?
-**A:** Yes! this app also works on flip phones as it is named with the android.cts.example package name.
+#### Q: I think something can be improved. How can I contribute?
+**A:** We welcome all kinds of contributions: documentation, code, tests, testing on actual hardware, and more. Please feel free to open a pull request, and remind me in a couple of weeks if I forget about it 😃
 
-#### Q: Are there ADs?
-**A:** No, there are no ads, and there won't be any from our end but IVELT does have ads so the ads that are on the site will still come up, but by clicking it you won't be able to access any other sites.
+#### Q: Is there a version for flip phones too?
+**A:** Yes! The app also works on flip phones, as it is named with the `android.cts.example` package name.
 
-#### Q: Is there any kind of tracking information? Do you sell it for profit?
-**A:** No, there is no tracking information collected from the app. No telemetry nothing.
+#### Q: Are there ads?
+**A:** No. There are no ads from our end, and there never will be. Ivelt itself does show ads, so those will still appear on the site, but tapping them won't let you open any other sites.
 
-#### Q: How do you sustain the project?
-**A:** It's currently on Ad-Hoc basis. This project is not funded by anyone. It totally relies on community support.
+#### Q: Is any tracking information collected? Do you sell it for profit?
+**A:** No. The app doesn't collect any tracking information. No telemetry, nothing.
 
-## Redistributing and Creating MODs
-We welcome everyone who'd like to work on the application, but I request everyone to stick to the following:
-* Please consider sending the enhancement to this project itself. Were open to all enhancements and fixes. The whole point of making this app open source is so that people have full access to the source code.
-* Please considering pointing to the latest releases from this repository itself, unless you explicitly want folks to download an old version. This prevents more people from downloading old versions and reporting bugs that might have been fixed.
-* If you want to make a commercial application out of the project please file an issue to discuss or email us contact@kfmdmsolutions.com.
+#### Q: How is the project sustained?
+**A:** It's currently on an ad-hoc basis. The project isn't funded by anyone and relies entirely on community support.
+
+## Redistributing and Creating Mods
+
+Everyone is welcome to work on the app, but please stick to the following:
+
+* Please consider contributing your improvements back to this project. We're open to all enhancements and fixes; the whole point of making this app open source is to give everyone full access to the source code.
+* Please consider linking to the latest release from this repository, unless you explicitly want people to download an old version. This keeps people from downloading old versions and reporting bugs that may already be fixed.
+* If you want to build a commercial application from the project, please open an issue to discuss it or email us at contact@kfmdmsolutions.com.
 
 ## Reporting Bugs
-Please ensure to report bugs against an official release. Please try the latest official release before reporting a bug, just in case the latest version has fixed issues that you might be facing.
+
+Please report bugs against an official release, and try the latest official release first, in case it already fixes the issue you're facing.
